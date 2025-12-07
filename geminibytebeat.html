@@ -36,15 +36,20 @@
       cols="60"
       placeholder="Example: t * ((t >> 10) & 42) | t * ((t >> 13) & 15)"
     >
-10*(t>>7|t|t>>6)+4*(t&t>>13|t>>6)</textarea
+t*Math.pow(1.0594630943592952645618252949463, 
+[
+0,3,7,12,19,12,7,3,-12, 7, 12, 15, 0, 7, 12, 14,
+-4, 3, 12, 15, 20, 24, 27, 19, -12, 7, 12, 15, 0, 7, 12, 14, 
+][Math.floor(t/16384)%24 + Math.floor(t/12088)%17] - 1
+);</textarea
     ><br />
 
     <label for="sampleRate">Sample Rate:</label>
     <select id="sampleRate">
-      <option value="8000" selected>8 kHz (Classic Bytebeat)</option>
+      <option value="8000">8 kHz (Classic Bytebeat)</option>
       <option value="16000">16 kHz</option>
       <option value="22050">22.05 kHz</option>
-      <option value="44100">44.1 kHz</option></select
+      <option value="44100" selected>44.1 kHz</option></select
     ><br /><br />
 
     <button id="playButton">▶️ Play / Restart</button>
@@ -105,7 +110,7 @@
         // Re-initialize for play/restart
         t = 0;
         isPlaying = true;
-        document.getElementById("playButton").disabled = true;
+        //document.getElementById("playButton").disabled = true;
         document.getElementById("stopButton").disabled = false;
 
         // 1. Setup Audio Context
