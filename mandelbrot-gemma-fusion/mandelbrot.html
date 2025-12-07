@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Mandelbrot</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      html {
+        font-family: system-ui, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell,
+          "Open Sans", "Helvetica Neue", sans-serif;
+        font-size: 14px;
+        height: 100%;
+      }
+      @media (prefers-color-scheme: dark) {
+        html,
+        body {
+          background: #000;
+          color: #fafafa;
+        }
+      }
+      body {
+        height: 100%;
+        width: 100%;
+        overflow-x: hidden;
+        display: flex;
+      }
+      .wrap {
+        margin: auto;
+        overscroll-behavior: contain;
+        overflow: hidden;
+      }
+      canvas {
+        border: 1px solid black;
+        overscroll-behavior: contain;
+      }
+      .info {
+        font-family: monospace;
+        margin-top: 10px;
+        min-height: 4ch;
+        white-space: pre-wrap;
+        width: 100%;
+      }
+      .buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1em;
+        margin-block: 0.75em;
+      }
+      .slider {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25em;
+        & label {
+          flex-basis: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <canvas id="myCanvas" width="500" height="500"></canvas>
+      <div id="cursorInfo" class="info"></div>
+      <div id="rangeInfo" class="info"></div>
+      <section class="buttons">
+        <button onclick="zoomIn()">Zoom In</button>
+        <button onclick="zoomOut()">Zoom Out</button>
+        <button onclick="resetView()">Reset View</button>
+      </section>
+
+      <section class="buttons">
+        <button onclick="panLeft()">Pan Left</button>
+        <button onclick="panRight()">Pan Right</button>
+        <button onclick="panUp()">Pan Up</button>
+        <button onclick="panDown()">Pan Down</button>
+      </section>
+      <section class="slider">
+        <input
+          type="range"
+          min="10"
+          max="1000"
+          id="maxIterationsSlider"
+          value="100"
+        />
+        <label>Maximum iterations</label>
+      </section>
+      <footer>
+        <small
+          ><p>
+            This is a <strong>Toy page</strong> and not suitable for mobile
+            devices. You'll also notice that the dragging behavior in the canvas
+            is incredibly wonky on Desktop as well.
+          </p>
+          <p>
+            Since this was initially based on playing around with different
+            LLMs, there are code fragments that probably come from the first
+            couple of search results for "Mandelbrot explorer JS" or something
+            like this.
+          </p>
+        </small>
+      </footer>
+    </div>
+
+    <script>
+      const canvas = document.getElementById("myCanvas");
+      const ctx = canvas.getContext("2d");
+      const worker = new Worker("mandelbrotWorker.js");
+
+      const cursorInfoDiv = document.getElementById("cursorInfo");
+      const rangeInfoDiv = document.getElementById("rangeInfo");
+      const maxIterationsSlider = document.getElementById(
+        "maxIterationsSlider"
+      );
+
+      let xMin = -2.0;
+      let xMax = 1.0;
+      let yMin = -1.5;
+      let yMax = 1.5;
+      let maxIterations = 100;
+      const MIN_ITERATIONS = 10;
+      const MAX_ITERATIONS = 1000;
+
+      function getNumberOfIterations(c) {
+        let z = { re: 0, im: 0 };
+        for (let n = 0; n < maxIterations; n++) {
+          const zSquared = {
+            re: z.re * z.re - z.im * z.im,
+            im: 2 * z.re * z.im,
+          };
+
+          z = {
+            re: zSquared.re + c.re,
+            im: zSquared.im + c.im,
+          };
+
+          if (Math.sqrt(z.re * z.re + z.im * z.im) > 2) {
+            return n;
+          }
+        }
+        return maxIterations;
+      }
+
+      function isInMandelbrot(c) {
+        return getNumberOfIterations(c) === maxIterations;
+      }
+
+      function drawMandelbrot() {
+        rangeInfoDiv.textContent = getRangeInfoText();
+        worker.postMessage({
+          width: canvas.width,
+          height: canvas.height,
+          xMin: xMin.toString(),
+          xMax: xMax.toString(),
+          yMin: yMin.toString(),
+          yMax: yMax.toString(),
+          maxIterations,
+        });
+
+        worker.onmessage = function (event) {
+          requestAnimationFrame(() => {
+            const imageData = new ImageData(
+              new Uint8ClampedArray(event.data.pixels),
+              canvas.width,
+              canvas.height
+            );
+            ctx.putImageData(imageData, 0, 0);
+          });
+        };
+      }
+
+      function mapPixelToComplex(x, y) {
+        const re = xMin + (x / canvas.width) * (xMax - xMin);
+        const im = yMin + (y / canvas.height) * (yMax - yMin);
+        return { re: re, im: im };
+      }
+
+      function getColorForIterations(iterations) {
+        if (iterations === maxIterations) return "#000"; // Black for points in the set
+        const hue = (iterations / maxIterations) * 360;
+        return `hsl(${hue}, 100%, 50%)`; // Hue-based coloring
+      }
+
+      // Button Functions:
+      function zoomIn() {
+        xMin += (xMax - xMin) * 0.2;
+        xMax -= (xMax - xMin) * 0.2;
+        yMin += (yMax - yMin) * 0.2;
+        yMax -= (yMax - yMin) * 0.2;
+
+        drawMandelbrot(); // Redraw the Mandelbrot set with the new view
+      }
+
+      function zoomOut() {
+        xMin -= (xMax - xMin) * 0.2;
+        xMax += (xMax - xMin) * 0.2;
+        yMin -= (yMax - yMin) * 0.2;
+        yMax += (yMax - yMin) * 0.2;
+
+        drawMandelbrot(); // Redraw the Mandelbrot set with the new view
+      }
+
+      function resetView() {
+        xMin = -2.0;
+        xMax = 1.0;
+        yMin = -1.5;
+        yMax = 1.5;
+
+        drawMandelbrot(); // Redraw the Mandelbrot set with the new view
+      }
+
+      function panLeft() {
+        xMin -= (xMax - xMin) * 0.1;
+        xMax -= (xMax - xMin) * 0.1;
+        drawMandelbrot();
+      }
+
+      function panRight() {
+        xMin += (xMax - xMin) * 0.1;
+        xMax += (xMax - xMin) * 0.1;
+        drawMandelbrot();
+      }
+
+      function panUp() {
+        yMin -= (yMax - yMin) * 0.1;
+        yMax -= (yMax - yMin) * 0.1;
+        drawMandelbrot();
+      }
+
+      function panDown() {
+        yMin += (yMax - yMin) * 0.1;
+        yMax += (yMax - yMin) * 0.1;
+        drawMandelbrot();
+      }
+
+      function getCursorInfoText(moveEvent) {
+        if (!moveEvent) {
+          return "Complex Number: n/a";
+        }
+        const rect = canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        const c = mapPixelToComplex(x, y);
+
+        return `Complex Number: (${c.re.toFixed(3)}, ${c.im.toFixed(3)})
+Is in Mandelbrot set? ${isInMandelbrot(c) ? "YES" : "NO"}`;
+      }
+
+      function getRangeInfoText() {
+        return `Re (x): (${xMin.toFixed(3)} to ${xMax.toFixed(3)})
+Im (y): (${yMin.toFixed(3)} to ${yMax.toFixed(3)})`;
+      }
+
+      let isDragging = false;
+      let dragDelta = { clientX: 0, clientY: 0 };
+      let prevPosition = null;
+
+      function processDrag() {
+        //const complexDelta = mapPixelToComplex(dragDelta.clientX, dragDelta.clientY);
+        const complexDelta = {
+          re: dragDelta.clientY / canvas.width,
+          im: dragDelta.clientX / canvas.height,
+        };
+        xMin += complexDelta.re;
+        xMax += complexDelta.re;
+        yMin += complexDelta.im;
+        yMax += complexDelta.im;
+        drawMandelbrot();
+        dragDelta.clientX = 0;
+        dragDelta.clientY = 0;
+      }
+
+      // add info mouse move handler
+      function handlePointerMove(event) {
+        cursorInfoDiv.textContent = getCursorInfoText(event);
+        const { clientX, clientY } = event;
+        if (isDragging && prevPosition) {
+          dragDelta.clientX += clientX - prevPosition.clientX;
+          dragDelta.clientY += clientY - prevPosition.clientY;
+        }
+        prevPosition = { clientX, clientY };
+
+        if (
+          Math.abs(dragDelta.clientX) > 50 ||
+          Math.abs(dragDelta.clientY) > 50
+        ) {
+          processDrag();
+        }
+      }
+
+      function handlePointerDown() {
+        isDragging = true;
+      }
+
+      function handlePointerUp() {
+        isDragging = false;
+        prevPosition = null;
+      }
+
+      function handleBlur() {
+        cursorInfoDiv.textContent = getCursorInfoText();
+        isDragging = false;
+      }
+
+      function handleSliderChange(event) {
+        const iterations = Math.max(
+          MIN_ITERATIONS,
+          Math.min(MAX_ITERATIONS, Number(event.target.value))
+        );
+        maxIterations = iterations;
+        drawMandelbrot();
+      }
+
+      function resizeCanvas() {
+        const oldWidth = canvas.width;
+        const newWidth = Math.min(600, window.visualViewport.width - 100);
+        canvas.setAttribute("width", newWidth);
+        const factor = canvas.width / oldWidth;
+        canvas.setAttribute("height", Math.round(canvas.height * factor));
+      }
+
+      canvas.addEventListener("pointermove", handlePointerMove);
+      canvas.addEventListener("mouseout", handleBlur);
+      canvas.addEventListener("pointerdown", handlePointerDown);
+      canvas.addEventListener("pointerup", () => {
+        isDragging = false;
+      });
+      resizeCanvas();
+      const resizeObserver = new ResizeObserver(resizeCanvas);
+      //resizeObserver.observe(document.documentElement);
+
+      maxIterationsSlider.addEventListener("change", handleSliderChange);
+
+      drawMandelbrot(); // Draw the initial Mandelbrot set
+      cursorInfoDiv.textContent = getCursorInfoText();
+    </script>
+  </body>
+</html>

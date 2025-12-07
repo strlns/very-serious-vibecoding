@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Ethereal Synth — Working Version</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        padding: 24px;
+        background: #0b0f14;
+        color: #e6eef8;
+      }
+      button {
+        font-size: 16px;
+        padding: 10px 14px;
+        margin-right: 8px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+      }
+      #controls {
+        margin-bottom: 16px;
+      }
+      .btn-start {
+        background: #52b3ff;
+        color: #012;
+      }
+      .btn-stop {
+        background: #ff6b6b;
+        color: #210;
+      }
+      label {
+        font-size: 14px;
+        margin-right: 8px;
+      }
+      .small {
+        font-size: 13px;
+        color: #9fbddf;
+        margin-left: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Ethereal Synth</h1>
+    <div id="controls">
+      <button id="startBtn" class="btn-start">Start</button>
+      <button id="stopBtn" class="btn-stop" disabled>Stop</button>
+      <label
+        >Volume
+        <input id="vol" type="range" min="0" max="1" step="0.01" value="0.28"
+      /></label>
+    </div>
+    <p class="small">
+      Each voice is a harmonic cluster (root + 3rd + 5th), filtered and
+      modulated, with echo and reverb.
+    </p>
+
+    <script>
+      (() => {
+        let audioCtx = null;
+        let masterGain,
+          compressor,
+          echoDelay,
+          echoFeedbackGain,
+          echoFilter,
+          convolver;
+        let spawnIntervalId = null;
+        let lfoNodes = [];
+        const defaultSpawnMs = 450;
+        let spawnMs = defaultSpawnMs;
+
+        const startBtn = document.getElementById("startBtn");
+        const stopBtn = document.getElementById("stopBtn");
+        const volSlider = document.getElementById("vol");
+
+        volSlider.addEventListener("input", () => {
+          if (masterGain) masterGain.gain.value = Number(volSlider.value);
+        });
+
+        function createAudioContext() {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+          // Master gain
+          masterGain = audioCtx.createGain();
+          masterGain.gain.value = Number(volSlider.value);
+
+          // Compressor
+          compressor = audioCtx.createDynamicsCompressor();
+          compressor.threshold.value = -24;
+          compressor.knee.value = 20;
+          compressor.ratio.value = 3;
+          compressor.attack.value = 0.003;
+          compressor.release.value = 0.25;
+
+          // Echo / delay
+          echoDelay = audioCtx.createDelay(5.0);
+          echoDelay.delayTime.value = 0.32;
+          echoFeedbackGain = audioCtx.createGain();
+          echoFeedbackGain.gain.value = 0.42;
+          echoFilter = audioCtx.createBiquadFilter();
+          echoFilter.type = "lowpass";
+          echoFilter.frequency.value = 2200;
+
+          // Feedback loop
+          echoDelay.connect(echoFilter);
+          echoFilter.connect(echoFeedbackGain);
+          echoFeedbackGain.connect(echoDelay);
+
+          // Convolver reverb
+          convolver = audioCtx.createConvolver();
+          convolver.buffer = createImpulseResponse(audioCtx, 2.5, 2.1);
+
+          // Chain: echo -> convolver -> masterGain -> compressor -> destination
+          echoDelay.connect(convolver);
+          convolver.connect(masterGain);
+
+          masterGain.connect(compressor);
+          compressor.connect(audioCtx.destination);
+        }
+
+        function createImpulseResponse(ctx, seconds = 2.5, decay = 2.0) {
+          const sr = ctx.sampleRate;
+          const length = Math.floor(sr * seconds);
+          const buffer = ctx.createBuffer(2, length, sr);
+          for (let ch = 0; ch < 2; ch++) {
+            const data = buffer.getChannelData(ch);
+            for (let i = 0; i < length; i++) {
+              const t = i / sr;
+              data[i] =
+                (Math.random() * 2 - 1) *
+                Math.pow(1 - t / seconds, decay) *
+                0.6;
+            }
+          }
+          return buffer;
+        }
+
+        function createVoice() {
+          if (!audioCtx) return;
+          const now = audioCtx.currentTime;
+
+          const root = 110 * Math.pow(2, Math.random() * 2.5);
+          const isMajor = Math.random() > 0.4;
+          const thirdRatio = isMajor ? 5 / 4 : 6 / 5;
+          const fifthRatio = 3 / 2;
+
+          const voiceGain = audioCtx.createGain();
+          voiceGain.gain.value = 0.0001;
+
+          const filter = audioCtx.createBiquadFilter();
+          filter.type = "lowpass";
+          filter.frequency.value = 700 + Math.random() * 2400;
+          filter.Q.value = 0.8;
+
+          const panner = audioCtx.createStereoPanner();
+          panner.pan.value = (Math.random() * 2 - 1) * 0.6;
+
+          // Filter LFO
+          const filterLFO = audioCtx.createOscillator();
+          filterLFO.type = "sine";
+          filterLFO.frequency.value = 0.02 + Math.random() * 0.08;
+          const filterLfoGain = audioCtx.createGain();
+          filterLfoGain.gain.value = 300 + Math.random() * 800;
+          filterLFO.connect(filterLfoGain);
+          filterLfoGain.connect(filter.frequency);
+          filterLFO.start();
+          lfoNodes.push(filterLFO);
+
+          // Pitch drift LFO
+          const pitchLFO = audioCtx.createOscillator();
+          pitchLFO.type = "sine";
+          pitchLFO.frequency.value = 0.0015 + Math.random() * 0.004;
+          const pitchLfoGain = audioCtx.createGain();
+          pitchLfoGain.gain.value = 6 + Math.random() * 18;
+          pitchLFO.connect(pitchLfoGain);
+          pitchLfoGain.connect(filter.frequency); // subtle mod
+          pitchLFO.start();
+          lfoNodes.push(pitchLFO);
+
+          const oscConfigs = [
+            {
+              ratio: 1.0,
+              baseGain: 0.53,
+              detuneCents: Math.random() * 20 - 10,
+            },
+            {
+              ratio: thirdRatio,
+              baseGain: 0.35,
+              detuneCents: Math.random() * 14 - 6,
+            },
+            {
+              ratio: fifthRatio,
+              baseGain: 0.28,
+              detuneCents: Math.random() * 14 - 8,
+            },
+          ];
+
+          oscConfigs.forEach((cfg) => {
+            const osc = audioCtx.createOscillator();
+            const waveTypes = ["sine", "sawtooth", "triangle"];
+            osc.type = waveTypes[Math.floor(Math.random() * waveTypes.length)];
+            osc.frequency.value = root * cfg.ratio;
+            osc.detune.value = cfg.detuneCents;
+
+            osc.connect(voiceGain);
+            osc.start(now);
+            osc.stop(now + 5 + Math.random() * 5);
+          });
+
+          // Envelope
+          const attack = 0.6 + Math.random() * 1.1;
+          const sustain = 1.4 + Math.random() * 3.2;
+          const release = 1.2 + Math.random() * 1.8;
+          const totalDur = attack + sustain + release;
+
+          voiceGain.gain.cancelScheduledValues(now);
+          voiceGain.gain.setValueAtTime(0.0001, now);
+          voiceGain.gain.exponentialRampToValueAtTime(0.1, now + attack);
+          voiceGain.gain.exponentialRampToValueAtTime(
+            0.03,
+            now + attack + sustain
+          );
+          voiceGain.gain.exponentialRampToValueAtTime(
+            0.0001,
+            now + totalDur + 0.05
+          );
+
+          // Connect chain
+          voiceGain.connect(panner);
+          panner.connect(masterGain); // dry
+          panner.connect(echoDelay); // wet
+        }
+
+        async function startSynth() {
+          if (!audioCtx) createAudioContext();
+          await audioCtx.resume();
+
+          if (!spawnIntervalId) {
+            createVoice();
+            spawnIntervalId = setInterval(createVoice, spawnMs);
+          }
+
+          startBtn.disabled = true;
+          stopBtn.disabled = false;
+        }
+
+        function stopSynth() {
+          if (spawnIntervalId) {
+            clearInterval(spawnIntervalId);
+            spawnIntervalId = null;
+          }
+
+          lfoNodes.forEach((n) => {
+            try {
+              n.stop();
+            } catch (e) {}
+          });
+          lfoNodes = [];
+
+          if (audioCtx) {
+            audioCtx.close().then(() => {
+              audioCtx = null;
+              masterGain = null;
+              compressor = null;
+              echoDelay = null;
+              echoFeedbackGain = null;
+              echoFilter = null;
+              convolver = null;
+            });
+          }
+
+          startBtn.disabled = false;
+          stopBtn.disabled = true;
+        }
+
+        startBtn.addEventListener("click", startSynth);
+        stopBtn.addEventListener("click", stopSynth);
+      })();
+    </script>
+  </body>
+</html>
