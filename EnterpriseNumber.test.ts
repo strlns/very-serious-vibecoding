@@ -38,9 +38,11 @@ const reject_undefined: GlobalResourceCoefficient = undefined;
 // @ts-expect-error - Rejects plain objects
 const reject_object: GlobalResourceCoefficient = { value: 101 };
 
-// @ts-expect-error - Rejects class instances
 class Metric { val = 101 }
+// @ts-expect-error - Rejects class instances
 const reject_instance: GlobalResourceCoefficient = new Metric();
+// @ts-expect-error - Rejects class declarations
+const reject_instance: GlobalResourceCoefficient = Metric;
 
 // @ts-expect-error - Rejects boolean
 const reject_bool: GlobalResourceCoefficient = true;
