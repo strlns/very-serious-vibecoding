@@ -1,8 +1,7 @@
 /**
- *
  * @module GlobalResourceCoefficient
  * With the help of AI, this defines a type that models the special
- * properties of numbers that potentially can be a GlobalResourceCoefficient
+ * properties of numbers that can be a GlobalResourceCoefficient
  */
 
 type ProtocolSqueeze<U> = (U extends unknown ? (k: U) => void : never) extends (
