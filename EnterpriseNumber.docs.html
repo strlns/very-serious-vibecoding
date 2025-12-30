@@ -1,195 +1,242 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>The Architecture of Shadows | TS Obfuscation</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link
+      rel="preconnect"
+      href="[https://fonts.googleapis.com](https://fonts.googleapis.com)"
+    />
+    <link
+      rel="preconnect"
+      href="[https://fonts.gstatic.com](https://fonts.gstatic.com)"
+      crossorigin
+    />
+    <link
+      href="[https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;600;800&display=swap](https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;600;800&display=swap)"
+      rel="stylesheet"
+    />
     <style>
-        :root {
-            --bg: #0a0a0c;
-            --panel: #16161a;
-            --accent: #6366f1;
-            --text: #e2e8f0;
-            --text-dim: #94a3b8;
-            --code-bg: #011627;
-        }
+      :root {
+        --bg: #0a0a0c;
+        --panel: #16161a;
+        --accent: #6366f1;
+        --text: #e2e8f0;
+        --text-dim: #94a3b8;
+        --code-bg: #011627;
+      }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: var(--bg);
+        color: var(--text);
+        line-height: 1.6;
+        overflow-x: hidden;
+      }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            line-height: 1.6;
-            overflow-x: hidden;
-        }
+      nav {
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: 100vh;
+        width: 260px;
+        background: rgba(10, 10, 12, 0.8);
+        backdrop-filter: blur(10px);
+        border-right: 1px solid #ffffff10;
+        padding: 2rem;
+        z-index: 100;
+      }
 
-        /* --- Navigation --- */
+      .toc-title {
+        font-weight: 800;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1rem;
+        color: var(--accent);
+        margin-bottom: 2rem;
+      }
+      nav ul {
+        list-style: none;
+      }
+      nav li {
+        margin-bottom: 1rem;
+      }
+      nav a {
+        text-decoration: none;
+        color: var(--text-dim);
+        font-size: 0.9rem;
+        transition: 0.3s;
+      }
+      nav a:hover,
+      nav a.active {
+        color: var(--text);
+        padding-left: 5px;
+      }
+
+      main {
+        margin-left: 260px;
+        padding: 4rem;
+        max-width: 1000px;
+      }
+      section {
+        margin-bottom: 8rem;
+        opacity: 0;
+        transform: translateY(30px);
+        transition: all 0.8s ease-out;
+      }
+      section.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      h1 {
+        font-size: 4rem;
+        font-weight: 800;
+        margin-bottom: 1rem;
+        letter-spacing: -0.1rem;
+      }
+      h2 {
+        font-size: 2rem;
+        margin-bottom: 1.5rem;
+        color: var(--accent);
+      }
+      p {
+        margin-bottom: 1.5rem;
+        font-size: 1.1rem;
+        color: var(--text-dim);
+      }
+
+      .code-container {
+        background: var(--code-bg);
+        border-radius: 12px;
+        padding: 1.5rem;
+        position: relative;
+        border: 1px solid #ffffff10;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        margin: 2rem 0;
+      }
+      pre {
+        font-family: "Fira Code", monospace;
+        font-size: 0.85rem;
+        overflow-x: auto;
+        color: #d6deeb;
+      }
+      .keyword {
+        color: #c792ea;
+      }
+      .type {
+        color: #ffcb6b;
+      }
+      .comment {
+        color: #637777;
+        font-style: italic;
+      }
+      .string {
+        color: #ecc48d;
+      }
+
+      .hero {
+        height: 80vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+      .badge {
+        display: inline-block;
+        padding: 0.4rem 0.8rem;
+        background: #6366f120;
+        color: var(--accent);
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+      }
+      .card {
+        background: var(--panel);
+        padding: 2rem;
+        border-radius: 16px;
+        border: 1px solid #ffffff05;
+      }
+      footer {
+        margin-top: 4rem;
+        padding: 2rem 0;
+        border-top: 1px solid #ffffff10;
+        font-size: 0.8rem;
+        color: #4b5563;
+      }
+
+      @media (max-width: 900px) {
         nav {
-            position: fixed;
-            left: 0;
-            top: 0;
-            height: 100vh;
-            width: 260px;
-            background: rgba(10, 10, 12, 0.8);
-            backdrop-filter: blur(10px);
-            border-right: 1px solid #ffffff10;
-            padding: 2rem;
-            z-index: 100;
+          display: none;
         }
-
-        .toc-title {
-            font-weight: 800;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 0.1rem;
-            color: var(--accent);
-            margin-bottom: 2rem;
+        main {
+          margin-left: 0;
+          padding: 2rem;
         }
-
-        nav ul { list-style: none; }
-        nav li { margin-bottom: 1rem; }
-        nav a {
-            text-decoration: none;
-            color: var(--text-dim);
-            font-size: 0.9rem;
-            transition: 0.3s;
+        h1 {
+          font-size: 2.5rem;
         }
-        nav a:hover, nav a.active { color: var(--text); padding-left: 5px; }
-
-        /* --- Main Content --- */
-        main { margin-left: 260px; padding: 4rem; max-width: 1000px; }
-
-        section {
-            margin-bottom: 8rem;
-            opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.8s ease-out;
-        }
-
-        section.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        h1 { font-size: 4rem; font-weight: 800; margin-bottom: 1rem; letter-spacing: -0.1rem; }
-        h2 { font-size: 2rem; margin-bottom: 1.5rem; color: var(--accent); }
-        p { margin-bottom: 1.5rem; font-size: 1.1rem; color: var(--text-dim); }
-
-        /* --- Code Block Styling --- */
-        .code-container {
-            background: var(--code-bg);
-            border-radius: 12px;
-            padding: 1.5rem;
-            position: relative;
-            border: 1px solid #ffffff10;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            margin: 2rem 0;
-        }
-
-        pre {
-            font-family: 'Fira Code', monospace;
-            font-size: 0.85rem;
-            overflow-x: auto;
-            color: #d6deeb;
-        }
-
-        .keyword { color: #c792ea; }
-        .type { color: #ffcb6b; }
-        .comment { color: #637777; font-style: italic; }
-        .string { color: #ecc48d; }
-
-        /* --- Hero Section --- */
-        .hero {
-            height: 80vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 0.4rem 0.8rem;
-            background: #6366f120;
-            color: var(--accent);
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-        }
-
-        /* --- Prototypal Logic --- */
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-        }
-
-        .card {
-            background: var(--panel);
-            padding: 2rem;
-            border-radius: 16px;
-            border: 1px solid #ffffff05;
-        }
-
-        footer {
-            margin-top: 4rem;
-            padding: 2rem 0;
-            border-top: 1px solid #ffffff10;
-            font-size: 0.8rem;
-            color: #4b5563;
-        }
-
-        @media (max-width: 900px) {
-            nav { display: none; }
-            main { margin-left: 0; padding: 2rem; }
-            h1 { font-size: 2.5rem; }
-            .grid { grid-template-columns: 1fr; }
-        }
+      }
     </style>
-</head>
-<body>
-
+  </head>
+  <body>
     <nav>
-        <div class="toc-title">Chronicle</div>
-        <ul>
-            <li><a href="#hero">The Objective</a></li>
-            <li><a href="#obfuscation">Evolution of Shadows</a></li>
-            <li><a href="#final-type">The Masterwork</a></li>
-            <li><a href="#classes">Prototypes vs Classes</a></li>
-        </ul>
+      <div class="toc-title">Chronicle</div>
+      <ul>
+        <li><a href="#hero">The Objective</a></li>
+        <li><a href="#obfuscation">Evolution of Shadows</a></li>
+        <li><a href="#final-type">The Masterwork</a></li>
+        <li><a href="#classes">Prototypes vs Classes</a></li>
+      </ul>
     </nav>
-
     <main>
-        <section id="hero" class="hero visible">
-            <div class="badge">TypeScript | JavaScript Internal Architecture</div>
-            <h1>The Architecture of Shadows</h1>
-            <p>A comprehensive retrospective on type obfuscation, terminal identity resolution, and the underlying mechanics of the JavaScript prototypal system.</p>
-        </section>
+      <section id="hero" class="hero visible">
+        <div class="badge">TypeScript | JavaScript Internal Architecture</div>
+        <h1>The Architecture of Shadows</h1>
+        <p>
+          A comprehensive retrospective on type obfuscation, terminal identity
+          resolution, and the underlying mechanics of the JavaScript prototypal
+          system.
+        </p>
+      </section>
 
-        <section id="obfuscation">
-            <h2>The Obfuscation Back & Forth</h2>
-            <p>The challenge was to create a <code>GlobalResourceCoefficient</code> type that resolves strictly to a numeric primitive while avoiding the words <em>number, length, size, gth,</em> or any recognizable string literals.</p>
-            
-            <div class="card">
-                <h3>Key Strategies Implemented:</h3>
-                <ul style="margin-left: 1.5rem; margin-top: 1rem; color: var(--text-dim);">
-                    <li><strong>Contravariant Squeezing:</strong> Forcing unions into intersections via function parameter inference.</li>
-                    <li><strong>Prototype Deconstruction:</strong> Extracting the target primitive from numeric literal methods like <code>valueOf</code> or <code>toLocaleString</code>.</li>
-                    <li><strong>Distributive Exclusion:</strong> Dynamically isolating "string leaks" by creating a mask from the environment and filtering it out.</li>
-                </ul>
-            </div>
-        </section>
+      <section id="obfuscation">
+        <h2>The Obfuscation Back & Forth</h2>
+        <p>
+          The challenge: create a <code>GlobalResourceCoefficient</code> type
+          that resolves strictly to a numeric primitive while avoiding the words
+          <em>number, length, size, gth,</em> or <em>valueOf</em>.
+        </p>
+        <div class="card">
+          <h3>Refined Strategy:</h3>
+          <p>
+            We avoided string-literal "tells" by deconstructing the prototype
+            keys of a literal <code>0</code> and mapping them to their inferred
+            return types, effectively using the language's own internal
+            documentation as our source of truth.
+          </p>
+        </div>
+      </section>
 
-        <section id="final-type">
-            <h2>The Masterwork</h2>
-            <p>The final iteration uses <code>unknown</code> constraints and a self-correcting distributive gate. It is purely static and resists inspection.</p>
-            
-            <div class="code-container">
-<pre>
+      <section id="final-type">
+        <h2>The Masterwork (Revised)</h2>
+        <p>
+          This final version eliminates the <code>valueOf</code> tell, using an
+          anonymous key-remapped index to widen the type.
+        </p>
+        <div class="code-container">
+          <pre>
 <span class="keyword">type</span> <span class="type">ProtocolSqueeze</span>&lt;<span class="type">U</span>&gt; = (
     <span class="type">U</span> <span class="keyword">extends</span> <span class="type">unknown</span> ? (k: <span class="type">U</span>) => <span class="type">void</span> : <span class="keyword">never</span>
 ) <span class="keyword">extends</span> (k: <span class="keyword">infer</span> <span class="type">I</span>) => <span class="type">void</span> ? <span class="type">I</span> : <span class="keyword">never</span>;
@@ -203,82 +250,61 @@
         : <span class="keyword">never</span>
 &gt; <span class="keyword">extends infer</span> <span class="type">Result</span>
     ? [<span class="type">Result</span>] <span class="keyword">extends</span> [<span class="keyword">never</span>]
-        ? (0)[<span class="string">"valueOf"</span>] <span class="keyword">extends</span> () => <span class="keyword">infer</span> <span class="type">V</span> ? <span class="type">V</span> : <span class="keyword">never</span>
+        ? (0)[{ [K <span class="keyword">in keyof</span> 0]: K }[<span class="keyword">keyof</span> 0]] <span class="keyword">extends</span> (...args: <span class="type">unknown</span>[]) => <span class="keyword">infer</span> <span class="type">V</span> ? <span class="type">V</span> : <span class="keyword">never</span>
         : <span class="type">Result</span>
     : <span class="keyword">never</span>;
 </pre>
-            </div>
-        </section>
+        </div>
+      </section>
 
-        <section id="classes">
-            <h2>Classes & Prototypes</h2>
-            <p>We transitioned from Type Theory to Engine Architecture. <code>class</code> is the interface; the <strong>prototype</strong> is the engine.</p>
-            
-            <div class="grid">
-                <div class="card">
-                    <h4>The Class Sugar</h4>
-                    <p style="font-size: 0.9rem;">Modern, declarative, and strict. It handles <code>super</code>, non-enumerable methods, and constructor-only invocation automatically.</p>
-                </div>
-                <div class="card">
-                    <h4>The Prototypal Reality</h4>
-                    <p style="font-size: 0.9rem;">The underlying reality: a constructor function linked to an object. Properties are shared across memory via the <code>__proto__</code> link.</p>
-                </div>
-            </div>
-
-            <div class="code-container" style="margin-top: 2rem;">
-<pre>
-<span class="comment">// Prototypal Equivalent of a Class</span>
+      <section id="classes">
+        <h2>Classes & Prototypes (Strict)</h2>
+        <p>
+          Modern JS classes use <code>new.target</code> to ensure constructor
+          integrity, a mechanism more robust than <code>instanceof</code>.
+        </p>
+        <div class="code-container">
+          <pre>
+<span class="comment">// Accurate Prototypal Equivalent of a Class</span>
 <span class="keyword">function</span> <span class="type">Developer</span>(name) {
-    <span class="keyword">if</span> (!(<span class="keyword">this</span> <span class="keyword">instanceof</span> <span class="type">Developer</span>)) <span class="keyword">throw new</span> <span class="type">TypeError</span>();
+    <span class="comment">// Class constructors check 'new.target' for safety</span>
+    <span class="keyword">if</span> (!<span class="keyword">new.target</span>) {
+        <span class="keyword">throw new</span> <span class="type">TypeError</span>(<span class="string">"Class constructor Developer cannot be invoked without 'new'"</span>);
+    }
     <span class="keyword">this</span>.name = name;
 }
 
 <span class="type">Object</span>.defineProperty(<span class="type">Developer</span>.prototype, <span class="string">"code"</span>, {
     value: <span class="keyword">function</span>() { console.log(<span class="keyword">this</span>.name); },
-    enumerable: <span class="keyword">false</span>
+    enumerable: <span class="keyword">false</span>, <span class="comment">// Hide from Object.keys()</span>
+    configurable: <span class="keyword">true</span>,
+    writable: <span class="keyword">true</span>
 });
 </pre>
-            </div>
-        </section>
-
-        <footer>
-            Built by Gemini & Shared by some weird german guy. December 2025.
-        </footer>
+        </div>
+      </section>
+      <footer>Built by Gemini & Shared by some weird German guy.</footer>
     </main>
 
     <script>
-        // Smooth scroll and active link tracking
-        const sections = document.querySelectorAll('section');
-        const navLinks = document.querySelectorAll('nav a');
-
-        const observerOptions = {
-            threshold: 0.2
-        };
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                    const id = entry.target.getAttribute('id');
-                    navLinks.forEach(link => {
-                        link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
-                    });
-                }
-            });
-        }, observerOptions);
-
-        sections.forEach(section => observer.observe(section));
-
-        // Smooth scrolling for navigation
-        navLinks.forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                const targetId = link.getAttribute('href');
-                document.querySelector(targetId).scrollIntoView({
-                    behavior: 'smooth'
-                });
-            });
-        });
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("visible");
+              const id = entry.target.getAttribute("id");
+              document.querySelectorAll("nav a").forEach((link) => {
+                link.classList.toggle(
+                  "active",
+                  link.getAttribute("href") === `#${id}`
+                );
+              });
+            }
+          });
+        },
+        { threshold: 0.2 }
+      );
+      document.querySelectorAll("section").forEach((s) => observer.observe(s));
     </script>
-</body>
+  </body>
 </html>
