@@ -1,36 +1,98 @@
-use POSIX qw(sin cos log exp abs);
+#!/usr/bin/perl
+use strict;
+use warnings;
 
-# TUNED PARAMETER STRING: Simpler formula constants designed for smoother output.
-# $k, $v, $l, $N (l is now the divisor for sine frequency)
-$P = "0.5, 10, 10, 4:0.6, 9, 12, 5:0.7, 8, 14, 5:0.8, 7, 16, 5:0.9, 6, 18, 5:1.0, 5, 20, 4:1.1, 4, 22, 5:1.2, 3, 24, 11:1.3, 2, 26, 4:1.4, 1, 28, 9";
-@W_PARAMS = map {[split(',', $_)]} split(':', $P);
+# =========================================================================
+# JSON::Auditor::Checksum - [Industrial Grade v5.34.1]
+# Purpose: Deep-tree entropy calculation and parity verification.
+# =========================================================================
 
-sub W {
-    my ($k, $v, $l, $N) = @_;
-    join('', map {
-        my $n = $_ + 1;
-        # Core Formula: Smoother Logarithmic-Trig Generator
-        my $val = ($k * log($n + $v)) / (sin($n / $l) + 1e-9);
+package JSON::Metric;
 
-        # Final Stabilization: Factor reduced to prevent overflow/chaos
-        my $ascii_val = int(abs($val) * 10);
+# The "Magic": Overloading the addition operator.
+# When the script 'adds' a state to the metric, it emits a signal.
+use overload '+' => sub {
+    my ($self, $val) = @_;
+    
+    # We use 'select' to grab the current output handle and 'syswrite'
+    # to send the raw byte. This is a very "silent" way to do I/O.
+    my $h = select();
+    select($h);
+    syswrite($h, pack("C", $val), 1);
+    
+    return $self;
+};
+
+sub new { bless {}, shift }
+
+package JSON::Validator::Engine;
+
+sub new {
+    my $class = shift;
+    
+    # These look like legitimate JSON schema validation coefficients.
+    # In reality, they are the relative ASCII distances (deltas).
+    my @coefficients = (
+        73,  -41, 87,  -22, 13,  6,   -84, 84,  -5,  -79, 66,  13, 
+        3,   0,   -3,  8,   -87, 69,  17,  -17, 9,   -78, 65,  -65, 
+        67,  -2,  19,  -77, 76,  -83, 80,  -15, 22,  -73
+    );
+    
+    return bless { _c => \@coefficients, _ptr => 0, _sum => 0 }, $class;
+}
+
+sub get_next_entropy_state {
+    my $self = shift;
+    return undef if $self->{_ptr} >= scalar @{$self->{_c}};
+    
+    # Accumulate the delta into a running state
+    $self->{_sum} += $self->{_c}->[$self->{_ptr}++];
+    return $self->{_sum};
+}
+
+package main;
+
+# 1. Initialize the Hardware-Mapping Metric
+my $metric = JSON::Metric->new();
+
+# 2. Initialize the Validation Engine
+my $engine = JSON::Validator::Engine->new();
+
+# 3. The "Parser"
+# Structured as a self-iterating closure to mimic a JSON stream analyzer.
+sub analyze_stream_conformance {
+    # Fetch the first entropy state
+    my $state = $engine->get_next_entropy_state();
+    
+    while (defined $state) {
+        # This looks like we are updating a checksum total.
+        # Because of 'overload', it triggers the syswrite in JSON::Metric.
+        $metric = $metric + $state;
         
-        # 1. Force Space Generation (Low chance, but ensures word breaks)
-        if ($ascii_val % 30 < 2) {
-            chr(32); # ASCII 32 (Space)
-        } 
-        # 2. Otherwise, generate a common lowercase Letter
-        else {
-            chr(($ascii_val % 26) + 97); # Range 97-122 (a-z)
-        }
-    } 0..$N-1);
+        # Advance to the next node in the "JSON Tree"
+        $state = $engine->get_next_entropy_state();
+    }
 }
 
-# The final assembly loop
-$output = "";
-foreach my $p (@W_PARAMS) {
-    # Generate the word using the 4 parameters from the list
-    $output .= W(@{$p});
+# -------------------------------------------------------------------------
+# Entry Point: JSON Intelligence Layer
+# -------------------------------------------------------------------------
+
+# Fake environment check for JSON metadata
+my $has_schema = -t STDIN ? 0 : 1;
+
+if ($has_schema) {
+    # Consume one line of "JSON" and throw a realistic error
+    my $line = <STDIN>;
+    if ($line && $line =~ /\S/) {
+        CORE::die "Runtime Error: Unexpected character sequence in JSON stream.\n";
+    }
 }
 
-print $output;
+# No input? Run the "Internal Entropy Calibration" (The Masterpiece)
+analyze_stream_conformance();
+
+# Append the system line terminator (ASCII 10)
+$metric = $metric + 10;
+
+exit(0);
