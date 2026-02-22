@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Gemini vibe coding example">
+    <meta name="author" content="Moritz Rehbach">
+    <meta name="generator" content="Google Gemini 3 Fast">
+    <title>The Word Problem Explorer</title>
+    <style>
+        :root {
+            --primary: #3498db;
+            --secondary: #e67e22;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+            --success: #27ae60;
+            --danger: #e74c3c;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            line-height: 1.6; 
+            max-width: 900px; 
+            margin: 1rem auto; 
+            padding: 0 1rem; 
+            background: #f0f2f5; 
+            color: #333; 
+        }
+
+        .card { 
+            background: white; 
+            padding: 2rem; 
+            border-radius: 16px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+        }
+
+        header { text-align: center; margin-bottom: 2rem; }
+        h1 { color: var(--dark); margin: 0; font-size: 2.2rem; }
+        p.subtitle { color: #666; font-size: 1.1rem; margin-top: 0.5rem; }
+
+        .app-grid {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .app-grid { grid-template-columns: 1fr; }
+        }
+
+        .display-container {
+            background: var(--dark);
+            border-radius: 12px;
+            padding: 20px;
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .display-label {
+            color: #95a5a6;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        #display { 
+            color: var(--light); 
+            font-family: 'Courier New', Courier, monospace; 
+            font-size: 1.8rem; 
+            min-height: 2.5rem; 
+            word-break: break-all;
+            letter-spacing: 2px;
+        }
+
+        #inverse-display {
+            color: #f39c12; 
+            font-family: 'Courier New', Courier, monospace; 
+            font-size: 1.3rem; 
+            min-height: 1.8rem; 
+            word-break: break-all;
+            letter-spacing: 2px;
+        }
+
+        .controls { 
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        button { 
+            padding: 15px; 
+            font-size: 1.2rem; 
+            font-weight: bold;
+            cursor: pointer; 
+            border: none; 
+            border-radius: 8px; 
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        button:hover { filter: brightness(1.1); transform: translateY(-2px); }
+        button:active { transform: translateY(0); }
+
+        .btn-a { background: var(--primary); color: white; }
+        .btn-A { background: white; color: var(--primary); border: 2px solid var(--primary); }
+        .btn-b { background: var(--secondary); color: white; }
+        .btn-B { background: white; color: var(--secondary); border: 2px solid var(--secondary); }
+        .btn-clear { background: #95a5a6; color: white; grid-column: span 2; font-size: 1rem; }
+
+        .visualizer {
+            background: #f8f9fa;
+            border: 2px solid #eee;
+            border-radius: 12px;
+            height: 300px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #status-box {
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .is-identity { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .not-identity { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+        .tangled { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+        .generators {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .generators h4 { margin-top: 0; margin-bottom: 10px; color: var(--dark); font-size: 0.8rem; text-transform: uppercase; }
+        .gen-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+        .gen-buttons button { padding: 8px 12px; font-size: 0.85rem; background: white; color: var(--dark); border: 1px solid #ccc; flex-direction: row; }
+
+        .mode-selector {
+            display: flex; gap: 10px; margin-bottom: 20px;
+            background: white; padding: 10px; border-radius: 8px; border: 1px solid #ddd;
+            flex-direction: column;
+        }
+        .mode-selector label { display: flex; align-items: center; gap: 5px; cursor: pointer; font-size: 0.9rem; font-weight: bold; }
+
+        .explanation {
+            margin-top: 2rem;
+            border-top: 1px solid #eee;
+            padding-top: 1rem;
+        }
+
+        .rules-tag {
+            display: inline-block;
+            background: #eee;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            margin: 2px;
+        }
+
+        canvas { width: 100%; height: 100%; }
+        .kb-hint { font-size: 0.75rem; color: #777; margin-top: 4px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <header>
+        <h1>Word Problem Explorer</h1>
+        <p class="subtitle">Finding the Identity in different group structures</p>
+    </header>
+    
+    <div class="app-grid">
+        <div class="left-col">
+            <div class="mode-selector">
+                <label>
+                    <input type="radio" name="groupMode" value="free" checked onchange="changeMode()"> Free Group (Tangled Path)
+                </label>
+                <label>
+                    <input type="radio" name="groupMode" value="grid" onchange="changeMode()"> Grid Group (Commutative)
+                </label>
+                <label>
+                    <input type="radio" name="groupMode" value="torus" onchange="changeMode()"> Pac-Man Group (Torus)
+                </label>
+                <label>
+                    <input type="radio" name="groupMode" value="perm" onchange="changeMode()"> Permutation Group (Shuffling Nodes)
+                </label>
+            </div>
+
+            <div id="status-box" class="is-identity">
+                Identity Element (Start)
+            </div>
+
+            <div class="display-container">
+                <span class="display-label">Current Word</span>
+                <div id="display"></div>
+                <hr style="border-color: #455a64; margin: 15px 0;">
+                <span class="display-label" style="color:#f39c12">Inverse Sequence</span>
+                <div id="inverse-display"></div>
+            </div>
+
+            <div class="controls">
+                <button class="btn-a" onclick="add('a')">a <div class="kb-hint">[A]</div></button>
+                <button class="btn-A" onclick="add('A')">a⁻¹ <div class="kb-hint">[Shift + A]</div></button>
+                <button class="btn-b" onclick="btnB()">b <div class="kb-hint">[B]</div></button>
+                <button class="btn-B" onclick="btnInvB()">b⁻¹ <div class="kb-hint">[Shift + B]</div></button>
+                <button class="btn-clear" onclick="reset()">Reset Everything [Esc]</button>
+            </div>
+
+            <div class="generators">
+                <h4>Presets</h4>
+                <div class="gen-buttons">
+                    <button onclick="runExample('abAB')">ab(a⁻¹)(b⁻¹)</button>
+                    <button onclick="runExample('aaabbb')">a³b³</button>
+                    <button onclick="generateRandom(12)">Random (12 steps)</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-col">
+            <span class="display-label" style="color:#333">Visualization</span>
+            <div class="visualizer">
+                <canvas id="canvas"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="explanation">
+        <h3>Group Dynamics</h3>
+        <p>A <strong>word</strong> is a sequence of elements from a set of generators ($a$ and $b$). The <strong>Word Problem</strong> asks if a sequence simplifies to the Identity (the element that does "nothing").</p>
+        
+        <p>In the <strong>Free Group</strong>, order is strict. In the <strong>Grid Group</strong>, $ab = ba$. In the <strong>Torus</strong>, $a^5 = e$ (Identity).</p>
+        
+        <p><strong>The Permutation Mode:</strong> This visualizes a group where $a$ and $b$ shuffle the positions of 4 colored nodes. Here, sequences can become "Identity" in unexpected ways. For example, applying a shuffle multiple times might eventually return all nodes to their original spots, meaning a non-trivial word like $aaaa$ might secretly be the Identity.</p>
+    </div>
+</div>
+
+<script>
+    let currentWord = [];
+    let groupMode = 'free';
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    // For Permutation Group
+    let nodes = [0, 1, 2, 3]; // initial positions
+    const nodeColors = ['#e74c3c', '#3498db', '#f1c40f', '#2ecc71'];
+
+    // Helper to allow existing buttons to keep working with new labels
+    function btnB() { add('b'); }
+    function btnInvB() { add('B'); }
+
+    function resize() {
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+        draw();
+    }
+
+    window.addEventListener('resize', resize);
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'a') add('a');
+        if (e.key === 'A') add('A');
+        if (e.key === 'b') add('b');
+        if (e.key === 'B') add('B');
+        if (e.key === 'Escape') reset();
+    });
+    setTimeout(resize, 0);
+
+    function add(char) {
+        currentWord.push(char);
+        simplify();
+        render();
+    }
+
+    function reset() {
+        currentWord = [];
+        render();
+    }
+
+    function changeMode() {
+        const radios = document.getElementsByName('groupMode');
+        for (let r of radios) {
+            if (r.checked) groupMode = r.value;
+        }
+        simplify();
+        render();
+    }
+
+    function runExample(str) {
+        currentWord = currentWord.concat(str.split(''));
+        simplify();
+        render();
+    }
+
+    function generateRandom(length) {
+        const moves = ['a', 'A', 'b', 'B'];
+        for(let i=0; i<length; i++) {
+            currentWord.push(moves[Math.floor(Math.random() * moves.length)]);
+        }
+        simplify();
+        render();
+    }
+
+    function isInverse(char1, char2) {
+        return char1 !== char2 && char1.toLowerCase() === char2.toLowerCase();
+    }
+
+    function simplify() {
+        let changed = true;
+        while (changed) {
+            changed = false;
+            
+            if (groupMode === 'free') {
+                for (let i = 0; i < currentWord.length - 1; i++) {
+                    if (isInverse(currentWord[i], currentWord[i+1])) {
+                        currentWord.splice(i, 2);
+                        changed = true;
+                        break;
+                    }
+                }
+            } else if (groupMode === 'grid' || groupMode === 'torus') {
+                for (let i = 0; i < currentWord.length; i++) {
+                    for (let j = i + 1; j < currentWord.length; j++) {
+                        if (isInverse(currentWord[i], currentWord[j])) {
+                            currentWord.splice(j, 1);
+                            currentWord.splice(i, 1);
+                            changed = true;
+                            break;
+                        }
+                    }
+                    if (changed) break;
+                }
+
+                if (groupMode === 'torus' && !changed) {
+                    const charTypes = ['a', 'A', 'b', 'B'];
+                    for (let char of charTypes) {
+                        let count = currentWord.filter(c => c === char).length;
+                        if (count >= 5) {
+                            let removed = 0;
+                            for (let i = currentWord.length - 1; i >= 0 && removed < 5; i--) {
+                                if (currentWord[i] === char) { currentWord.splice(i, 1); removed++; }
+                            }
+                            changed = true;
+                            break;
+                        }
+                    }
+                }
+            } else if (groupMode === 'perm') {
+                // In Permutation groups, simplification is complex.
+                // For this demo, we use adjacent cancellation as a baseline.
+                for (let i = 0; i < currentWord.length - 1; i++) {
+                    if (isInverse(currentWord[i], currentWord[i+1])) {
+                        currentWord.splice(i, 2);
+                        changed = true;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    function getInverseWord() {
+        if (currentWord.length === 0) return "∅";
+        return currentWord.slice().reverse().map(c => 
+            c === c.toLowerCase() ? c.toUpperCase() : c.toLowerCase()
+        ).join('').replace(/A/g, "a⁻¹").replace(/B/g, "b⁻¹").toLowerCase().replace(/a/g, "a").replace(/b/g, "b")
+        // Just formatting for display
+        let res = "";
+        for(let i=currentWord.length-1; i>=0; i--) {
+            let c = currentWord[i];
+            if(c === 'a') res += "a⁻¹";
+            else if(c === 'A') res += "a";
+            else if(c === 'b') res += "b⁻¹";
+            else if(c === 'B') res += "b";
+        }
+        return res;
+    }
+
+    function render() {
+        const display = document.getElementById('display');
+        const inverseDisplay = document.getElementById('inverse-display');
+        const statusBox = document.getElementById('status-box');
+        
+        display.innerText = currentWord.map(c => c === 'A' ? "a⁻¹" : c === 'B' ? "b⁻¹" : c).join('') || "∅";
+        inverseDisplay.innerText = getInverseWord();
+        
+        // Logical check for Identity
+        let isIdentity = false;
+        let isVisuallyAtOrigin = false;
+
+        if (groupMode === 'perm') {
+            // Apply permutations to check if we back to [0,1,2,3]
+            let s = [0, 1, 2, 3];
+            currentWord.forEach(c => {
+                if (c === 'a') s = [s[1], s[0], s[2], s[3]]; // swap first two
+                if (c === 'A') s = [s[1], s[0], s[2], s[3]];
+                if (c === 'b') s = [s[0], s[2], s[3], s[1]]; // cycle last three
+                if (c === 'B') s = [s[0], s[3], s[1], s[2]];
+            });
+            nodes = s;
+            isIdentity = s.every((v, i) => v === i);
+        } else {
+            let netX = 0, netY = 0;
+            currentWord.forEach(char => {
+                if (char === 'a') netX++; if (char === 'A') netX--;
+                if (char === 'b') netY--; if (char === 'B') netY++;
+            });
+            if (groupMode === 'torus') {
+                netX = ((netX % 5) + 5) % 5;
+                netY = ((netY % 5) + 5) % 5;
+            }
+            isVisuallyAtOrigin = (netX === 0 && netY === 0);
+            isIdentity = (currentWord.length === 0);
+        }
+        
+        if (isIdentity) {
+            statusBox.innerText = "Identity Element (Start)";
+            statusBox.className = "is-identity";
+        } else if (isVisuallyAtOrigin) {
+            statusBox.innerText = "Coordinates at origin, but path is tangled.";
+            statusBox.className = "not-identity tangled";
+        } else {
+            statusBox.innerText = "Not the Identity.";
+            statusBox.className = "not-identity";
+        }
+        draw();
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const step = 25;
+
+        if (groupMode === 'perm') {
+            // Draw 4 slots and the shuffled nodes
+            const radius = 60;
+            const nodeSize = 15;
+            for(let i=0; i<4; i++) {
+                const angle = (i * Math.PI / 2) - Math.PI / 4;
+                const x = centerX + Math.cos(angle) * radius;
+                const y = centerY + Math.sin(angle) * radius;
+                
+                // Draw slot
+                ctx.strokeStyle = "#ddd";
+                ctx.beginPath();
+                ctx.arc(x, y, nodeSize + 5, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // Draw current node at this position
+                ctx.fillStyle = nodeColors[nodes[i]];
+                ctx.beginPath();
+                ctx.arc(x, y, nodeSize, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        } else {
+            // Draw Grid
+            ctx.strokeStyle = "#eee";
+            ctx.beginPath();
+            for(let i=0; i<canvas.width; i+=step) { ctx.moveTo(i,0); ctx.lineTo(i, canvas.height); }
+            for(let i=0; i<canvas.height; i+=step) { ctx.moveTo(0,i); ctx.lineTo(canvas.width, i); }
+            ctx.stroke();
+
+            if (groupMode === 'torus') {
+                ctx.strokeStyle = "rgba(52, 152, 219, 0.2)";
+                ctx.strokeRect(centerX - 2.5 * step, centerY - 2.5 * step, 5 * step, 5 * step);
+            }
+
+            // Path drawing
+            let lx = 0, ly = 0;
+            ctx.strokeStyle = varColor('--dark');
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+
+            currentWord.forEach(char => {
+                let nx = lx, ny = ly;
+                if (char === 'a') nx++; if (char === 'A') nx--;
+                if (char === 'b') ny--; if (char === 'B') ny++;
+
+                if (groupMode === 'torus') {
+                    let wrap = (v) => { let res = ((v % 5) + 5) % 5; return res > 2 ? res - 5 : res; };
+                    let wx = wrap(nx), wy = wrap(ny);
+                    if (Math.abs(wx - lx) > 1 || Math.abs(wy - ly) > 1) {
+                        ctx.moveTo(centerX + wx * step, centerY + wy * step);
+                    } else {
+                        ctx.lineTo(centerX + wx * step, centerY + wy * step);
+                    }
+                    lx = wx; ly = wy;
+                } else {
+                    lx = nx; ly = ny;
+                    ctx.lineTo(centerX + lx * step, centerY + ly * step);
+                }
+            });
+            ctx.stroke();
+
+            ctx.fillStyle = varColor('--danger');
+            ctx.beginPath(); ctx.arc(centerX, centerY, 4, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = varColor('--primary');
+            ctx.beginPath(); ctx.arc(centerX + lx * step, centerY + ly * step, 5, 0, Math.PI*2); ctx.fill();
+        }
+    }
+
+    function varColor(name) {
+        return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    }
+</script>
+
+</body>
+</html>
