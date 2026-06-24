@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prime Shooter 1.1 - Volumetric Laser Edition</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #000; font-family: Consolas, "Liberation Mono", Menlo, Monaco, "Courier New", monospace; user-select: none; }
+        #ui { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: #0f0; z-index: 10; }
+        button { background: rgba(0, 50, 0, 0.8); color: #0f0; border: 2px solid #0f0; padding: 15px 30px; font-size: 20px; font-family: inherit; cursor: pointer; text-transform: uppercase; box-shadow: 0 0 10px #0f0; transition: all 0.2s; }
+        button:hover { background: #0f0; color: #000; }
+        
+        /* HUD Links */
+        #hud { position: absolute; top: 20px; left: 20px; color: #00ffff; font-size: 13px; display: none; text-shadow: 0 0 5px #00ffff; pointer-events: none; line-height: 1.5; background: rgba(0,10,20,0.85); padding: 15px; border: 1px solid #00ffff; z-index: 5; width: 340px; }
+        .energy-bar { width: 100%; background: #002233; height: 10px; border: 1px solid #00ffff; margin-top: 5px; }
+        #energyFill { width: 100%; background: #00ffff; height: 100%; transition: width 0.05s; box-shadow: 0 0 8px #00ffff; }
+        
+        /* Kollektion Rechts */
+        #collectionPanel { position: absolute; top: 20px; right: -280px; bottom: 20px; width: 240px; background: rgba(0,5,0,0.9); border: 1px solid #ff0055; color: #ff0055; padding: 15px; display: none; overflow-y: auto; z-index: 5; transition: right 0.3s ease; font-size: 12px; box-shadow: 0 0 15px rgba(255,0,85,0.3); }
+        #collectionPanel.open { right: 20px; }
+        #colList { list-style: none; padding: 0; margin: 0; }
+        #colList li { padding: 4px 0; border-bottom: 1px dashed rgba(255,0,85,0.3); }
+        
+        #crosshair { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: rgba(0, 255, 255, 0.6); font-size: 32px; display: none; pointer-events: none; font-weight: bold; z-index: 4; text-shadow: 0 0 10px #00ffff; }
+        canvas { display: block; position: absolute; top: 0; left: 0; z-index: 1; }
+        .math-info { font-size: 11px; color: #88aaea; margin-top: 12px; line-height: 1.4; border-top: 1px dashed #00ffff; padding-top: 8px; }
+    </style>
+    <script src="three.min.js"></script>
+</head>
+<body>
+
+    <div id="ui">
+        <h1 style="text-shadow: 0 0 15px #0f0;">Prime Shooter</h1>
+        <h2 style="text-shadow: 0 0 15px #0a0">Volumetric Laser Edition</h2>
+        <p>Flug: WASD | Schub: O / K | Logbuch: L<br><b style="color:#00ffff;">WAFFE: LEERTASTE GEDRÜCKT HALTEN (SCHNEIDE-LASER)</b></p>
+        <button id="startBtn">Starten!</button>
+        <footer style="color: #aaa; font-size: 12px; margin-block-start: 24px;">
+            <small>
+                Enthält die Bibliothek 
+                <a href="https://threejs.org/" target="_blank" rel="noreferrer external" style="color: red;"">
+                    Three.js (Link zu externer Website)
+                </a> 
+            </small>
+        </footer>
+    </div>
+
+    <div id="hud">
+        Z-ACHSE (Zahlenwert x): <span id="zVal" style="color:#fff;">0</span><br>
+        TRICHTER-RADIUS R(x): <span id="tolVal" style="color:#fff;">0</span><br>
+        GESCHWINDIGKEIT.......: <span id="speedVal" style="color:#fff;">0</span> / <span id="maxSpeedVal" style="color:#ffaa00;">0</span> M/S<br>
+        PRIM-DICHTE (Letzte 1k): <span id="densityVal" style="color:#fff;">0</span> / 1000<br>
+        DATEN-LOG.............: <span id="colCount" style="color:#ff0055; font-weight:bold;">0</span> [Taste L]<br>
+        <div class="energy-bar"><div id="energyFill"></div></div>
+        LASER-ENERGIE (Schneide-Laser)
+        <div class="math-info">
+            <b>MATHEMATISCHER TRICHTER:</b><br>
+            Der Tunnelradius R(x) verengt sich asymptotisch. 
+            Die Position der Primzahlen folgt einer deterministischen Spirale, berechnet aus ihrem eigenen Wert.<br>
+            <b style="color:#ff0055;">AUDIO: D-Dorian-Skala, prozedural beeinflusst von gesammelten Primzahlen, mit Ambient-Drones.</b>
+        </div>
+    </div>
+
+    <div id="collectionPanel">
+        <h3 style="margin-top:0; border-bottom: 1px solid #ff0055; padding-bottom:5px;">DATEN-LOG</h3>
+        <div style="font-size:10px;">Avg. Prime Size (Last 5): <span id="avgPrimeVal" style="color:#fff;">--</span></div>
+        <div style="font-size:11px; color:#ff0055; margin-top:5px;">Gesammelt: <span id="panelCount">0</span></div>
+        <hr style="border:none; border-top:1px solid #ff0055;">
+        <ul id="colList"></ul>
+    </div>
+
+    <div id="crosshair">⌖</div>
+
+    <script>
+        let audioCtx, masterGain, tapeDelay, feedbackGain, droneFilter, droneGain;
+        const dDorianScale = [146.83, 164.81, 174.61, 196.00, 220.00, 246.94, 261.63, 293.66, 329.63, 349.23, 392.00, 440.00]; 
+        const primePitchHistory = [];
+        const maxPrimePitchHistory = 5;
+        
+        // --- AUDIO ENGINE ---
+        function initAudio() {
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                masterGain = audioCtx.createGain();
+                masterGain.gain.value = 0.22;
+                masterGain.connect(audioCtx.destination);
+
+                tapeDelay = audioCtx.createDelay(5.0);
+                tapeDelay.delayTime.value = 0.5;
+                
+                feedbackGain = audioCtx.createGain();
+                feedbackGain.gain.value = 0.6;
+                
+                tapeDelay.connect(feedbackGain);
+                feedbackGain.connect(tapeDelay);
+                tapeDelay.connect(masterGain);
+
+                createDroneCarpet();
+                startProceduralEngine();
+            } catch(e) { console.warn(e); }
+        }
+
+        function createDroneCarpet() {
+            if(!audioCtx) return;
+            droneFilter = audioCtx.createBiquadFilter();
+            droneFilter.type = 'lowpass';
+            droneFilter.frequency.value = 180;
+            
+            droneGain = audioCtx.createGain();
+            droneGain.gain.value = 0.02;
+            
+            const oscCount = 3;
+            const droneBaseFreq = dDorianScale[0] / 2;
+            for(let i=0; i<oscCount; i++) {
+                const osc = audioCtx.createOscillator();
+                osc.type = 'sawtooth';
+                osc.frequency.value = droneBaseFreq + (Math.random()-0.5)*1.5;
+                osc.connect(droneFilter);
+                osc.start();
+            }
+            
+            droneFilter.connect(droneGain);
+            droneGain.connect(masterGain);
+        }
+
+        function getAveragePrimeFactor() {
+            if (primePitchHistory.length === 0) return 1.0;
+            const avgVal = primePitchHistory.reduce((a,b) => a + b, 0) / primePitchHistory.length;
+            return Math.max(0.6, 1.2 * Math.log10(avgVal + 2) / 2); 
+        }
+
+        function startProceduralEngine() {
+            let nextNoteTime = audioCtx.currentTime;
+            function loop() {
+                while (nextNoteTime < audioCtx.currentTime + 0.1) {
+                    let tempoFactor = Math.max(0.08, 0.45 - (shipSpeed * 0.08));
+                    
+                    if (densityQueue.length > 0) {
+                        const primeFactor = getAveragePrimeFactor();
+                        const scaleIndex = Math.abs(Math.floor(camera.position.z)) % dDorianScale.length;
+                        let baseFreq = dDorianScale[scaleIndex];
+                        const speedFactor = shipSpeed / 1.5;
+                        baseFreq *= speedFactor * primeFactor;
+                        
+                        playProceduralSynth(baseFreq, 0.5, 'sine', true);
+                    }
+                    nextNoteTime += tempoFactor;
+                }
+                requestAnimationFrame(loop);
+            }
+            loop();
+        }
+
+        function playProceduralSynth(freq, duration, type='sine', useDelay=false) {
+            if(!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const env = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            
+            env.gain.setValueAtTime(0.18, audioCtx.currentTime);
+            env.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+            
+            osc.connect(env);
+            env.connect(masterGain);
+            if(useDelay && tapeDelay) {
+                env.connect(tapeDelay);
+            }
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        function playTriggerNote(primeValue) {
+            if(!audioCtx) return;
+            const env = audioCtx.createGain();
+            env.gain.setValueAtTime(0.6, audioCtx.currentTime);
+            env.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
+            env.connect(masterGain);
+            if(tapeDelay) env.connect(tapeDelay);
+
+            const baseDegree = primeValue % 7;
+            const chords = [
+                [0, 2, 4], [1, 3, 5], [2, 4, 6], [3, 5, 7], 
+                [4, 6, 8], [5, 7, 9], [6, 8, 10]
+            ];
+            
+            const pitchFactor = Math.max(0.6, shipSpeed / 1.5);
+            
+            chords[baseDegree].forEach(degree => {
+                const osc = audioCtx.createOscillator();
+                osc.type = 'sine';
+                const freq = dDorianScale[degree] * pitchFactor * 1.5; 
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                osc.connect(env);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.6);
+            });
+        }
+
+        // --- MATHEMATIK-KERN ---
+        function isPrime(num) {
+            if (num <= 1) return false;
+            if (num <= 3) return true;
+            if (num % 2 === 0 || num % 3 === 0) return false;
+            for (let i = 5; i * i <= num; i += 6) {
+                if (num % i === 0 || num % (i + 2) === 0) return false;
+            }
+            return true;
+        }
+
+        function formatPrimeDisplay(n) {
+            if (n < 10000) return n.toString();
+            const k = Math.floor(Math.log2(n));
+            const c = n - Math.pow(2, k);
+            return `2^${k}+${c}`;
+        }
+
+        // --- TEXTURE SPRITE ---
+        function createTextSprite(text) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 256; canvas.height = 64;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = 'rgba(0, 0, 0, 0)';
+            ctx.fillRect(0, 0, 256, 64);
+            ctx.font = 'bold 24px "Courier New"';
+            ctx.fillStyle = '#ff0055';
+            ctx.shadowColor = '#ff0055';
+            ctx.shadowBlur = 10;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(text, 128, 32);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
+            const sprite = new THREE.Sprite(material);
+            sprite.scale.set(8, 2, 1);
+            return sprite;
+        }
+
+        // --- 3D ENGINE ---
+        let scene, camera, renderer;
+        let tunnelSegments = [], visualPrimes = [], guideLines = [];
+        let laserBeamSystem; 
+        let moveState = { w: false, a: false, s: false, d: false, space: false };
+        
+        let shipSpeed = 1.2; 
+        let lastCheckedX = 10; 
+        let densityQueue = [];
+        let primeCountInWindow = 0;
+        
+        let laserEnergy = 100;
+        const collectedPrimes = new Set();
+        let isPanelOpen = false;
+
+        function init3D() {
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x00050d, 0.005);
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1500);
+            scene.add(camera);
+            
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            // Korrigiertes Blending für den Canvas
+            renderer.setClearColor(0x000000, 1); 
+            document.body.appendChild(renderer.domElement);
+
+            // --- MASSIVER VOLUMETRISCHER LASER (Beat Saber Style) ---
+            laserBeamSystem = new THREE.Group();
+            
+            // Setze den Laser leicht unter die Mitte des Bildschirms (wie die Nase eines Schiffs)
+            laserBeamSystem.position.set(0, -1.5, 0);
+
+            const beamLength = 800;
+
+            // 1. Der innere harte, weiße Kern
+            const coreGeo = new THREE.CylinderGeometry(0.15, 0.15, beamLength, 16);
+            coreGeo.rotateX(Math.PI / 2);
+            coreGeo.translate(0, 0, -beamLength / 2);
+            const coreMat = new THREE.MeshBasicMaterial({ 
+                color: 0xffffff, 
+                blending: THREE.AdditiveBlending,
+                depthWrite: false
+            });
+            const coreMesh = new THREE.Mesh(coreGeo, coreMat);
+            laserBeamSystem.add(coreMesh);
+
+            // 2. Äußere, weichere Glow-Ebenen (Cyan)
+            const glowColors = [0x00ffff, 0x00bfff];
+            const glowRadii = [0.4, 0.9, 1.8];
+            const glowOpacities = [0.6, 0.25, 0.1];
+            
+            for (let i = 0; i < glowRadii.length; i++) {
+                const glowGeo = new THREE.CylinderGeometry(glowRadii[i], glowRadii[i], beamLength, 16);
+                glowGeo.rotateX(Math.PI / 2);
+                glowGeo.translate(0, 0, -beamLength / 2);
+                const glowMat = new THREE.MeshBasicMaterial({ 
+                    color: glowColors[i % glowColors.length], 
+                    transparent: true, 
+                    opacity: glowOpacities[i], 
+                    blending: THREE.AdditiveBlending,
+                    depthWrite: false,
+                    side: THREE.DoubleSide
+                });
+                const glowMesh = new THREE.Mesh(glowGeo, glowMat);
+                laserBeamSystem.add(glowMesh);
+            }
+
+            laserBeamSystem.visible = false;
+            camera.add(laserBeamSystem);
+
+            // --- 4 LEITSTRAHLEN ---
+            const guideMat = new THREE.LineBasicMaterial({ color: 0x336699, transparent: true, opacity: 0.4 });
+            for(let i=0; i<GuideLinesCount; i++) {
+                const geo = new THREE.BufferGeometry();
+                const line = new THREE.Line(geo, guideMat);
+                scene.add(line);
+                guideLines.push({ mesh: line, sector: i });
+            }
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+
+            window.addEventListener('keydown', (e) => {
+                const key = e.key.toLowerCase();
+                if(e.key === ' ') { moveState.space = true; e.preventDefault(); }
+                if(key === 'w' || e.key === 'arrowup') moveState.w = true;
+                if(key === 's' || e.key === 'arrowdown') moveState.s = true;
+                if(key === 'a' || e.key === 'arrowleft') moveState.a = true;
+                if(key === 'd' || e.key === 'arrowright') moveState.d = true;
+                if(key === 'o') shipSpeed += 0.25;
+                if(key === 'k') shipSpeed = Math.max(0.1, shipSpeed - 0.25);
+                if(key === 'l') toggleCollectionPanel();
+            });
+            window.addEventListener('keyup', (e) => {
+                const key = e.key.toLowerCase();
+                if(e.key === ' ') moveState.space = false;
+                if(key === 'w' || e.key === 'arrowup') moveState.w = false;
+                if(key === 's' || e.key === 'arrowdown') moveState.s = false;
+                if(key === 'a' || e.key === 'arrowleft') moveState.a = false;
+                if(key === 'd' || e.key === 'arrowright') moveState.d = false;
+            });
+        }
+
+        const GuideLinesCount = 4;
+
+        function toggleCollectionPanel() {
+            isPanelOpen = !isPanelOpen;
+            const panel = document.getElementById('collectionPanel');
+            if(isPanelOpen) panel.classList.add('open');
+            else panel.classList.remove('open');
+        }
+
+        function processMathematics(targetX) {
+            const ringMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.15 });
+            const primeRingMaterial = new THREE.LineBasicMaterial({ color: 0xff0055, transparent: true, opacity: 0.4 });
+
+            let calculationsThisFrame = 0;
+            const maxCalculationsPerFrame = 40;
+
+            while (lastCheckedX < targetX && calculationsThisFrame < maxCalculationsPerFrame) {
+                lastCheckedX++;
+                calculationsThisFrame++;
+                
+                const isCurrentPrime = isPrime(lastCheckedX);
+                
+                densityQueue.push(isCurrentPrime);
+                if (isCurrentPrime) primeCountInWindow++;
+                if (densityQueue.length > 1000) {
+                    const removed = densityQueue.shift();
+                    if (removed) primeCountInWindow--;
+                }
+
+                const currentZ = -(lastCheckedX - 10);
+                const mathRadius = 5 + (150 / Math.log(lastCheckedX));
+
+                if (lastCheckedX % 15 === 0 || isCurrentPrime) {
+                    const geo = new THREE.EdgesGeometry(new THREE.CircleGeometry(mathRadius, 16));
+                    const ring = new THREE.LineSegments(geo, isCurrentPrime ? primeRingMaterial : ringMaterial);
+                    ring.position.z = currentZ;
+                    ring.rotation.z = lastCheckedX * 0.01;
+                    scene.add(ring);
+                    tunnelSegments.push(ring);
+                }
+
+                if (isCurrentPrime) {
+                    const formattedText = formatPrimeDisplay(lastCheckedX);
+                    const textSprite = createTextSprite(formattedText);
+                    
+                    const offsetAngle = lastCheckedX * 0.137; 
+                    const offsetDistance = mathRadius * 0.55; 
+                    
+                    textSprite.position.set(
+                        Math.cos(offsetAngle) * offsetDistance, 
+                        Math.sin(offsetAngle) * offsetDistance, 
+                        currentZ
+                    );
+                    textSprite.userData = { value: lastCheckedX, formatted: formattedText, passedAudio: false };
+                    
+                    scene.add(textSprite);
+                    visualPrimes.push(textSprite);
+                }
+            }
+
+            updateGuideLines();
+
+            const limitZ = camera.position.z + 50;
+            for (let i = tunnelSegments.length - 1; i >= 0; i--) {
+                if (tunnelSegments[i].position.z > limitZ) { scene.remove(tunnelSegments[i]); tunnelSegments.splice(i, 1); }
+            }
+        }
+
+        function updateGuideLines() {
+            const camZ = camera.position.z;
+            const lookAhead = 500;
+            
+            guideLines.forEach(g => {
+                const points = [];
+                const angle = (g.sector * Math.PI / GuideLinesCount * 2);
+                for(let zOffset = 0; zOffset < lookAhead; zOffset += 20) {
+                    const evalZ = camZ - zOffset;
+                    const evalX = Math.floor(Math.abs(evalZ) + 10);
+                    const r = 5 + (150 / Math.log(evalX));
+                    points.push(new THREE.Vector3(Math.cos(angle) * r, Math.sin(angle) * r, evalZ));
+                }
+                g.mesh.geometry.setFromPoints(points);
+            });
+        }
+
+        function handleLaserCollisions() {
+            if (!laserBeamSystem.visible) return;
+
+            const camX = camera.position.x;
+            const camY = camera.position.y;
+            const camZ = camera.position.z;
+
+            for (let i = visualPrimes.length - 1; i >= 0; i--) {
+                let sprite = visualPrimes[i];
+                
+                if (sprite.position.z < camZ && sprite.position.z > camZ - 800) {
+                    let dx = sprite.position.x - camX;
+                    let dy = sprite.position.y - camY;
+                    let distanceToBeam = Math.sqrt(dx*dx + dy*dy);
+
+                    if (distanceToBeam < 4.0) { 
+                        const val = sprite.userData.value;
+                        
+                        if (!collectedPrimes.has(val)) {
+                            collectedPrimes.add(val);
+                            playTriggerNote(val);
+                            addPrimeToLogPanel(val, sprite.userData.formatted);
+                            
+                            primePitchHistory.push(val);
+                            if (primePitchHistory.length > maxPrimePitchHistory) primePitchHistory.shift();
+                        }
+
+                        scene.remove(sprite);
+                        visualPrimes.splice(i, 1);
+                    }
+                }
+            }
+        }
+
+        function addPrimeToLogPanel(val, formatted) {
+            document.getElementById('colCount').innerText = collectedPrimes.size;
+            document.getElementById('panelCount').innerText = collectedPrimes.size;
+            
+            const list = document.getElementById('colList');
+            const li = document.createElement('li');
+            li.innerHTML = `<b>#${val}</b> <span style="color:#fff;float:right;">${formatted}</span>`;
+            list.insertBefore(li, list.firstChild);
+            
+            const avgVal = collectedPrimes.size > 0 ? getAveragePrimeFactor() : "--";
+            document.getElementById('avgPrimeVal').innerText = avgVal === "--" ? avgVal : avgVal.toFixed(3);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const currentX = Math.floor(Math.abs(camera.position.z) + 10);
+            const maxAllowedSpeed = Math.max(0.5, 12 / Math.log10(currentX + 5));
+            if (shipSpeed > maxAllowedSpeed) shipSpeed = maxAllowedSpeed;
+
+            if(audioCtx && tapeDelay) {
+                const targetDelay = Math.max(0.1, 1.0 / (shipSpeed || 1));
+                tapeDelay.delayTime.setTargetAtTime(targetDelay, audioCtx.currentTime, 0.5);
+            }
+
+            camera.position.z -= shipSpeed;
+
+            const horizonX = Math.floor(Math.abs(camera.position.z) + 400);
+            processMathematics(horizonX);
+
+            if (moveState.space && laserEnergy > 0) {
+                laserBeamSystem.visible = true;
+                laserEnergy = Math.max(0, laserEnergy - 1.8); 
+                handleLaserCollisions();
+                
+                // Laser-Pulsieren für mehr Lebendigkeit
+                const pulse = 1.0 + Math.sin(Date.now() * 0.03) * 0.15;
+                laserBeamSystem.scale.set(pulse, pulse, 1);
+            } else {
+                laserBeamSystem.visible = false;
+                laserEnergy = Math.min(100, laserEnergy + 0.7); 
+            }
+
+            const mathRadius = 5 + (150 / Math.log(currentX));
+            const strafeSpeed = 0.05 * mathRadius;
+            if (moveState.a) camera.position.x -= strafeSpeed;
+            if (moveState.d) camera.position.x += strafeSpeed;
+            if (moveState.w) camera.position.y += strafeSpeed;
+            if (moveState.s) camera.position.y -= strafeSpeed;
+
+            const distFromCenter = Math.sqrt(camera.position.x**2 + camera.position.y**2);
+            if (distFromCenter > mathRadius - 1.5) {
+                const angle = Math.atan2(camera.position.y, camera.position.x);
+                camera.position.x = (mathRadius - 1.5) * Math.cos(angle);
+                camera.position.y = (mathRadius - 1.5) * Math.sin(angle);
+            }
+
+            visualPrimes.forEach(sprite => {
+                if(!sprite.userData.passedAudio && sprite.position.z > camera.position.z) {
+                    sprite.userData.passedAudio = true;
+                    // Dorian Note triggern
+                    playProceduralSynth(dDorianScale[sprite.userData.value % dDorianScale.length], 0.4, 'sine', true);
+                }
+            });
+
+            document.getElementById('zVal').innerText = currentX.toLocaleString();
+            document.getElementById('tolVal').innerText = mathRadius.toFixed(3);
+            document.getElementById('speedVal').innerText = shipSpeed.toFixed(2);
+            document.getElementById('maxSpeedVal').innerText = maxAllowedSpeed.toFixed(2);
+            document.getElementById('densityVal').innerText = primeCountInWindow;
+            document.getElementById('energyFill').style.width = `${laserEnergy}%`;
+
+            renderer.render(scene, camera);
+        }
+
+        document.getElementById('startBtn').addEventListener('click', () => {
+            document.getElementById('ui').style.display = 'none';
+            document.getElementById('hud').style.display = 'block';
+            document.getElementById('collectionPanel').style.display = 'block';
+            document.getElementById('crosshair').style.display = 'block';
+            initAudio();
+            init3D();
+            animate();
+        });
+    </script>
+</body>
+</html>
