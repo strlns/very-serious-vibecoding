@@ -1,78 +1,9 @@
-prime-shooter-v1.2beta.html
-Datei
-I have a very cool browser game that I wanna iterate on, but there is one thing in the latest iteration that's not working: the background synth here should include a rhythm. Can you find the problem that prevents the rhythm from being audible? It should be some simple synth drum beat.
-Please be extra careful to not break anything and not modify the other logic, and output the complete file.
-
-I inspected the audio path carefully. The rhythm generator (playBeat) is actually being called and the drum voices are routed correctly (osc → env → drumGain → masterGain). There is no obvious logic error that stops the beat from being scheduled.
-
-The most likely reason the rhythm is effectively inaudible is that the dedicated drum bus is attenuated too heavily relative to the continuously running drone and melodic layers:
-
-drumGain.gain.value = 0.3;
-masterGain.gain.value = 0.25;
-
-That leaves the percussion extremely quiet once mixed with the drone carpet and procedural synth notes.
-
-I made the smallest possible change: increased only the drum bus gain, leaving all scheduling, synthesis, gameplay, and other audio logic untouched.
-
-Modified file:
-
-If you test it and the beat is still absent, the next thing I'd check is whether the beat is being masked by the drone frequencies rather than a scheduling problem, but I intentionally did not alter any synthesis or timing logic in this pass.
-
-Something's slightly audible, so good work! The drum sounds are just not sounding like drums. Can you replace them with a proper kickdrum (pitch envelope) and a snare (noise + higher pitched transient-like sound)? And I would love some meditative, creative variations of the music and drone + scale, making it sound calmer and more musical. Can you try that?
-
-I replaced the synthetic “beep” percussion with actual drum synthesis while keeping the game logic untouched:
-Changes
-
-    Kick drum
-
-        Sine oscillator
-
-        Fast downward pitch envelope (~110 Hz → ~42 Hz)
-
-        Dedicated amplitude envelope
-
-        Produces a recognizable electronic kick
-
-    Snare drum
-
-        White noise burst through a high-pass filter
-
-        Short tonal transient layered on top
-
-        Much closer to a real snare character
-
-    Calmer musical atmosphere
-
-        Switched the pitch collection toward a more open, meditative modal palette
-
-        Drone now uses triangle/sine layers instead of harsh saws
-
-        Harmonic drone intervals (root, fifth, octave)
-
-        Slightly brighter drone filter
-
-        Longer melodic note tails
-
-        Alternation between sine and triangle voices for more movement
-
-        Reduced melodic synth aggressiveness
-
-    Rhythm
-
-        Slightly slower and less mechanical feeling
-
-        Drum bus level increased so the beat remains audible
-
-Patched file:
-
-One thing I did not change is the overall composition logic that maps prime numbers directly to scale degrees. If you want the soundtrack to become substantially more musical, the next step would be introducing a slow chord progression layer and quantizing the prime-driven notes to the currently active chord rather than using only the scale. That can make the game feel much more ambient and intentional while preserving the mathematical relationship.
-
 <!doctype html>
 <html lang="de">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Prime Shooter 1.2beta - Rhythm Edition</title>
+    <title>Prime Shooter 1.3 - Aquatic Rhythm Edition</title>
     <style>
       body {
         margin: 0;
@@ -87,19 +18,19 @@ One thing I did not change is the overall composition logic that maps prime numb
         left: 50%;
         transform: translate(-50%, -50%);
         text-align: center;
-        color: #0f0;
+        color: #0cf;
         z-index: 10;
       }
       button {
         background: rgba(0, 50, 0, 0.8);
-        color: #0f0;
-        border: 2px solid #0f0;
+        color: #0ef;
+        border: 2px solid #0ff;
         padding: 15px 30px;
         font-size: 20px;
         font-family: inherit;
         cursor: pointer;
         text-transform: uppercase;
-        box-shadow: 0 0 10px #0f0;
+        box-shadow: 0 0 10px #0cf;
         transition: all 0.2s;
       }
       button:hover {
@@ -198,13 +129,15 @@ One thing I did not change is the overall composition logic that maps prime numb
         z-index: 1;
       }
       .subtitle-text-effect {
-        color: #ffe600;
-
         text-shadow:
-          1px 1px 0 #ff0080,
-          2px 2px 0 #ff0080,
-          3px 3px 0 #ff0080,
-          4px 4px 0 #ff0080,
+          1px 1px 1px #4091af,
+          2px 2px 0 #4091af,
+          -2px -2px 0 #77f1ff,
+          -2px -2px 0 #2299cf,
+          1px 1px 0 #2299cf,
+          2px 2px 0 #77f1ff,
+          3px 3px 0 #4091af,
+          4px 4px 0 #2299cf,
           5px 5px 0 #111,
           6px 6px 0 #111,
           7px 7px 0 #111;
@@ -214,8 +147,8 @@ One thing I did not change is the overall composition logic that maps prime numb
   </head>
   <body>
     <div id="ui">
-      <h1 style="text-transform: uppercase; text-shadow: 0 0 15px #0f0">Prime Shooter</h1>
-      <h2 class="subtitle-text-effect" style="text-transform: uppercase;">Rhythm Edition</h2>
+      <h1 style="text-transform: uppercase; text-shadow: 0 0 15px #0f0">Prime Shooter 1.3</h1>
+      <h2 class="subtitle-text-effect" style="color: #42a; text-transform: uppercase;">Aquatic Rhythm Edition</h2>
       <button id="startBtn">Starten!</button>
       <footer style="color: #aaa; font-size: 12px; margin-block-start: 24px;">
           <small>
@@ -243,7 +176,7 @@ One thing I did not change is the overall composition logic that maps prime numb
 
       <div id="controls">
         <b>STEUERUNG:</b><br />
-        Flug: [W][A][S][D] | Schub: [O] / [K]<br />
+        Flug: [W][A][S][D] | Schub: [P] / [L]<br />
         Logbuch: [L] | Waffe: [SPACE]
       </div>
 
@@ -283,11 +216,12 @@ One thing I did not change is the overall composition logic that maps prime numb
         drumGain,
         feedbackGain,
         droneFilter,
-        droneGain;
+        droneGain,
+        drumVerb;
 
       const dDorianScale = [
-        130.81, 146.83, 164.81, 196.0, 220.0, 261.63, 293.66, 329.63, 392.0,
-        440.0, 523.25, 587.33,
+        130.81, 146.83, 164.81, 196.0, 220.0, 233.08, 293.66, 329.63, 392.0,
+        440.0, 466.16, 587.33,
       ];
       const primePitchHistory = [];
       const maxPrimePitchHistory = 5;
@@ -304,6 +238,15 @@ One thing I did not change is the overall composition logic that maps prime numb
         drumGain.gain.value = 0.3;
         drumGain.connect(masterGain);
         drumGain.gain.value = 0.8;
+
+        drumVerb = audioCtx.createDelay(4.0);
+        drumVerb.delayTime.value = 0.75;
+        const drumFeedback = audioCtx.createGain();
+        drumFeedback.gain.value = 0.72;
+        drumVerb.connect(drumFeedback);
+        drumFeedback.connect(drumVerb);
+        drumVerb.connect(masterGain);
+        drumGain.connect(drumVerb);
 
         tapeDelay = audioCtx.createDelay(5.0);
         tapeDelay.delayTime.value = 0.5;
@@ -326,7 +269,7 @@ One thing I did not change is the overall composition logic that maps prime numb
         if (!audioCtx) return;
         const time = audioCtx.currentTime;
 
-        if (beatCount % 4 === 0) {
+        if (beatCount % 2 === 0) {
           const osc = audioCtx.createOscillator();
           const env = audioCtx.createGain();
 
@@ -376,12 +319,12 @@ One thing I did not change is the overall composition logic that maps prime numb
         }
 
         beatCount++;
-        setTimeout(playBeat, (60 / (96 * (shipSpeed / 2 + 0.75))) * 1000);
+        setTimeout(playBeat, (60 / (72 * (shipSpeed / 2 + 0.75))) * 1000);
       }
       let camera, scene, renderer;
       let isPanelOpen = false;
 
-      let shipSpeed = 0.8;
+      let shipSpeed = 0.4;
       let lastCheckedX = 10;
       let densityQueue = [];
       let visualPrimes = [];
@@ -500,15 +443,21 @@ One thing I did not change is the overall composition logic that maps prime numb
         ];
 
         const pitchFactor = Math.max(0.6, shipSpeed / 1.5);
+        const noteDuration = 0.35 + ((primeValue % 11) / 10) * 1.2;
+
+        env.gain.exponentialRampToValueAtTime(
+          0.001,
+          audioCtx.currentTime + noteDuration,
+        );
 
         chords[baseDegree].forEach((degree) => {
           const osc = audioCtx.createOscillator();
-          osc.type = "sine";
+          osc.type = primeValue % 3 === 0 ? "triangle" : "sine";
           const freq = dDorianScale[degree] * pitchFactor * 1.5;
           osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
           osc.connect(env);
           osc.start();
-          osc.stop(audioCtx.currentTime + 0.6);
+          osc.stop(audioCtx.currentTime + noteDuration);
         });
       }
 
@@ -888,7 +837,7 @@ One thing I did not change is the overall composition logic that maps prime numb
             // Dorian Note triggern
             playProceduralSynth(
               dDorianScale[sprite.userData.value % dDorianScale.length],
-              0.4,
+              0.25 + ((sprite.userData.value % 9) * 0.12),
               "sine",
               true,
             );
