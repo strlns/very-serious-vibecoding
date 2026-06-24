@@ -3,7 +3,6 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="refresh" content="1; url=prime-shooter-v1.4.html" />
     <title>Prime Shooter 1.3 - Aquatic Rhythm Edition</title>
     <style>
       body {
@@ -150,8 +149,7 @@
     <div id="ui">
       <h1 style="text-transform: uppercase; text-shadow: 0 0 15px #0f0">Prime Shooter 1.3</h1>
       <h2 class="subtitle-text-effect" style="color: #42a; text-transform: uppercase;">Aquatic Rhythm Edition</h2>
-      <button id="startBtn">Starten!</button>
-      <a id="linkBtn" href="prime-shooter-v1.4.html">zu Version 1.4</button>
+      <p style="color:#ccc">Hinweis: Tastatur sowie Sound/WebAudio werden benötigt.</p><button id="startBtn" autoFocus>Starten!</button>
       <footer style="color: #aaa; font-size: 12px; margin-block-start: 24px;">
           <small>
               Enthält die Bibliothek 
@@ -185,7 +183,7 @@
       <div style="font-size: 10px; margin-top: 10px; color: #aaa">
         Modus: Dorische Skala mit erhöhter 6 (melodisch Moll)
       </div>
-      TRICHTER-RADIUS R(x): <span id="tolVal" style="color: #fff">0</span><br />
+      TRICHTER-RADIUS R(x): <span id="tolVal" style="color: #fff">0</span><br /><div style="font-size:10px;color:#aaa;margin-top:6px">Position: x=r·cos(n·0.137), y=r·sin(n·0.137). Tunnelgröße = aktueller Radius R(x).</div>
     </div>
 
     <div id="collectionPanel">
@@ -738,12 +736,21 @@
 
       // --- MATHEMATIK-KERN ---
       function isPrime(num) {
-        if (num <= 1) return false;
-        if (num <= 3) return true;
-        if (num % 2 === 0 || num % 3 === 0) return false;
-        for (let i = 5; i * i <= num; i += 6) {
-          if (num % i === 0 || num % (i + 2) === 0) return false;
+        const n = typeof num === "bigint" ? num : BigInt(num);
+        if (n <= 1n) return false;
+        if (n <= 3n) return true;
+        if (n % 2n === 0n || n % 3n === 0n) return false;
+        for (let i = 5n; i * i <= n; i += 6n) {
+          if (n % i === 0n || n % (i + 2n) === 0n) return false;
         }
+        return true;
+      }
+
+      function testPrimeChecker() {
+        const primes=[2,3,5,7,11,13,17,19,97,9973];
+        const composites=[4,6,8,9,10,12,15,21,100,99999];
+        for(const p of primes){ if(!isPrime(BigInt(p))) throw new Error("Prime test failed: "+p); }
+        for(const c of composites){ if(isPrime(BigInt(c))) throw new Error("Composite test failed: "+c); }
         return true;
       }
 
@@ -784,7 +791,7 @@
         requestAnimationFrame(animate);
 
         const currentX = Math.floor(Math.abs(camera.position.z) + 10);
-        const maxAllowedSpeed = Math.max(0.5, 12 / Math.log10(currentX + 5));
+        const maxAllowedSpeed = Math.max(1.0, 24 / Math.log10(currentX + 5));
         if (shipSpeed > maxAllowedSpeed) shipSpeed = maxAllowedSpeed;
 
         if (audioCtx && tapeDelay) {
@@ -857,6 +864,7 @@
         renderer.render(scene, camera);
       }
 
+      testPrimeChecker();
       document.getElementById("startBtn").addEventListener("click", () => {
         document.getElementById("ui").style.display = "none";
         document.getElementById("hud").style.display = "block";
@@ -869,5 +877,4 @@
     </script>
   </body>
 </html>
-
 

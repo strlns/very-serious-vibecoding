@@ -3,14 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="refresh" content="1; url=prime-shooter-v1.4.html" />
-    <title>Prime Shooter 1.3 - Aquatic Rhythm Edition</title>
+    <title>Prime Shooter 1.4 - BigInt Rhythm Edition</title>
     <style>
       body {
         margin: 0;
         overflow: hidden;
         background-color: #000;
-        font-family: Consolas, "Liberation Mono", Menlo, Monaco, "Courier New", monospace;
+        font-family:
+          Consolas, "Liberation Mono", Menlo, Monaco, "Courier New", monospace;
         user-select: none;
       }
       #ui {
@@ -47,7 +47,7 @@
         font-size: 13px;
         display: none;
         text-shadow: 0 0 5px #00ffff;
-        pointer-events: none;
+        pointer-events: auto; /* Changed to auto to click drop-downs/sliders */
         line-height: 1.5;
         background: rgba(0, 10, 20, 0.85);
         padding: 15px;
@@ -70,7 +70,6 @@
         box-shadow: 0 0 8px #00ffff;
       }
 
-      /* Prominente Tastenbelegung */
       #controls {
         margin-top: 10px;
         padding: 10px;
@@ -142,39 +141,162 @@
           5px 5px 0 #111,
           6px 6px 0 #111,
           7px 7px 0 #111;
-        }
+      }
+
+      /* Accuracy Warning Tooltip CSS */
+      .tooltip {
+        position: relative;
+        display: inline-block;
+      }
+      .tooltip .tooltiptext {
+        visibility: hidden;
+        width: 220px;
+        background-color: rgba(20, 0, 5, 0.95);
+        color: #ff3366;
+        text-align: center;
+        border: 1px solid #ff0055;
+        border-radius: 4px;
+        padding: 8px;
+        position: absolute;
+        z-index: 20;
+        bottom: 125%;
+        left: 50%;
+        transform: translateX(-50%);
+        opacity: 0;
+        transition: opacity 0.2s;
+        font-size: 11px;
+        line-height: 1.4;
+        box-shadow: 0 0 10px rgba(255, 0, 85, 0.6);
+      }
+      .tooltip:hover .tooltiptext {
+        visibility: visible;
+        opacity: 1;
+      }
+
+      /* Audio Form Styling */
+      .audio-control-row {
+        margin-top: 6px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .audio-select {
+        background: #001122;
+        color: #00ffff;
+        border: 1px solid #00ffff;
+        font-family: inherit;
+        font-size: 11px;
+        padding: 2px;
+        width: 150px;
+      }
+      .audio-slider {
+        width: 110px;
+        accent-color: #00ffff;
+      }
     </style>
     <script src="three.min.js"></script>
   </head>
   <body>
     <div id="ui">
-      <h1 style="text-transform: uppercase; text-shadow: 0 0 15px #0f0">Prime Shooter 1.3</h1>
-      <h2 class="subtitle-text-effect" style="color: #42a; text-transform: uppercase;">Aquatic Rhythm Edition</h2>
-      <button id="startBtn">Starten!</button>
-      <a id="linkBtn" href="prime-shooter-v1.4.html">zu Version 1.4</button>
-      <footer style="color: #aaa; font-size: 12px; margin-block-start: 24px;">
-          <small>
-              Enthält die Bibliothek 
-              <a href="https://threejs.org/" target="_blank" rel="noreferrer external" style="color: red;"">
-                  Three.js (Link zu externer Website)
-              </a> 
-          </small>
+      <h1 style="text-transform: uppercase; text-shadow: 0 0 15px #0f0">
+        Prime Shooter 1.4
+      </h1>
+      <h2
+        class="subtitle-text-effect"
+        style="color: #42a; text-transform: uppercase"
+      >
+        Aquatic Rhythm BigInt Edition
+      </h2>
+      <p style="color: #ccc">
+        Hinweis: Tastatur sowie Sound/WebAudio werden benötigt.
+      </p>
+      <button id="startBtn" autofocus>Starten!</button>
+      <footer style="color: #aaa; font-size: 12px; margin-block-start: 24px">
+        <small>
+          Enthält die Bibliothek
+          <a
+            href="https://threejs.org/"
+            target="_blank"
+            rel="noreferrer external"
+            style="color: red"
+          >
+            Three.js (Link zu externer Website)
+          </a>
+        </small>
       </footer>
     </div>
 
     <div id="hud">
       Z-ACHSE: <span id="zVal" style="color: #fff">0</span><br />
       PRIM-DICHTE (Letzte 1k):
-      <span id="densityVal" style="color: #fff">0</span> / 1000<br />
+      <span id="densityVal" style="color: #fff">0</span> / 1000
+      <div
+        id="accuracyWarning"
+        class="tooltip"
+        style="display: none; margin-left: 5px; cursor: help"
+      >
+        <span
+          style="
+            color: #ff3366;
+            font-weight: bold;
+            animation: blink 1s infinite alternate;
+          "
+          >⚠️ INACCURATE</span
+        >
+        <span class="tooltiptext"
+          >Berechnungsverzug! Das Schiff fliegt schneller als der mathematische
+          Prozessor Primzahlen berechnen kann. Die Dichtewerte hinken
+          hinterher.</span
+        >
+      </div>
+      <br />
       GESCHWINDIGKEIT:
       <span id="speedVal" style="color: #fff">0</span> M/S (<span
         id="maxSpeedVal"
         style="color: #ffaa00"
         >max: 0</span
       >
-      M/S<br />
+      M/S)<br />
       <div class="energy-bar"><div id="energyFill"></div></div>
       LASER-ENERGIE (Schneide-Laser)
+
+      <div
+        style="
+          margin-top: 12px;
+          border-top: 1px dashed #00ffff;
+          padding-top: 8px;
+        "
+      >
+        <b style="color: #ffaa00">SOUND-SYNTHESIZER:</b>
+        <div class="audio-control-row">
+          <span>Tonleiter:</span>
+          <select id="scaleSelect" class="audio-select">
+            <option value="dorian" selected>D Dorisch (Original)</option>
+            <option value="phrygian">E Phrygisch (Mystic)</option>
+            <option value="major">C Dur (Bright)</option>
+          </select>
+        </div>
+        <div class="audio-control-row">
+          <span>Pitch: (<span id="pitchVal">1.0x</span>)</span>
+          <input
+            type="range"
+            id="pitchSlider"
+            class="audio-slider"
+            min="0.5"
+            max="2.0"
+            step="0.1"
+            value="1.0"
+          />
+        </div>
+        <div class="audio-control-row">
+          <span>Drums:</span>
+          <select id="drumSelect" class="audio-select">
+            <option value="standard" selected>Standard Electronic</option>
+            <option value="techno">Deep Techno</option>
+            <option value="glitch">Glitch / 8-Bit</option>
+          </select>
+        </div>
+      </div>
 
       <div id="controls">
         <b>STEUERUNG:</b><br />
@@ -183,9 +305,14 @@
       </div>
 
       <div style="font-size: 10px; margin-top: 10px; color: #aaa">
-        Modus: Dorische Skala mit erhöhter 6 (melodisch Moll)
+        <ul>
+          <li>Schub/Geschwindigkeit ist begrenzt durch Rechenleistung</li>
+          <li>
+            Die Anordnung der Primzahlen im "Trichter" hat keinen tief liegenden
+            Sinn.
+          </li>
+        </ul>
       </div>
-      TRICHTER-RADIUS R(x): <span id="tolVal" style="color: #fff">0</span><br />
     </div>
 
     <div id="collectionPanel">
@@ -199,7 +326,7 @@
         DATEN-LOG
       </h3>
       <div style="font-size: 10px">
-        Avg. Prime Size (Last 5):
+        Avg. Prime Size Factor:
         <span id="avgPrimeVal" style="color: #fff">--</span>
       </div>
       <div style="font-size: 11px; color: #ff0055; margin-top: 5px">
@@ -221,10 +348,26 @@
         droneGain,
         drumVerb;
 
-      const dDorianScale = [
-        130.81, 146.83, 164.81, 196.0, 220.0, 233.08, 293.66, 329.63, 392.0,
-        440.0, 466.16, 587.33,
-      ];
+      // Audio Configurations
+      const scales = {
+        dorian: [
+          130.81, 146.83, 164.81, 196.0, 220.0, 233.08, 293.66, 329.63, 392.0,
+          440.0, 466.16, 587.33,
+        ],
+        phrygian: [
+          130.81, 138.59, 164.81, 174.61, 196.0, 207.65, 261.63, 277.18, 329.63,
+          349.23, 392.0, 415.3,
+        ],
+        major: [
+          130.81, 146.83, 164.81, 174.61, 196.0, 220.0, 246.94, 261.63, 293.66,
+          329.63, 349.23, 392.0,
+        ],
+      };
+
+      let currentScaleKey = "dorian";
+      let globalPitchModifier = 1.0;
+      let currentDrumKit = "standard";
+
       const primePitchHistory = [];
       const maxPrimePitchHistory = 5;
       let beatCount = 0;
@@ -237,7 +380,6 @@
         masterGain.connect(audioCtx.destination);
 
         drumGain = audioCtx.createGain();
-        drumGain.gain.value = 0.3;
         drumGain.connect(masterGain);
         drumGain.gain.value = 0.8;
 
@@ -258,9 +400,14 @@
         feedback.connect(tapeDelay);
         tapeDelay.connect(masterGain);
 
-        noiseBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate, audioCtx.sampleRate);
+        noiseBuffer = audioCtx.createBuffer(
+          1,
+          audioCtx.sampleRate,
+          audioCtx.sampleRate,
+        );
         const noiseData = noiseBuffer.getChannelData(0);
-        for (let i = 0; i < noiseData.length; i++) noiseData[i] = Math.random() * 2 - 1;
+        for (let i = 0; i < noiseData.length; i++)
+          noiseData[i] = Math.random() * 2 - 1;
 
         startProceduralEngine();
         createDroneCarpet();
@@ -272,32 +419,58 @@
         const time = audioCtx.currentTime;
 
         if (beatCount % 2 === 0) {
+          // Synthetic Kick Drum Configurations
           const osc = audioCtx.createOscillator();
           const env = audioCtx.createGain();
 
-          osc.type = "sine";
-          osc.frequency.setValueAtTime(110, time);
-          osc.frequency.exponentialRampToValueAtTime(42, time + 0.14);
-
-          env.gain.setValueAtTime(0.9, time);
-          env.gain.exponentialRampToValueAtTime(0.001, time + 0.18);
+          if (currentDrumKit === "techno") {
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(85, time);
+            osc.frequency.exponentialRampToValueAtTime(28, time + 0.24);
+            env.gain.setValueAtTime(1.0, time);
+            env.gain.exponentialRampToValueAtTime(0.001, time + 0.28);
+          } else if (currentDrumKit === "glitch") {
+            osc.type = "square";
+            osc.frequency.setValueAtTime(160, time);
+            osc.frequency.exponentialRampToValueAtTime(50, time + 0.04);
+            env.gain.setValueAtTime(0.4, time);
+            env.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
+          } else {
+            // Standard
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(110, time);
+            osc.frequency.exponentialRampToValueAtTime(42, time + 0.14);
+            env.gain.setValueAtTime(0.9, time);
+            env.gain.exponentialRampToValueAtTime(0.001, time + 0.18);
+          }
 
           osc.connect(env);
           env.connect(drumGain);
-
           osc.start(time);
-          osc.stop(time + 0.2);
+          osc.stop(time + 0.35);
         } else {
+          // Synthetic Snare / Hi-Hat Configurations
           const noise = audioCtx.createBufferSource();
           noise.buffer = noiseBuffer;
 
           const noiseFilter = audioCtx.createBiquadFilter();
           noiseFilter.type = "highpass";
-          noiseFilter.frequency.value = 1800;
-
           const noiseEnv = audioCtx.createGain();
-          noiseEnv.gain.setValueAtTime(0.45, time);
-          noiseEnv.gain.exponentialRampToValueAtTime(0.001, time + 0.12);
+
+          if (currentDrumKit === "techno") {
+            noiseFilter.frequency.value = 1100;
+            noiseEnv.gain.setValueAtTime(0.25, time);
+            noiseEnv.gain.exponentialRampToValueAtTime(0.001, time + 0.22);
+          } else if (currentDrumKit === "glitch") {
+            noiseFilter.frequency.value = 4500;
+            noiseEnv.gain.setValueAtTime(0.55, time);
+            noiseEnv.gain.exponentialRampToValueAtTime(0.001, time + 0.04);
+          } else {
+            // Standard
+            noiseFilter.frequency.value = 1800;
+            noiseEnv.gain.setValueAtTime(0.45, time);
+            noiseEnv.gain.exponentialRampToValueAtTime(0.001, time + 0.12);
+          }
 
           noise.connect(noiseFilter);
           noiseFilter.connect(noiseEnv);
@@ -305,29 +478,42 @@
 
           const tone = audioCtx.createOscillator();
           const toneEnv = audioCtx.createGain();
-          tone.type = "triangle";
-          tone.frequency.setValueAtTime(320, time);
 
-          toneEnv.gain.setValueAtTime(0.15, time);
-          toneEnv.gain.exponentialRampToValueAtTime(0.001, time + 0.08);
+          if (currentDrumKit === "glitch") {
+            tone.type = "sawtooth";
+            tone.frequency.setValueAtTime(550, time);
+            toneEnv.gain.setValueAtTime(0.18, time);
+            toneEnv.gain.exponentialRampToValueAtTime(0.001, time + 0.03);
+          } else {
+            tone.type = "triangle";
+            tone.frequency.setValueAtTime(320, time);
+            toneEnv.gain.setValueAtTime(0.15, time);
+            toneEnv.gain.exponentialRampToValueAtTime(0.001, time + 0.08);
+          }
 
           tone.connect(toneEnv);
           toneEnv.connect(drumGain);
 
           noise.start(time);
-          noise.stop(time + 0.12);
+          noise.stop(time + 0.25);
           tone.start(time);
-          tone.stop(time + 0.08);
+          tone.stop(time + 0.1);
         }
 
         beatCount++;
         setTimeout(playBeat, (60 / (72 * (shipSpeed / 2 + 0.75))) * 1000);
       }
+
       let camera, scene, renderer;
       let isPanelOpen = false;
 
       let shipSpeed = 0.4;
-      let lastCheckedX = 10;
+
+      // Ported completely to BigInt Core trackers
+      let absoluteX = 10n;
+      let absoluteXDelta = 0.0;
+      let lastCheckedXBigInt = 10n;
+
       let densityQueue = [];
       let visualPrimes = [];
       let laserEnergy = 100;
@@ -335,7 +521,6 @@
       let moveState = { w: false, a: false, s: false, d: false, space: false };
 
       let tunnelSegments = [];
-
       const collectedPrimes = new Set();
       let guideLines = [];
       let primeCountInWindow = 0;
@@ -350,11 +535,14 @@
         droneGain.gain.value = 0.035;
 
         const oscCount = 3;
-        const droneBaseFreq = dDorianScale[0] / 2;
+        const currentScale = scales[currentScaleKey];
+        const droneBaseFreq = currentScale[0] / 2;
         for (let i = 0; i < oscCount; i++) {
           const osc = audioCtx.createOscillator();
           osc.type = i === 0 ? "triangle" : "sine";
-          osc.frequency.value = droneBaseFreq * (i === 0 ? 1 : (i === 1 ? 1.5 : 2)) + (Math.random() - 0.5) * 0.3;
+          osc.frequency.value =
+            droneBaseFreq * (i === 0 ? 1 : i === 1 ? 1.5 : 2) +
+            (Math.random() - 0.5) * 0.3;
           osc.connect(droneFilter);
           osc.start();
         }
@@ -365,10 +553,12 @@
 
       function getAveragePrimeFactor() {
         if (primePitchHistory.length === 0) return 1.0;
-        const avgVal =
-          primePitchHistory.reduce((a, b) => a + b, 0) /
-          primePitchHistory.length;
-        return Math.max(0.6, (1.2 * Math.log10(avgVal + 2)) / 2);
+        let sumLogs = 0;
+        for (let val of primePitchHistory) {
+          sumLogs += val.toString().length;
+        }
+        let avgLog = sumLogs / primePitchHistory.length;
+        return Math.max(0.6, Math.min(3.0, 1.2 * Math.log10(avgLog + 1)));
       }
 
       function startProceduralEngine() {
@@ -379,13 +569,21 @@
 
             if (densityQueue.length > 0) {
               const primeFactor = getAveragePrimeFactor();
-              const scaleIndex =
-                Math.abs(Math.floor(camera.position.z)) % dDorianScale.length;
-              let baseFreq = dDorianScale[scaleIndex];
+              const currentScale = scales[currentScaleKey];
+              const scaleIndex = Math.abs(
+                Number(absoluteX % BigInt(currentScale.length)),
+              );
+              let baseFreq = currentScale[scaleIndex];
               const speedFactor = shipSpeed / 1.5;
-              baseFreq *= speedFactor * primeFactor;
 
-              playProceduralSynth(baseFreq, 0.9, beatCount % 8 < 4 ? "sine" : "triangle", true);
+              baseFreq *= speedFactor * primeFactor * globalPitchModifier;
+
+              playProceduralSynth(
+                baseFreq,
+                0.9,
+                beatCount % 8 < 4 ? "sine" : "triangle",
+                true,
+              );
             }
             nextNoteTime += tempoFactor;
           }
@@ -426,14 +624,11 @@
         if (!audioCtx) return;
         const env = audioCtx.createGain();
         env.gain.setValueAtTime(0.6, audioCtx.currentTime);
-        env.gain.exponentialRampToValueAtTime(
-          0.001,
-          audioCtx.currentTime + 0.6,
-        );
+
         env.connect(masterGain);
         if (tapeDelay) env.connect(tapeDelay);
 
-        const baseDegree = primeValue % 7;
+        const baseDegree = Number(primeValue % 7n);
         const chords = [
           [0, 2, 4],
           [1, 3, 5],
@@ -445,17 +640,22 @@
         ];
 
         const pitchFactor = Math.max(0.6, shipSpeed / 1.5);
-        const noteDuration = 0.35 + ((primeValue % 11) / 10) * 1.2;
+        const noteDuration = 0.35 + (Number(primeValue % 11n) / 10) * 1.2;
 
         env.gain.exponentialRampToValueAtTime(
           0.001,
           audioCtx.currentTime + noteDuration,
         );
 
+        const currentScale = scales[currentScaleKey];
         chords[baseDegree].forEach((degree) => {
           const osc = audioCtx.createOscillator();
-          osc.type = primeValue % 3 === 0 ? "triangle" : "sine";
-          const freq = dDorianScale[degree] * pitchFactor * 1.5;
+          osc.type = primeValue % 3n === 0n ? "triangle" : "sine";
+          const freq =
+            currentScale[degree % currentScale.length] *
+            pitchFactor *
+            1.5 *
+            globalPitchModifier;
           osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
           osc.connect(env);
           osc.start();
@@ -477,19 +677,14 @@
 
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        // Korrigiertes Blending für den Canvas
         renderer.setClearColor(0x000000, 1);
         document.body.appendChild(renderer.domElement);
 
-        // --- MASSIVER VOLUMETRISCHER LASER (Beat Saber Style) ---
+        // --- VOLUMETRIC LASER MESH ---
         laserBeamSystem = new THREE.Group();
-
-        // Setze den Laser leicht unter die Mitte des Bildschirms (wie die Nase eines Schiffs)
         laserBeamSystem.position.set(0, -1.5, 0);
-
         const beamLength = 800;
 
-        // 1. Der innere harte, weiße Kern
         const coreGeo = new THREE.CylinderGeometry(0.15, 0.15, beamLength, 16);
         coreGeo.rotateX(Math.PI / 2);
         coreGeo.translate(0, 0, -beamLength / 2);
@@ -501,7 +696,6 @@
         const coreMesh = new THREE.Mesh(coreGeo, coreMat);
         laserBeamSystem.add(coreMesh);
 
-        // 2. Äußere, weichere Glow-Ebenen (Cyan)
         const glowColors = [0x00ffff, 0x00bfff];
         const glowRadii = [0.4, 0.9, 1.8];
         const glowOpacities = [0.6, 0.25, 0.1];
@@ -571,6 +765,25 @@
           if (key === "a" || e.key === "arrowleft") moveState.a = false;
           if (key === "d" || e.key === "arrowright") moveState.d = false;
         });
+
+        // Setup audio control UI event bindings
+        document
+          .getElementById("scaleSelect")
+          .addEventListener("change", (e) => {
+            currentScaleKey = e.target.value;
+          });
+        document
+          .getElementById("pitchSlider")
+          .addEventListener("input", (e) => {
+            globalPitchModifier = parseFloat(e.target.value);
+            document.getElementById("pitchVal").innerText =
+              globalPitchModifier.toFixed(1) + "x";
+          });
+        document
+          .getElementById("drumSelect")
+          .addEventListener("change", (e) => {
+            currentDrumKit = e.target.value;
+          });
       }
 
       const GuideLinesCount = 4;
@@ -582,7 +795,7 @@
         else panel.classList.remove("open");
       }
 
-      function processMathematics(targetX) {
+      function processMathematics(targetXBigInt) {
         const ringMaterial = new THREE.LineBasicMaterial({
           color: 0x00ff00,
           transparent: true,
@@ -596,15 +809,17 @@
 
         let calculationsThisFrame = 0;
         const maxCalculationsPerFrame = 40;
+        let lagDetected = false;
 
-        while (
-          lastCheckedX < targetX &&
-          calculationsThisFrame < maxCalculationsPerFrame
-        ) {
-          lastCheckedX++;
+        while (lastCheckedXBigInt < targetXBigInt) {
+          if (calculationsThisFrame >= maxCalculationsPerFrame) {
+            lagDetected = true;
+            break;
+          }
+          lastCheckedXBigInt++;
           calculationsThisFrame++;
 
-          const isCurrentPrime = isPrime(lastCheckedX);
+          const isCurrentPrime = isPrime(lastCheckedXBigInt);
 
           densityQueue.push(isCurrentPrime);
           if (isCurrentPrime) primeCountInWindow++;
@@ -613,10 +828,15 @@
             if (removed) primeCountInWindow--;
           }
 
-          const currentZ = -(lastCheckedX - 10);
-          const mathRadius = 5 + 150 / Math.log(lastCheckedX);
+          // Calculate space coordinates dynamically shifted relative to floating origin (absoluteX)
+          const relativeX = Number(lastCheckedXBigInt - absoluteX);
+          const currentZ = -relativeX;
 
-          if (lastCheckedX % 15 === 0 || isCurrentPrime) {
+          const logArg =
+            lastCheckedXBigInt > 2n ? Number(lastCheckedXBigInt) : 2;
+          const mathRadius = 5 + 150 / Math.log(logArg);
+
+          if (lastCheckedXBigInt % 15n === 0n || isCurrentPrime) {
             const geo = new THREE.EdgesGeometry(
               new THREE.CircleGeometry(mathRadius, 16),
             );
@@ -625,16 +845,16 @@
               isCurrentPrime ? primeRingMaterial : ringMaterial,
             );
             ring.position.z = currentZ;
-            ring.rotation.z = lastCheckedX * 0.01;
+            ring.rotation.z = Number(lastCheckedXBigInt % 628n) * 0.01;
             scene.add(ring);
             tunnelSegments.push(ring);
           }
 
           if (isCurrentPrime) {
-            const formattedText = formatPrimeDisplay(lastCheckedX);
+            const formattedText = formatPrimeDisplay(lastCheckedXBigInt);
             const textSprite = createTextSprite(formattedText);
 
-            const offsetAngle = lastCheckedX * 0.137;
+            const offsetAngle = Number(lastCheckedXBigInt % 1000n) * 0.137;
             const offsetDistance = mathRadius * 0.55;
 
             textSprite.position.set(
@@ -643,7 +863,7 @@
               currentZ,
             );
             textSprite.userData = {
-              value: lastCheckedX,
+              value: lastCheckedXBigInt,
               formatted: formattedText,
               passedAudio: false,
             };
@@ -655,13 +875,19 @@
 
         updateGuideLines();
 
-        const limitZ = camera.position.z + 50;
+        // Clear distant meshes behind frame view boundary
+        const limitZ = 50;
         for (let i = tunnelSegments.length - 1; i >= 0; i--) {
           if (tunnelSegments[i].position.z > limitZ) {
             scene.remove(tunnelSegments[i]);
             tunnelSegments.splice(i, 1);
           }
         }
+
+        // Toggle visibility of the accuracy warning flag
+        document.getElementById("accuracyWarning").style.display = lagDetected
+          ? "inline-block"
+          : "none";
       }
 
       function updateGuideLines() {
@@ -673,8 +899,11 @@
           const angle = ((g.sector * Math.PI) / GuideLinesCount) * 2;
           for (let zOffset = 0; zOffset < lookAhead; zOffset += 20) {
             const evalZ = camZ - zOffset;
-            const evalX = Math.floor(Math.abs(evalZ) + 10);
-            const r = 5 + 150 / Math.log(evalX);
+            const relativeX = -evalZ - absoluteXDelta;
+            const evalXBigInt = absoluteX + BigInt(Math.floor(relativeX));
+
+            const logArg = evalXBigInt > 2n ? Number(evalXBigInt) : 2;
+            const r = 5 + 150 / Math.log(logArg);
             points.push(
               new THREE.Vector3(
                 Math.cos(angle) * r,
@@ -727,34 +956,47 @@
 
         const list = document.getElementById("colList");
         const li = document.createElement("li");
-        li.innerHTML = `<b>#${val}</b> <span style="color:#fff;float:right;">${formatted}</span>`;
+        li.innerHTML = `<b>#${val.toString()}</b> <span style="color:#fff;float:right;">${formatted}</span>`;
         list.insertBefore(li, list.firstChild);
 
         const avgVal =
           collectedPrimes.size > 0 ? getAveragePrimeFactor() : "--";
         document.getElementById("avgPrimeVal").innerText =
-          avgVal === "--" ? avgVal : avgVal.toFixed(3);
+          typeof avgVal === "number" ? avgVal.toFixed(3) : avgVal;
       }
 
-      // --- MATHEMATIK-KERN ---
+      // --- MATHEMATIK-KERN (Native BigInt Engine) ---
       function isPrime(num) {
-        if (num <= 1) return false;
-        if (num <= 3) return true;
-        if (num % 2 === 0 || num % 3 === 0) return false;
-        for (let i = 5; i * i <= num; i += 6) {
-          if (num % i === 0 || num % (i + 2) === 0) return false;
+        const n = typeof num === "bigint" ? num : BigInt(num);
+        if (n <= 1n) return false;
+        if (n <= 3n) return true;
+        if (n % 2n === 0n || n % 3n === 0n) return false;
+        for (let i = 5n; i * i <= n; i += 6n) {
+          if (n % i === 0n || n % (i + 2n) === 0n) return false;
+        }
+        return true;
+      }
+
+      function testPrimeChecker() {
+        const primes = [2n, 3n, 5n, 7n, 11n, 13n, 17n, 19n, 97n, 9973n];
+        const composites = [4n, 6n, 8n, 9n, 10n, 12n, 15n, 21n, 100n, 99999n];
+        for (const p of primes) {
+          if (!isPrime(p)) throw new Error("Prime test failed: " + p);
+        }
+        for (const c of composites) {
+          if (isPrime(c)) throw new Error("Composite test failed: " + c);
         }
         return true;
       }
 
       function formatPrimeDisplay(n) {
-        if (n < 10000) return n.toString();
-        const k = Math.floor(Math.log2(n));
-        const c = n - Math.pow(2, k);
+        if (n < 10000n) return n.toString();
+        const bitLength = n.toString(2).length;
+        const k = bitLength - 1;
+        const c = n - (1n << BigInt(k));
         return `2^${k}+${c}`;
       }
 
-      // --- TEXTURE SPRITE ---
       function createTextSprite(text) {
         const canvas = document.createElement("canvas");
         canvas.width = 256;
@@ -783,8 +1025,8 @@
       function animate() {
         requestAnimationFrame(animate);
 
-        const currentX = Math.floor(Math.abs(camera.position.z) + 10);
-        const maxAllowedSpeed = Math.max(0.5, 12 / Math.log10(currentX + 5));
+        const logArgSpeed = absoluteX > 5n ? Number(absoluteX) : 5;
+        const maxAllowedSpeed = Math.max(1.0, 24 / Math.log10(logArgSpeed));
         if (shipSpeed > maxAllowedSpeed) shipSpeed = maxAllowedSpeed;
 
         if (audioCtx && tapeDelay) {
@@ -796,17 +1038,33 @@
           );
         }
 
-        camera.position.z -= shipSpeed;
+        // Floating Origin Frame Distance Multiplier Accumulator
+        absoluteXDelta += shipSpeed;
+        if (absoluteXDelta >= 1.0) {
+          const intSteps = Math.floor(absoluteXDelta);
+          absoluteX += BigInt(intSteps);
+          absoluteXDelta -= intSteps;
 
-        const horizonX = Math.floor(Math.abs(camera.position.z) + 400);
-        processMathematics(horizonX);
+          // Shift all rendered objects in world space backwards by integer steps
+          tunnelSegments.forEach((ring) => {
+            ring.position.z += intSteps;
+          });
+          visualPrimes.forEach((sprite) => {
+            sprite.position.z += intSteps;
+          });
+        }
+
+        // Bound camera locally between 0 and -1 to avoid float space degradation
+        camera.position.z = -absoluteXDelta;
+
+        const horizonXBigInt = absoluteX + 400n;
+        processMathematics(horizonXBigInt);
 
         if (moveState.space && laserEnergy > 0) {
           laserBeamSystem.visible = true;
           laserEnergy = Math.max(0, laserEnergy - 1.8);
           handleLaserCollisions();
 
-          // Laser-Pulsieren für mehr Lebendigkeit
           const pulse = 1.0 + Math.sin(Date.now() * 0.03) * 0.15;
           laserBeamSystem.scale.set(pulse, pulse, 1);
         } else {
@@ -814,7 +1072,8 @@
           laserEnergy = Math.min(100, laserEnergy + 0.7);
         }
 
-        const mathRadius = 5 + 150 / Math.log(currentX);
+        const currentLogArg = absoluteX > 2n ? Number(absoluteX) : 2;
+        const mathRadius = 5 + 150 / Math.log(currentLogArg);
         const strafeSpeed = 0.05 * mathRadius;
         if (moveState.a) camera.position.x -= strafeSpeed;
         if (moveState.d) camera.position.x += strafeSpeed;
@@ -836,18 +1095,21 @@
             sprite.position.z > camera.position.z
           ) {
             sprite.userData.passedAudio = true;
-            // Dorian Note triggern
+
+            const currentScale = scales[currentScaleKey];
+            const scaleIdx = Number(
+              sprite.userData.value % BigInt(currentScale.length),
+            );
             playProceduralSynth(
-              dDorianScale[sprite.userData.value % dDorianScale.length],
-              0.25 + ((sprite.userData.value % 9) * 0.12),
+              currentScale[scaleIdx] * globalPitchModifier,
+              0.25 + Number(sprite.userData.value % 9n) * 0.12,
               "sine",
               true,
             );
           }
         });
 
-        document.getElementById("zVal").innerText = currentX.toLocaleString();
-        document.getElementById("tolVal").innerText = mathRadius.toFixed(3);
+        document.getElementById("zVal").innerText = absoluteX.toLocaleString();
         document.getElementById("speedVal").innerText = shipSpeed.toFixed(2);
         document.getElementById("maxSpeedVal").innerText =
           maxAllowedSpeed.toFixed(2);
@@ -857,6 +1119,7 @@
         renderer.render(scene, camera);
       }
 
+      testPrimeChecker();
       document.getElementById("startBtn").addEventListener("click", () => {
         document.getElementById("ui").style.display = "none";
         document.getElementById("hud").style.display = "block";
@@ -869,5 +1132,3 @@
     </script>
   </body>
 </html>
-
-
