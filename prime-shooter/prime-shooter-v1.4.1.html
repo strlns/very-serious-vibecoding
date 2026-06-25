@@ -3,8 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="refresh" content="15; url=prime-shooter-v1.4.1.html" />
-    <title>Prime Shooter 1.3 - Aquatic Rhythm Edition</title>
+    <title>Prime Shooter 1.4 - Aquatic Rhythm Edition</title>
     <style>
       body {
         margin: 0;
@@ -21,13 +20,8 @@
         text-align: center;
         color: #0cf;
         z-index: 10;
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-        max-width: 600px;
-        justify-content: center;
       }
-      button, #linkBtn {
+      button {
         background: rgba(0, 50, 0, 0.8);
         color: #0ef;
         border: 2px solid #0ff;
@@ -38,18 +32,10 @@
         text-transform: uppercase;
         box-shadow: 0 0 10px #0cf;
         transition: all 0.2s;
-        text-decoration: none;
       }
-      button:hover, #linkBtn:hover {
+      button:hover {
         background: #0f0;
         color: #000;
-      }
-      #startBtn {
-        padding: 7.5px 15px;
-        margin: 7.5px 15px;
-        font-size: 14px;
-        box-shadow: none;
-        opacity: 0.75;
       }
 
       #hud {
@@ -83,7 +69,6 @@
         box-shadow: 0 0 8px #00ffff;
       }
 
-      /* Prominente Tastenbelegung */
       #controls {
         margin-top: 10px;
         padding: 10px;
@@ -161,18 +146,13 @@
   </head>
   <body>
     <div id="ui">
-      <h1 style="text-transform: uppercase; text-shadow: 0 0 15px #0f0">Prime Shooter 1.3</h1>
+      <h1 style="text-transform: uppercase; text-shadow: 0 0 15px #0f0">Prime Shooter 1.4</h1>
       <h2 class="subtitle-text-effect" style="color: #42a; text-transform: uppercase;">Aquatic Rhythm Edition</h2>
-      <hr style="flex-basis: 100%" />
-      <button id="startBtn">Starten!</button>
-      <a id="linkBtn" href="prime-shooter-v1.4.1.html">zu Version 1.4</a>
-      <p style="flex-basis: 100%">
-        Automatische Weiterleitung zur viel sinnvolleren und besseren Version 1.4 in wenigen Sekunden, außer Sie starten das Spiel.
-      </p>
+      <p style="color:#ccc">Hinweis: Tastatur sowie Sound/WebAudio werden benötigt.</p><button id="startBtn" autoFocus>Starten!</button>
       <footer style="color: #aaa; font-size: 12px; margin-block-start: 24px;">
           <small>
               Enthält die Bibliothek 
-              <a href="https://threejs.org/" target="_blank" rel="noreferrer external" style="color: red;"">
+              <a href="https://threejs.org/" target="_blank" rel="noreferrer external" style="color: red;">
                   Three.js (Link zu externer Website)
               </a> 
           </small>
@@ -199,10 +179,41 @@
         Logbuch: [L] | Waffe: [SPACE]
       </div>
 
-      <div style="font-size: 10px; margin-top: 10px; color: #aaa">
-        Modus: Dorische Skala mit erhöhter 6 (melodisch Moll)
+      <div id="audioControls" style="margin-top: 10px; padding: 10px; border: 1px solid #00ffff; color: #fff; font-size: 11px; pointer-events: auto;">
+        <b>AUDIO-EINSTELLUNGEN:</b><br />
+        <div style="margin-top: 5px;">
+          <label for="scaleSelect">Tonart / Skala:</label>
+          <select id="scaleSelect" style="background: rgba(0, 20, 30, 0.9); color: #00ffff; border: 1px solid #00ffff; font-family: inherit; font-size: 11px; width: 100%; margin-top: 2px; margin-bottom: 5px;">
+            <option value="dDorian">D-Dorian (Standard)</option>
+            <option value="cMajor">C-Dur (Fröhlich)</option>
+            <option value="aMinor">A-Moll (Melancholisch)</option>
+            <option value="spacePhrygian">Space Phrygian (Mystisch)</option>
+          </select>
+        </div>
+        <div>
+          <label for="drumStyleSelect">Drum-Stil:</label>
+          <select id="drumStyleSelect" style="background: rgba(0, 20, 30, 0.9); color: #00ffff; border: 1px solid #00ffff; font-family: inherit; font-size: 11px; width: 100%; margin-top: 2px; margin-bottom: 5px;">
+            <option value="standard">Standard Beat</option>
+            <option value="heavy">Industrial Heavy</option>
+            <option value="minimal">Minimal Click</option>
+            <option value="off">Drums Stumm</option>
+          </select>
+        </div>
+        <div>
+          <label for="drumVolSlider">Drum-Lautstärke:</label>
+          <input type="range" id="drumVolSlider" min="0" max="1" step="0.05" value="0.8" style="width: 100%; accent-color: #00ffff; margin-top: 2px;" />
+        </div>
       </div>
-      TRICHTER-RADIUS R(x): <span id="tolVal" style="color: #fff">0</span><br />
+
+      <div style="font-size: 10px; margin-top: 10px; color: #aaa">
+        <ul>
+          <li>Schub/Geschwindigkeit ist begrenzt durch Rechenleistung</li>
+          <li>
+            Die Anordnung der Primzahlen im "Trichter" hat keinen tief liegenden
+            Sinn.
+          </li>
+        </ul>
+      </div>
     </div>
 
     <div id="collectionPanel">
@@ -236,12 +247,21 @@
         feedbackGain,
         droneFilter,
         droneGain,
-        drumVerb;
+        drumVerb,
+        laserGain,
+        laserZapOsc;
 
-      const dDorianScale = [
-        130.81, 146.83, 164.81, 196.0, 220.0, 233.08, 293.66, 329.63, 392.0,
-        440.0, 466.16, 587.33,
-      ];
+      // Musik-Skalen Sammlung
+      const scales = {
+        dDorian: [130.81, 146.83, 164.81, 196.0, 220.0, 233.08, 293.66, 329.63, 392.0, 440.0, 466.16, 587.33],
+        cMajor: [130.81, 146.83, 164.81, 174.61, 196.00, 220.00, 246.94, 261.63, 293.66, 329.63, 349.23, 392.00],
+        aMinor: [110.00, 123.47, 130.81, 146.83, 164.81, 174.61, 196.00, 220.00, 246.94, 261.63, 293.66, 329.63],
+        spacePhrygian: [116.54, 123.47, 138.59, 155.56, 174.61, 185.00, 207.65, 233.08, 246.94, 277.18, 311.13, 349.23]
+      };
+
+      let currentScale = scales.dDorian;
+      let drumStyle = "standard";
+
       const primePitchHistory = [];
       const maxPrimePitchHistory = 5;
       let beatCount = 0;
@@ -253,10 +273,10 @@
         masterGain.gain.value = 0.25;
         masterGain.connect(audioCtx.destination);
 
+        // Drum-Gain initialisiert sich aus dem Schieberegler
         drumGain = audioCtx.createGain();
-        drumGain.gain.value = 0.3;
+        drumGain.gain.value = parseFloat(document.getElementById("drumVolSlider").value);
         drumGain.connect(masterGain);
-        drumGain.gain.value = 0.8;
 
         drumVerb = audioCtx.createDelay(4.0);
         drumVerb.delayTime.value = 0.75;
@@ -279,6 +299,39 @@
         const noiseData = noiseBuffer.getChannelData(0);
         for (let i = 0; i < noiseData.length; i++) noiseData[i] = Math.random() * 2 - 1;
 
+        laserGain = audioCtx.createGain();
+        laserGain.gain.value = 0;
+        laserGain.connect(masterGain);
+
+        const laserHumOsc = audioCtx.createOscillator();
+        laserHumOsc.type = "triangle";
+        laserHumOsc.frequency.value = 55; 
+
+        laserZapOsc = audioCtx.createOscillator();
+        laserZapOsc.type = "sawtooth";
+        laserZapOsc.frequency.value = 110; 
+
+        const laserMod = audioCtx.createOscillator();
+        laserMod.type = "sawtooth";
+        laserMod.frequency.value = 35; 
+        const laserModGain = audioCtx.createGain();
+        laserModGain.gain.value = 40; 
+
+        laserMod.connect(laserModGain);
+        laserModGain.connect(laserZapOsc.frequency);
+
+        const laserFilter = audioCtx.createBiquadFilter();
+        laserFilter.type = "lowpass";
+        laserFilter.frequency.value = 400; 
+
+        laserHumOsc.connect(laserFilter);
+        laserZapOsc.connect(laserFilter);
+        laserFilter.connect(laserGain);
+
+        laserHumOsc.start();
+        laserZapOsc.start();
+        laserMod.start();
+
         startProceduralEngine();
         createDroneCarpet();
         playBeat();
@@ -288,33 +341,64 @@
         if (!audioCtx) return;
         const time = audioCtx.currentTime;
 
+        // Wenn Drums stummgeschaltet sind, überspringen wir die Synthese
+        if (drumStyle === "off") {
+          beatCount++;
+          setTimeout(playBeat, (60 / (72 * (shipSpeed / 2 + 0.75))) * 1000);
+          return;
+        }
+
         if (beatCount % 2 === 0) {
+          // KICK DRUM MODULATIONEN
           const osc = audioCtx.createOscillator();
           const env = audioCtx.createGain();
-
           osc.type = "sine";
-          osc.frequency.setValueAtTime(110, time);
-          osc.frequency.exponentialRampToValueAtTime(42, time + 0.14);
 
-          env.gain.setValueAtTime(0.9, time);
-          env.gain.exponentialRampToValueAtTime(0.001, time + 0.18);
+          if (drumStyle === "heavy") {
+            osc.frequency.setValueAtTime(95, time);
+            osc.frequency.exponentialRampToValueAtTime(30, time + 0.26);
+            env.gain.setValueAtTime(1.2, time);
+            env.gain.exponentialRampToValueAtTime(0.001, time + 0.28);
+          } else if (drumStyle === "minimal") {
+            osc.frequency.setValueAtTime(140, time);
+            osc.frequency.exponentialRampToValueAtTime(75, time + 0.05);
+            env.gain.setValueAtTime(0.4, time);
+            env.gain.exponentialRampToValueAtTime(0.001, time + 0.06);
+          } else { // standard
+            osc.frequency.setValueAtTime(110, time);
+            osc.frequency.exponentialRampToValueAtTime(42, time + 0.14);
+            env.gain.setValueAtTime(0.9, time);
+            env.gain.exponentialRampToValueAtTime(0.001, time + 0.18);
+          }
 
           osc.connect(env);
           env.connect(drumGain);
-
           osc.start(time);
-          osc.stop(time + 0.2);
+          osc.stop(time + (drumStyle === "heavy" ? 0.3 : (drumStyle === "minimal" ? 0.06 : 0.2)));
+
         } else {
+          // SNARE / HI-HAT MODULATIONEN
           const noise = audioCtx.createBufferSource();
           noise.buffer = noiseBuffer;
 
           const noiseFilter = audioCtx.createBiquadFilter();
           noiseFilter.type = "highpass";
-          noiseFilter.frequency.value = 1800;
+          
+          if (drumStyle === "heavy") noiseFilter.frequency.value = 900;
+          else if (drumStyle === "minimal") noiseFilter.frequency.value = 3500;
+          else noiseFilter.frequency.value = 1800;
 
           const noiseEnv = audioCtx.createGain();
-          noiseEnv.gain.setValueAtTime(0.45, time);
-          noiseEnv.gain.exponentialRampToValueAtTime(0.001, time + 0.12);
+          if (drumStyle === "heavy") {
+            noiseEnv.gain.setValueAtTime(0.6, time);
+            noiseEnv.gain.exponentialRampToValueAtTime(0.001, time + 0.22);
+          } else if (drumStyle === "minimal") {
+            noiseEnv.gain.setValueAtTime(0.18, time);
+            noiseEnv.gain.exponentialRampToValueAtTime(0.001, time + 0.04);
+          } else {
+            noiseEnv.gain.setValueAtTime(0.45, time);
+            noiseEnv.gain.exponentialRampToValueAtTime(0.001, time + 0.12);
+          }
 
           noise.connect(noiseFilter);
           noiseFilter.connect(noiseEnv);
@@ -323,23 +407,32 @@
           const tone = audioCtx.createOscillator();
           const toneEnv = audioCtx.createGain();
           tone.type = "triangle";
-          tone.frequency.setValueAtTime(320, time);
+          tone.frequency.setValueAtTime(drumStyle === "heavy" ? 210 : (drumStyle === "minimal" ? 440 : 320), time);
 
-          toneEnv.gain.setValueAtTime(0.15, time);
-          toneEnv.gain.exponentialRampToValueAtTime(0.001, time + 0.08);
+          if (drumStyle === "heavy") {
+            toneEnv.gain.setValueAtTime(0.3, time);
+            toneEnv.gain.exponentialRampToValueAtTime(0.001, time + 0.16);
+          } else if (drumStyle === "minimal") {
+            toneEnv.gain.setValueAtTime(0.04, time);
+            toneEnv.gain.exponentialRampToValueAtTime(0.001, time + 0.03);
+          } else {
+            toneEnv.gain.setValueAtTime(0.15, time);
+            toneEnv.gain.exponentialRampToValueAtTime(0.001, time + 0.08);
+          }
 
           tone.connect(toneEnv);
           toneEnv.connect(drumGain);
 
           noise.start(time);
-          noise.stop(time + 0.12);
+          noise.stop(time + (drumStyle === "heavy" ? 0.25 : (drumStyle === "minimal" ? 0.05 : 0.12)));
           tone.start(time);
-          tone.stop(time + 0.08);
+          tone.stop(time + (drumStyle === "heavy" ? 0.18 : (drumStyle === "minimal" ? 0.04 : 0.08)));
         }
 
         beatCount++;
         setTimeout(playBeat, (60 / (72 * (shipSpeed / 2 + 0.75))) * 1000);
       }
+      
       let camera, scene, renderer;
       let isPanelOpen = false;
 
@@ -367,7 +460,7 @@
         droneGain.gain.value = 0.035;
 
         const oscCount = 3;
-        const droneBaseFreq = dDorianScale[0] / 2;
+        const droneBaseFreq = currentScale[0] / 2;
         for (let i = 0; i < oscCount; i++) {
           const osc = audioCtx.createOscillator();
           osc.type = i === 0 ? "triangle" : "sine";
@@ -397,8 +490,8 @@
             if (densityQueue.length > 0) {
               const primeFactor = getAveragePrimeFactor();
               const scaleIndex =
-                Math.abs(Math.floor(camera.position.z)) % dDorianScale.length;
-              let baseFreq = dDorianScale[scaleIndex];
+                Math.abs(Math.floor(camera.position.z)) % currentScale.length;
+              let baseFreq = currentScale[scaleIndex];
               const speedFactor = shipSpeed / 1.5;
               baseFreq *= speedFactor * primeFactor;
 
@@ -441,42 +534,74 @@
 
       function playTriggerNote(primeValue) {
         if (!audioCtx) return;
-        const env = audioCtx.createGain();
-        env.gain.setValueAtTime(0.6, audioCtx.currentTime);
-        env.gain.exponentialRampToValueAtTime(
-          0.001,
-          audioCtx.currentTime + 0.6,
-        );
-        env.connect(masterGain);
-        if (tapeDelay) env.connect(tapeDelay);
 
-        const baseDegree = primeValue % 7;
-        const chords = [
-          [0, 2, 4],
-          [1, 3, 5],
-          [2, 4, 6],
-          [3, 5, 7],
-          [4, 6, 8],
-          [5, 7, 9],
-          [6, 8, 10],
+        const timbres = ["sine", "triangle", "sawtooth", "square"];
+        const primaryType = timbres[primeValue % 4];
+        const secondaryType = timbres[(primeValue + 1) % 4];
+
+        const isLongAndSoft = (primeValue % 3 === 0);
+        const baseGain = isLongAndSoft ? 0.22 : 0.45;
+        const noteDuration = isLongAndSoft ? 1.4 + ((primeValue % 5) * 0.2) : 0.25 + ((primeValue % 7) * 0.12);
+
+        const chordSelection = [
+          [0, 2, 4, 6], 
+          [1, 3, 5, 7], 
+          [2, 4, 6, 8],
+          [0, 3, 4, 7], 
+          [0, 1, 4, 5], 
+          [3, 5, 7, 9], 
+          [0, 2, 5, 7]  
         ];
+        const baseDegree = primeValue % chordSelection.length;
+        const selectedChord = chordSelection[baseDegree];
 
-        const pitchFactor = Math.max(0.6, shipSpeed / 1.5);
-        const noteDuration = 0.35 + ((primeValue % 11) / 10) * 1.2;
+        const pitchFactor = Math.max(0.5, shipSpeed / 1.5);
+        const octaveShift = (primeValue % 5 === 0) ? 0.5 : ((primeValue % 7 === 0) ? 2.0 : 1.0);
 
-        env.gain.exponentialRampToValueAtTime(
-          0.001,
-          audioCtx.currentTime + noteDuration,
-        );
+        const isArpeggiated = (primeValue % 2 === 0);
+        const arpeggioStagger = isArpeggiated ? 0.04 : 0.0;
 
-        chords[baseDegree].forEach((degree) => {
-          const osc = audioCtx.createOscillator();
-          osc.type = primeValue % 3 === 0 ? "triangle" : "sine";
-          const freq = dDorianScale[degree] * pitchFactor * 1.5;
-          osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-          osc.connect(env);
-          osc.start();
-          osc.stop(audioCtx.currentTime + noteDuration);
+        const hitFilter = audioCtx.createBiquadFilter();
+        hitFilter.type = (primeValue % 3 === 0) ? "lowpass" : "bandpass";
+        hitFilter.frequency.setValueAtTime(isLongAndSoft ? 500 : 1400, audioCtx.currentTime);
+        hitFilter.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + noteDuration);
+        hitFilter.Q.value = 2.5;
+        hitFilter.connect(masterGain);
+        if (tapeDelay) hitFilter.connect(tapeDelay);
+
+        selectedChord.forEach((degree, index) => {
+          const env = audioCtx.createGain();
+          const startTime = audioCtx.currentTime + (index * arpeggioStagger);
+          
+          env.gain.setValueAtTime(baseGain / selectedChord.length, startTime);
+          env.gain.exponentialRampToValueAtTime(0.001, startTime + noteDuration);
+          env.connect(hitFilter);
+
+          const osc1 = audioCtx.createOscillator();
+          osc1.type = primaryType;
+          let scaleIndex = degree % currentScale.length;
+          let freq = currentScale[scaleIndex] * pitchFactor * octaveShift;
+          
+          if (primeValue % 11 === 0) freq *= 1.5;
+
+          osc1.frequency.setValueAtTime(freq, startTime);
+          
+          if (primeValue % 5 === 1) {
+            osc1.frequency.exponentialRampToValueAtTime(freq * 0.6, startTime + noteDuration);
+          }
+
+          osc1.connect(env);
+          osc1.start(startTime);
+          osc1.stop(startTime + noteDuration);
+
+          if (primeValue % 2 === 1) {
+            const osc2 = audioCtx.createOscillator();
+            osc2.type = secondaryType;
+            osc2.frequency.setValueAtTime(freq * 1.005, startTime);
+            osc2.connect(env);
+            osc2.start(startTime);
+            osc2.stop(startTime + noteDuration);
+          }
         });
       }
 
@@ -494,19 +619,14 @@
 
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        // Korrigiertes Blending für den Canvas
         renderer.setClearColor(0x000000, 1);
         document.body.appendChild(renderer.domElement);
 
-        // --- MASSIVER VOLUMETRISCHER LASER (Beat Saber Style) ---
         laserBeamSystem = new THREE.Group();
-
-        // Setze den Laser leicht unter die Mitte des Bildschirms (wie die Nase eines Schiffs)
         laserBeamSystem.position.set(0, -1.5, 0);
 
         const beamLength = 800;
 
-        // 1. Der innere harte, weiße Kern
         const coreGeo = new THREE.CylinderGeometry(0.15, 0.15, beamLength, 16);
         coreGeo.rotateX(Math.PI / 2);
         coreGeo.translate(0, 0, -beamLength / 2);
@@ -518,7 +638,6 @@
         const coreMesh = new THREE.Mesh(coreGeo, coreMat);
         laserBeamSystem.add(coreMesh);
 
-        // 2. Äußere, weichere Glow-Ebenen (Cyan)
         const glowColors = [0x00ffff, 0x00bfff];
         const glowRadii = [0.4, 0.9, 1.8];
         const glowOpacities = [0.6, 0.25, 0.1];
@@ -547,7 +666,6 @@
         laserBeamSystem.visible = false;
         camera.add(laserBeamSystem);
 
-        // --- 4 LEITSTRAHLEN ---
         const guideMat = new THREE.LineBasicMaterial({
           color: 0x336699,
           transparent: true,
@@ -753,14 +871,22 @@
           avgVal === "--" ? avgVal : avgVal.toFixed(3);
       }
 
-      // --- MATHEMATIK-KERN ---
       function isPrime(num) {
-        if (num <= 1) return false;
-        if (num <= 3) return true;
-        if (num % 2 === 0 || num % 3 === 0) return false;
-        for (let i = 5; i * i <= num; i += 6) {
-          if (num % i === 0 || num % (i + 2) === 0) return false;
+        const n = typeof num === "bigint" ? num : BigInt(num);
+        if (n <= 1n) return false;
+        if (n <= 3n) return true;
+        if (n % 2n === 0n || n % 3n === 0n) return false;
+        for (let i = 5n; i * i <= n; i += 6n) {
+          if (n % i === 0n || n % (i + 2n) === 0n) return false;
         }
+        return true;
+      }
+
+      function testPrimeChecker() {
+        const primes=[2,3,5,7,11,13,17,19,97,9973];
+        const composites=[4,6,8,9,10,12,15,21,100,99999];
+        for(const p of primes){ if(!isPrime(BigInt(p))) throw new Error("Prime test failed: "+p); }
+        for(const c of composites){ if(isPrime(BigInt(c))) throw new Error("Composite test failed: "+c); }
         return true;
       }
 
@@ -771,7 +897,6 @@
         return `2^${k}+${c}`;
       }
 
-      // --- TEXTURE SPRITE ---
       function createTextSprite(text) {
         const canvas = document.createElement("canvas");
         canvas.width = 256;
@@ -801,7 +926,7 @@
         requestAnimationFrame(animate);
 
         const currentX = Math.floor(Math.abs(camera.position.z) + 10);
-        const maxAllowedSpeed = Math.max(0.5, 12 / Math.log10(currentX + 5));
+        const maxAllowedSpeed = Math.max(1.0, 24 / Math.log10(currentX + 5));
         if (shipSpeed > maxAllowedSpeed) shipSpeed = maxAllowedSpeed;
 
         if (audioCtx && tapeDelay) {
@@ -823,12 +948,20 @@
           laserEnergy = Math.max(0, laserEnergy - 1.8);
           handleLaserCollisions();
 
-          // Laser-Pulsieren für mehr Lebendigkeit
           const pulse = 1.0 + Math.sin(Date.now() * 0.03) * 0.15;
           laserBeamSystem.scale.set(pulse, pulse, 1);
+
+          if (audioCtx && laserGain) {
+            laserGain.gain.setTargetAtTime(0.12, audioCtx.currentTime, 0.04);
+            laserZapOsc.frequency.setTargetAtTime(110 + Math.sin(Date.now() * 0.05) * 15, audioCtx.currentTime, 0.02);
+          }
         } else {
           laserBeamSystem.visible = false;
           laserEnergy = Math.min(100, laserEnergy + 0.7);
+
+          if (audioCtx && laserGain) {
+            laserGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.08);
+          }
         }
 
         const mathRadius = 5 + 150 / Math.log(currentX);
@@ -853,9 +986,8 @@
             sprite.position.z > camera.position.z
           ) {
             sprite.userData.passedAudio = true;
-            // Dorian Note triggern
             playProceduralSynth(
-              dDorianScale[sprite.userData.value % dDorianScale.length],
+              currentScale[sprite.userData.value % currentScale.length],
               0.25 + ((sprite.userData.value % 9) * 0.12),
               "sine",
               true,
@@ -864,7 +996,6 @@
         });
 
         document.getElementById("zVal").innerText = currentX.toLocaleString();
-        document.getElementById("tolVal").innerText = mathRadius.toFixed(3);
         document.getElementById("speedVal").innerText = shipSpeed.toFixed(2);
         document.getElementById("maxSpeedVal").innerText =
           maxAllowedSpeed.toFixed(2);
@@ -874,8 +1005,23 @@
         renderer.render(scene, camera);
       }
 
+      // EVENT LISTENERS FÜR DIE AUDIO-STEUERUNG
+      document.getElementById("scaleSelect").addEventListener("change", (e) => {
+        currentScale = scales[e.target.value];
+      });
+
+      document.getElementById("drumStyleSelect").addEventListener("change", (e) => {
+        drumStyle = e.target.value;
+      });
+
+      document.getElementById("drumVolSlider").addEventListener("input", (e) => {
+        if (drumGain) {
+          drumGain.gain.setValueAtTime(parseFloat(e.target.value), audioCtx ? audioCtx.currentTime : 0);
+        }
+      });
+
+      testPrimeChecker();
       document.getElementById("startBtn").addEventListener("click", () => {
-        window.stop();// hacky prevention of meta redirect, works in FF and chrome
         document.getElementById("ui").style.display = "none";
         document.getElementById("hud").style.display = "block";
         document.getElementById("collectionPanel").style.display = "block";
@@ -887,5 +1033,3 @@
     </script>
   </body>
 </html>
-
-
