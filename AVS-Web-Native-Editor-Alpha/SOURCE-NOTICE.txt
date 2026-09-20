@@ -1,0 +1,35 @@
+Source provenance and modifications
+===================================
+
+AVS/libavs source basis:
+  https://github.com/grandchild/vis_avs
+  revision 1cee1f3
+
+Original AVS project source:
+  https://github.com/visbot/vis_avs
+
+Bundled presets:
+  Mixed legacy collection gathered from publicly available sources. The presets
+  remain attributable to their respective authors and are not presented as being
+  uniformly covered by the AVS source-code license.
+
+WDL-EEL2 upstream:
+  https://github.com/justinfrankel/WDL
+
+This alpha adds an Emscripten platform layer and browser API, enables WDL-EEL2's
+architecture-neutral interpreter, increases the WebAssembly stack required by that
+interpreter, initializes per-instance EEL global memory deterministically, isolates
+preset loading, clears shared framebuffer state when switching presets, exposes the
+native preset schema and legacy serializer to the browser editor, and excludes native
+APE implementations from the browser build.
+
+The distributed WebAssembly binary was linked with Emscripten 4.0.15. Its exact
+selected runtime-library notices are collected in LICENSE-Emscripten.txt.
+
+It also restores the original AVS waveform-level beat detector, fixes root preset
+configuration swapping (including Clear), and accepts the schema's #RRGGBB color form.
+Legacy preset loading clears constructor-generated metadata that was not present in the
+binary source file.
+
+The browser app loads original binary preset bytes; @visbot/webvsc and Webvs are no
+longer part of the renderer or distribution.

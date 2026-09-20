@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AVS//Web — Visualizer</title>
+  <link rel="stylesheet" href="styles.css?v=7">
+  <link rel="stylesheet" href="editor.css?v=11">
+  <link rel="stylesheet" href="info.css?v=5">
+</head>
+<body>
+  <header>
+    <div class="brand"><strong>AVS<span>//</span>Web</strong><small>WebASM Alpha</small></div>
+    <button id="audioPick">♫ Media file</button>
+    <input id="audioInput" type="file" accept="audio/*,video/*" hidden>
+    <button id="shareAudio" aria-pressed="false">▣ Share system audio</button>
+    <button id="micAudio" aria-pressed="false">● Microphone</button>
+    <audio id="player" controls preload="metadata"></audio>
+    <span id="trackTitle" class="trackTitle" hidden></span>
+    <label class="resolutionControl">Resolution
+      <select id="resolution">
+        <option value="auto">Auto</option>
+        <option value="320x240">320 × 240</option>
+        <option value="640x480">640 × 480</option>
+        <option value="800x600">800 × 600</option>
+      </select>
+    </label>
+    <div class="spacer"></div>
+    <button id="fullscreen" aria-label="Fullscreen">⛶</button>
+    <button id="aboutOpen">About &amp; licenses</button>
+  </header>
+
+  <main>
+    <section id="stage">
+      <canvas id="screen"></canvas>
+      <div id="dropHint">Drop an audio/video file or a legacy <b>.avs</b> preset</div>
+    </section>
+    <aside>
+      <div class="sideTabs">
+        <button data-page="presets" disabled>Presets</button>
+        <button data-page="structure">Editor</button>
+      </div>
+      <div id="presetsPage" class="sidePage active">
+        <div class="asideHead">
+          <div><b>Legacy presets</b><small id="presetCount">Loading…</small></div>
+          <button id="presetPick">Open .avs</button>
+          <input id="presetInput" type="file" accept=".avs,application/octet-stream" hidden>
+        </div>
+        <input id="search" type="search" placeholder="Filter presets…" autocomplete="off">
+        <p class="presetNotice">Some presets may not work. Presets known to require unsupported APE effects have been omitted. I did not create any of the bundled presets.</p>
+        <div class="presetQuickActions">
+          <button id="surprisePreset" disabled>⤨ Surprise me</button>
+          <button id="favoriteFilter" aria-pressed="false">★ Favorites</button>
+          <button id="presetCopyright" class="presetLegal">Preset copyright / takedown</button>
+        </div>
+        <div id="presetList" class="presetList"></div>
+      </div>
+      <div id="structurePage" class="sidePage">
+        <div class="editorToolbar">
+          <button id="editorNew" class="primary">+ New preset</button>
+          <button id="editorApply" disabled>Apply</button>
+          <label class="autoApplyControl"><input id="editorAutoApply" type="checkbox"> Auto-apply</label>
+          <button id="editorRevert" disabled>Revert</button>
+          <button id="editorSave" disabled>Save .avs</button>
+        </div>
+        <div id="editorState">Load a supported preset to inspect it.</div>
+        <div id="structure" class="structure"></div>
+      </div>
+    </aside>
+  </main>
+
+  <footer>
+    <span id="status" class="status" hidden><i></i><span></span></span>
+    <span id="sourceState" class="sourceState" hidden><i></i><span></span></span>
+    <span>ALL CREDITS TO THE OG AVS COMMUNITIES AND CREATORS</span>
+    <button id="copyrightOpen">Copyright information</button>
+    <noscript>DMCA Takedown contact: <a href="mailto:mo@max-hirschfluss.de">mo@max-hirschfluss.de</a></noscript>
+  </footer>
+
+  <dialog id="about">
+    <form method="dialog"><button class="close" aria-label="Close">×</button></form>
+    <h1>About &amp; licenses</h1>
+    <p>This alpha runs the original AVS C/C++ rendering core in WebAssembly. It loads
+      legacy binary <code>.avs</code> files directly; the bundled presets are not Webvs
+      JSON conversions.</p>
+    <p>AVS was originally shipped with Winamp. Winamp is a licensed trademark that I do
+      not own. This independent project is not affiliated with or endorsed by Winamp,
+      Nullsoft, or their respective owners.</p>
+    <h2>AVS source and license</h2>
+    <p>The original AVS source is available from
+      <a href="https://github.com/visbot/vis_avs" target="_blank" rel="noreferrer">visbot/vis_avs</a>.
+      This port is based on the maintained
+      <a href="https://github.com/grandchild/vis_avs" target="_blank" rel="noreferrer">libavs fork</a>.
+      AVS is distributed under the BSD 3-Clause license: Copyright 2005 Nullsoft, Inc.;
+      all rights reserved. The license also protects the names of its contributors.</p>
+    <p><a href="LICENSE-AVS.txt" target="_blank">AVS BSD 3-Clause license</a></p>
+    <h2>Bundled legacy presets</h2>
+    <p>The presets are a separate, mixed legacy collection gathered from publicly
+      available sources. They were created by their respective authors, not by this
+      project. The AVS BSD license above applies to the AVS source and should not be
+      read as a blanket license for every third-party preset.</p>
+    <h2>Bundled third-party code</h2>
+    <p>The WebAssembly binary contains WDL-EEL2 (Cockos Incorporated and contributors),
+      nlohmann/json (Niels Lohmann), stb_image (Sean Barrett), and toolchain runtime code.
+      Their complete notices are included with this bundle.</p>
+    <p><a href="THIRD-PARTY-NOTICES.txt" target="_blank">Third-party notices</a></p>
+    <section id="presetRights" tabindex="-1">
+      <h2>Presets and AVS components: copyright and takedown</h2>
+      <p>I collected the bundled presets from publicly available legacy sources.</p>
+      <p>If you're the author of a bundled preset or AVS component and want it removed,
+        email <a href="mailto:mo@max-hirschfluss.de">mo@max-hirschfluss.de</a> and I'll
+        take it down promptly.</p>
+      <p><a class="buttonLink" href="mailto:mo@max-hirschfluss.de?subject=AVS%20takedown%20request">TAKEDOWN E-MAIL</a></p>
+    </section>
+    <h2>Current compatibility</h2>
+    <p>Built-in AVS components and EEL run in the original engine. Native APE plug-ins,
+      advanced editor features and media-file effects are intentionally deferred. Presets known to
+      require unavailable APE/unknown components are omitted from the bundled collection. The
+      Editor tab edits supported parameters and component trees using libavs' own
+      JSON schema.</p>
+  </dialog>
+
+  <section id="motionGate" class="motionGate" role="alertdialog" aria-modal="true" aria-labelledby="motionGateTitle" aria-describedby="motionGateWarning" hidden>
+    <div class="motionGateCard">
+      <small class="motionContextDefault">One-time visual safety notice</small>
+      <small class="motionContextReduced">Reduced motion preference detected</small>
+      <h1 id="motionGateTitle">Flashing-light warning</h1>
+      <p id="motionGateWarning">Many presets may produce rapid flashing lights that can cause seizures. If you have photosensitive epilepsy or are prone to seizures, do not start the visualizer.</p>
+      <p id="motionGatePreference">This warning appears because reduced motion is enabled on your device. You can still continue if that preference is unrelated to flashing-light sensitivity.</p>
+      <button id="motionGateStart" type="button">I understand — start anyway</button>
+      <div id="motionGateCountdown" class="motionGateCountdown" aria-live="polite" aria-atomic="true">&nbsp;</div>
+    </div>
+  </section>
+
+  <script type="module" src="app.js?v=17"></script>
+</body>
+</html>

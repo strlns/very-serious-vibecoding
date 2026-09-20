@@ -1,0 +1,41 @@
+AVS//Web third-party notices
+============================
+
+This distribution includes the following third-party components. Complete license
+texts are provided alongside this file and form part of this distribution.
+
+WDL-EEL2
+Copyright (C) 2004-2013 and later Cockos Incorporated.
+Portions copyright (C) 1999-2003 Nullsoft, Inc. and other contributors.
+License: zlib-style license in LICENSE-WDL-EEL2.txt
+Source: https://github.com/justinfrankel/WDL
+
+GNU Bison 2.3 parser skeleton
+Copyright (C) 1984, 1989, 1990, 2000-2006 Free Software Foundation, Inc.
+The generated parser included by WDL-EEL2 carries Bison's special exception,
+which permits the resulting larger work to be distributed under terms of choice.
+The original skeleton notice and exception are in LICENSE-Bison-parser-skeleton.txt.
+
+nlohmann/json 3.11.3
+Copyright (c) 2013-2023 Niels Lohmann.
+Bundled MIT-licensed portions also identify Evan Nemerson (Hedley),
+Björn Hoehrmann (UTF-8 decoder), and Florian Loitsch (Grisu2 conversion).
+License: MIT, in LICENSE-nlohmann-json.txt
+
+stb_image
+Copyright (c) 2017 Sean Barrett.
+License used here: MIT, in LICENSE-stb-image.txt
+
+Emscripten 4.0.15 toolchain/runtime
+Copyright (c) 2010-2014 Emscripten authors; additional runtime copyrights are
+identified in their upstream notices.
+The linked runtime set was verified from the actual link invocation: Emscripten
+runtime libraries, musl-derived libc, dlmalloc, compiler-rt, libc++, and libc++abi.
+Their complete notices are collected in LICENSE-Emscripten.txt.
+
+AVS FFT and component code
+md_fft portions copyright 2005-2013 Nullsoft, Inc.; other AVS contributors are
+identified in the upstream source. These portions use the AVS BSD 3-Clause terms.
+
+AVS itself, including its copyright and contributor-name condition, is covered
+separately by LICENSE-AVS.txt.

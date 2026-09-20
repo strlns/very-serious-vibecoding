@@ -1,0 +1,254 @@
+body {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+main {
+  height: auto;
+}
+
+footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: .35rem .75rem;
+  padding: .3rem .75rem;
+  border-top: 1px solid var(--line);
+  background: #0b0e13;
+  color: var(--muted);
+  font-size: .62rem;
+  letter-spacing: .08em;
+  text-align: center;
+}
+
+footer button,
+.presetLegal,
+.buttonLink {
+  padding: .25rem .45rem;
+  font-size: .68rem;
+}
+
+.buttonLink {
+  display: inline-block;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #191e27;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.buttonLink:hover {
+  border-color: var(--orange);
+}
+
+.presetLegal {
+  align-self: flex-start;
+}
+
+.presetQuickActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem;
+}
+
+.presetQuickActions button { padding: .3rem .5rem; font-size: .68rem; }
+.presetQuickActions button[aria-pressed="true"] { border-color: var(--orange); color: var(--orange); }
+
+.presetRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: .3rem;
+}
+
+.presetRow .preset { min-width: 0; }
+.favoritePreset { width: 34px; padding: 0; color: var(--muted); }
+.favoritePreset[aria-pressed="true"] { border-color: #9d7920; color: #ffd45c; }
+
+#presetRights {
+  scroll-margin-top: 1rem;
+}
+
+.editorToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .3rem;
+}
+
+.autoApplyControl,
+.resolutionControl {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  color: var(--muted);
+  font-size: .72rem;
+  white-space: nowrap;
+}
+
+.autoApplyControl {
+  padding: .38rem .5rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #151a22;
+}
+
+.autoApplyControl input {
+  margin: 0;
+  accent-color: var(--orange);
+}
+
+.resolutionControl select {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #191e27;
+  color: var(--text);
+  padding: .42rem .35rem;
+  font: inherit;
+}
+
+.editorToolbar .primary {
+  border-color: var(--orange);
+}
+
+#editorState {
+  min-height: 1.2em;
+  color: var(--muted);
+  font-size: .72rem;
+}
+
+.structure {
+  background: #0c1016;
+  color: var(--text);
+  padding: .45rem;
+}
+
+.structure button,
+.structure input,
+.structure select,
+.structure textarea {
+  min-width: 0;
+  border: 1px solid #343d4b;
+  border-radius: 4px;
+  background: #171c24;
+  color: var(--text);
+  font: inherit;
+}
+
+.structure input,
+.structure select,
+.structure textarea {
+  padding: .3rem .4rem;
+}
+
+.structure textarea {
+  min-height: 3.8rem;
+  max-height: 11rem;
+  resize: vertical;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .75rem;
+}
+
+.structure .field {
+  display: grid;
+  grid-template-columns: minmax(7rem, 38%) minmax(0, 1fr);
+  align-items: center;
+  gap: .4rem;
+  margin: .35rem 0;
+  color: #b9c0ca;
+  font-size: .76rem;
+}
+
+.field > span {
+  overflow-wrap: anywhere;
+}
+
+.readonlyValue {
+  min-height: 1.2em;
+  color: var(--muted);
+}
+
+.field input:not([type=checkbox]),
+.field select,
+.field textarea {
+  display: block;
+  width: 100%;
+}
+
+.field input[type=checkbox] {
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+  accent-color: var(--orange);
+}
+
+.rootSettings,
+.component {
+  margin: .4rem 0;
+  border: 1px solid #2d3541;
+  border-radius: 5px;
+  background: #11161e;
+  padding: .25rem .45rem .45rem;
+}
+
+.rootSettings > summary,
+.component > summary {
+  margin: -.25rem -.45rem 0;
+  padding: .45rem;
+  cursor: pointer;
+  color: #e5e8ed;
+  font-weight: 600;
+  list-style-position: inside;
+}
+
+.rootSettings[open] > summary,
+.component[open] > summary {
+  margin-bottom: .35rem;
+  border-bottom: 1px solid #2d3541;
+}
+
+.component > .component {
+  margin-left: .55rem;
+  background: #0d1219;
+}
+
+.componentActions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: .3rem;
+  margin: .45rem 0 .1rem;
+}
+
+.componentActions select {
+  width: 100%;
+}
+
+.preset.newPreset {
+  border-style: dashed;
+  color: var(--mint);
+  font-weight: 600;
+}
+
+.presetNotice {
+  margin: -.15rem 0 0;
+  color: var(--muted);
+  font-size: .68rem;
+  line-height: 1.35;
+}
+
+.trackTitle {
+  flex: 1 1 8rem;
+  min-width: 0;
+  max-width: 18rem;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: .72rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .structure .field {
+    grid-template-columns: 1fr;
+    gap: .2rem;
+  }
+}
