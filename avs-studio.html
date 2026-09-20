@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AVS//Web — Winamp AVS-style Visualizer Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0c10;
+    --bg-elev:#12151b;
+    --bg-elev-2:#191d25;
+    --line:#262b35;
+    --text:#eae7df;
+    --text-dim:#8b93a3;
+    --accent:#ff8a3d;
+    --accent-2:#34e2c4;
+    --danger:#ff5470;
+    --warn:#ffd23d;
+    --mono:'JetBrains Mono', ui-monospace, monospace;
+    --sans:'Inter', system-ui, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0; background:var(--bg); color:var(--text); font-family:var(--sans);
+    display:flex; flex-direction:column; overflow:hidden;
+  }
+  ::selection{ background:var(--accent); color:#0a0c10; }
+  button, select, input{ font-family:inherit; }
+  button{
+    background:var(--bg-elev-2); color:var(--text); border:1px solid var(--line);
+    border-radius:6px; padding:.5rem .75rem; font-size:.8rem; cursor:pointer;
+    font-family:var(--mono); white-space:nowrap; transition:border-color .15s, transform .1s;
+  }
+  button:hover{ border-color:var(--accent); }
+  button:active{ transform:translateY(1px); }
+  button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible{
+    outline:2px solid var(--accent-2); outline-offset:1px;
+  }
+  button.primary{ background:var(--accent); color:#1a0f06; border-color:var(--accent); font-weight:700;}
+  button.primary:hover{ filter:brightness(1.08); }
+  button.ghost{ background:transparent; }
+  button.small{ padding:.3rem .55rem; font-size:.72rem; }
+  button:disabled{ opacity:.4; cursor:not-allowed; }
+  select, input[type=text], input[type=url]{
+    background:var(--bg-elev); color:var(--text); border:1px solid var(--line);
+    border-radius:6px; padding:.45rem .6rem; font-size:.8rem;
+  }
+  input[type=color]{
+    width:2rem; height:1.8rem; border:1px solid var(--line); border-radius:5px;
+    background:none; padding:0; cursor:pointer;
+  }
+  input[type=range]{ accent-color:var(--accent); }
+  textarea{
+    width:100%; background:#05070a; color:var(--accent-2); border:1px solid var(--line);
+    border-radius:6px; padding:.6rem; font-family:var(--mono); font-size:.76rem;
+    resize:vertical; min-height:3.4rem; line-height:1.4;
+  }
+  label.field-label{ font-size:.7rem; color:var(--text-dim); display:block; margin:.6rem 0 .25rem; }
+  a{ color:var(--accent-2); }
+
+  /* ---------- Topbar ---------- */
+  .topbar{
+    display:flex; align-items:center; gap:.9rem; padding:.6rem .9rem;
+    border-bottom:1px solid var(--line); background:linear-gradient(180deg,var(--bg-elev),var(--bg));
+    flex-wrap:wrap; flex-shrink:0;
+  }
+  .brand{ display:flex; align-items:baseline; gap:.5rem; margin-right:.4rem; }
+  .brand b{ font-family:var(--mono); font-size:1.05rem; letter-spacing:.02em; }
+  .brand b span{ color:var(--accent); }
+  .brand small{ color:var(--text-dim); font-size:.68rem; }
+  .src-group{ display:flex; align-items:center; gap:.4rem; flex-wrap:wrap; }
+  .divider{ width:1px; align-self:stretch; background:var(--line); margin:0 .2rem; }
+  .meter{ display:flex; align-items:flex-end; gap:2px; height:1.4rem; width:3.2rem; }
+  .meter i{ flex:1; background:var(--bg-elev-2); border-radius:1px; height:15%; transition:height .05s linear; }
+  .status-pill{
+    font-family:var(--mono); font-size:.68rem; padding:.3rem .55rem; border-radius:999px;
+    border:1px solid var(--line); color:var(--text-dim); display:flex; align-items:center; gap:.35rem;
+  }
+  .status-pill .dot{ width:7px; height:7px; border-radius:50%; background:var(--text-dim); }
+  .status-pill.live .dot{ background:var(--accent-2); box-shadow:0 0 6px var(--accent-2); }
+  .status-pill.live{ color:var(--accent-2); border-color:var(--accent-2); }
+  .status-pill.error .dot{ background:var(--danger); }
+  .status-pill.error{ color:var(--danger); border-color:var(--danger); }
+  .spacer{ flex:1; }
+
+  /* ---------- Main layout ---------- */
+  main{ flex:1; display:flex; min-height:0; position:relative; }
+  .stage{ flex:1; position:relative; background:#000; min-width:0; }
+  .stage canvas{ width:100%; height:100%; display:block; }
+  .stage-overlay{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    flex-direction:column; gap:.8rem; text-align:center; padding:2rem;
+    background:radial-gradient(circle at 50% 40%, #14181f 0%, #05060a 75%);
+  }
+  .stage-overlay h1{ font-family:var(--mono); font-size:1.3rem; margin:0; max-width:32ch; font-weight:500; }
+  .stage-overlay p{ color:var(--text-dim); max-width:44ch; margin:0; font-size:.85rem; line-height:1.5; }
+  .stage-overlay .actions{ display:flex; gap:.6rem; margin-top:.4rem; flex-wrap:wrap; justify-content:center; }
+  .toast-wrap{ position:absolute; bottom:1rem; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; gap:.4rem; z-index:20; }
+  .toast{
+    font-family:var(--mono); font-size:.76rem; padding:.5rem .8rem; border-radius:6px;
+    background:var(--bg-elev-2); border:1px solid var(--line); box-shadow:0 4px 14px rgba(0,0,0,.4);
+    animation:fadein .15s ease-out;
+  }
+  .toast.error{ border-color:var(--danger); color:var(--danger); }
+  .toast.ok{ border-color:var(--accent-2); color:var(--accent-2); }
+  @keyframes fadein{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
+
+  /* ---------- Panel ---------- */
+  aside#panel{
+    width:380px; max-width:92vw; background:var(--bg-elev); border-left:1px solid var(--line);
+    display:flex; flex-direction:column; flex-shrink:0; transition:margin-right .2s ease;
+  }
+  aside#panel.collapsed{ margin-right:-380px; }
+  .tabs{ display:flex; border-bottom:1px solid var(--line); flex-shrink:0; }
+  .tabs button{
+    flex:1; background:none; border:none; border-radius:0; border-bottom:2px solid transparent;
+    padding:.7rem .4rem; color:var(--text-dim); font-size:.72rem;
+  }
+  .tabs button.active{ color:var(--text); border-bottom-color:var(--accent); }
+  .tabpage{ display:none; flex:1; min-height:0; overflow-y:auto; padding:.9rem; }
+  .tabpage.active{ display:flex; flex-direction:column; gap:.7rem; }
+
+  .filter-row{ display:flex; gap:.4rem; }
+  .filter-row select, .filter-row input{ flex:1; min-width:0; }
+  .chips{ display:flex; flex-wrap:wrap; gap:.3rem; }
+  .chip{
+    font-size:.68rem; font-family:var(--mono); padding:.2rem .55rem; border-radius:999px;
+    border:1px solid var(--line); color:var(--text-dim); cursor:pointer; background:var(--bg-elev-2);
+  }
+  .chip.active{ color:var(--bg); background:var(--accent-2); border-color:var(--accent-2); }
+  .preset-list{ display:flex; flex-direction:column; gap:.4rem; }
+  .preset-card{
+    border:1px solid var(--line); border-radius:8px; padding:.55rem .7rem; background:var(--bg-elev-2);
+    display:flex; align-items:center; gap:.5rem;
+  }
+  .preset-card.active{ border-color:var(--accent); }
+  .preset-card .meta{ flex:1; min-width:0; }
+  .preset-card .meta b{ font-size:.82rem; display:block; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .preset-card .meta span{ font-size:.68rem; color:var(--text-dim); font-family:var(--mono); }
+  .preset-card .btns{ display:flex; gap:.3rem; flex-shrink:0; }
+  hr.sep{ border:none; border-top:1px solid var(--line); margin:.3rem 0; }
+  .section-title{ font-size:.72rem; text-transform:none; color:var(--text-dim); margin:.2rem 0; }
+  .row{ display:flex; gap:.4rem; align-items:center; }
+  .row.wrap{ flex-wrap:wrap; }
+  .color-chip-row{ display:flex; gap:.35rem; flex-wrap:wrap; align-items:center; }
+  .color-del{ font-size:.6rem; padding:.15rem .35rem; }
+  details.cheatsheet{ font-size:.72rem; color:var(--text-dim); border:1px solid var(--line); border-radius:6px; padding:.4rem .6rem; }
+  details.cheatsheet summary{ cursor:pointer; color:var(--text); font-family:var(--mono); }
+  details.cheatsheet code{ color:var(--accent-2); }
+  .lic-box{ font-family:var(--mono); font-size:.68rem; color:var(--text-dim); white-space:pre-wrap; background:var(--bg-elev-2); padding:.7rem; border-radius:6px; border:1px solid var(--line); line-height:1.5; }
+  .info p{ font-size:.8rem; line-height:1.55; color:var(--text-dim); }
+  .info p b{ color:var(--text); }
+  footer{
+    padding:.4rem .9rem; font-size:.68rem; color:var(--text-dim); font-family:var(--mono);
+    border-top:1px solid var(--line); flex-shrink:0; display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap;
+  }
+  footer a{ color:var(--text-dim); text-decoration:underline; }
+  footer a:hover{ color:var(--accent-2); }
+
+  @media (max-width:760px){
+    aside#panel{ position:absolute; right:0; top:0; bottom:0; z-index:15; box-shadow:-10px 0 30px rgba(0,0,0,.5); }
+    aside#panel.collapsed{ margin-right:-100vw; }
+    .brand small{ display:none; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand"><b>AVS<span>//</span>Web</b><small>Winamp AVS-style Visualizer Studio</small></div>
+
+  <div class="src-group">
+    <button id="btnShareTab" title="Share audio from a browser tab or your entire screen">🖥️ Share tab/system audio</button>
+    <div class="divider"></div>
+    <select id="deviceSelect" title="Recording device (for example, a virtual loopback cable)"><option value="">Choose a device…</option></select>
+    <button id="btnRefreshDevices" class="small" title="Refresh device list">⟳</button>
+    <button id="btnUseDevice" class="small">Use device</button>
+    <div class="divider"></div>
+    <button id="btnDisconnect" class="ghost small" disabled>Disconnect</button>
+  </div>
+
+  <div class="divider"></div>
+  <label class="row" style="gap:.3rem;">
+    <span style="font-size:.68rem;color:var(--text-dim);font-family:var(--mono);">Gain</span>
+    <input type="range" id="gainSlider" min="0.2" max="4" step="0.1" value="1.4" style="width:5.5rem;">
+  </label>
+  <div class="meter" id="levelMeter" aria-hidden="true">
+    <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+  </div>
+
+  <div class="spacer"></div>
+  <span class="status-pill" id="statusPill"><span class="dot"></span><span id="statusText">Disconnected</span></span>
+  <button id="btnClear" class="small" title="Clear screen">Clear</button>
+  <button id="btnFullscreen" class="small" title="Fullscreen">⛶</button>
+  <button id="btnTogglePanel" title="Show or hide panel">☰ Panel</button>
+</header>
+
+<main>
+  <div class="stage" id="stage">
+    <canvas id="vis"></canvas>
+    <div class="stage-overlay" id="hint">
+      <h1>No audio source connected</h1>
+      <p>Choose <b>“Share tab/system audio”</b> above to use audio from a browser tab or your entire screen—without uploading a file or using a player. Alternatively, select a recording device such as a loopback or Stereo Mix device.</p>
+      <div class="actions">
+        <button class="primary" id="hintShareTab">🖥️ Share tab/system audio</button>
+      </div>
+    </div>
+    <div class="toast-wrap" id="toasts"></div>
+  </div>
+
+  <aside id="panel">
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="presets">Presets</button>
+      <button class="tab-btn" data-tab="editor">Editor</button>
+      <button class="tab-btn" data-tab="info">About &amp; License</button>
+    </div>
+
+    <!-- PRESETS -->
+    <div class="tabpage active" id="tab-presets">
+      <div class="filter-row">
+        <input type="text" id="presetSearch" placeholder="Search presets…">
+      </div>
+      <div class="chips" id="categoryChips"></div>
+      <div class="preset-list" id="presetList"></div>
+      <hr class="sep">
+      <div class="section-title">Import custom presets</div>
+      <div class="row wrap">
+        <button class="small" id="btnImportFile">📁 Load JSON file</button>
+        <input type="file" id="importFileInput" accept="application/json" style="display:none;">
+      </div>
+      <div class="row wrap">
+        <input type="url" id="importUrl" placeholder="https://…/preset.json" style="flex:1;">
+        <button class="small" id="btnImportUrl">Load</button>
+      </div>
+      <p style="font-size:.7rem;color:var(--text-dim);margin:0;">
+        More free presets and an AVS-to-JSON converter for your own <code>.avs</code> files:
+        <a href="https://github.com/visbot/awesome-avs" target="_blank" rel="noopener">awesome-avs</a>,
+        <a href="https://github.com/visbot/webvsc-cli" target="_blank" rel="noopener">webvsc-cli</a>.
+      </p>
+    </div>
+
+    <!-- EDITOR -->
+    <div class="tabpage" id="tab-editor">
+      <div class="section-title">Superscope editor (like the original AVS effect)</div>
+      <div class="row">
+        <div style="flex:1;">
+          <label class="field-label">Name</label>
+          <input type="text" id="edName" value="Custom Preset" style="width:100%;">
+        </div>
+        <div>
+          <label class="field-label">Source</label>
+          <select id="edSource"><option value="WAVEFORM">Waveform</option><option value="SPECTRUM">Spectrum</option></select>
+        </div>
+      </div>
+      <div class="row">
+        <label class="row" style="font-size:.75rem;color:var(--text-dim);"><input type="checkbox" id="edClear" checked> Clear screen every frame</label>
+      </div>
+      <div>
+        <label class="field-label">Colors (cycled in sequence)</label>
+        <div class="color-chip-row" id="colorChips"></div>
+        <button class="small" id="btnAddColor" style="margin-top:.4rem;">+ Color</button>
+      </div>
+      <label class="field-label">INIT — once when loaded</label>
+      <textarea id="edInit" rows="2" placeholder="a=0;"></textarea>
+      <label class="field-label">FRAME — once per frame</label>
+      <textarea id="edFrame" rows="2" placeholder="a=a+0.01;"></textarea>
+      <label class="field-label">BEAT — when a beat is detected</label>
+      <textarea id="edBeat" rows="2" placeholder="r=r+0.2;"></textarea>
+      <label class="field-label">POINT — per point (i=0..1, v=level, x/y=output)</label>
+      <textarea id="edPoint" rows="3" placeholder="x=i*2-1;y=v;"></textarea>
+
+      <details class="cheatsheet">
+        <summary>Variable cheat sheet</summary>
+        <div>
+          <code>i</code> point index 0–1 · <code>v</code> level at point · <code>b</code> 1 on a beat, otherwise 0 ·
+          <code>x</code>, <code>y</code> output position (-1…1) · <code>n</code> point count ·
+          <code>sin cos tan abs sqrt pow sign rand(n) if(c,a,b)</code> · custom variables may be named freely and persist between frames.
+        </div>
+      </details>
+
+      <div class="row wrap">
+        <button class="primary small" id="btnPreviewEditor">▶ Apply preview</button>
+        <button class="small" id="btnSaveEditor">💾 Save as custom preset</button>
+        <button class="small" id="btnExportEditor">⇩ Export as JSON</button>
+      </div>
+      <hr class="sep">
+      <div class="section-title">Expert mode: raw preset JSON</div>
+      <textarea id="edJson" rows="6" placeholder='{"clearFrame":true,"components":[...]}'></textarea>
+      <div class="row wrap">
+        <button class="small" id="btnJsonToForm">🔄 Load into form</button>
+        <button class="small" id="btnFormToJson">⬆ Fill from form</button>
+        <button class="small" id="btnApplyJson">▶ Apply JSON directly</button>
+      </div>
+    </div>
+
+    <!-- INFO -->
+    <div class="tabpage" id="tab-info">
+      <div class="info">
+        <p><b>Technology:</b> Rendering uses <a href="https://github.com/azeem/webvs" target="_blank" rel="noopener">webvs</a> (WebGL), loaded from unpkg. Presets are Superscope definitions in the webvs JSON format, modeled after the classic AVS Superscope language.</p>
+        <p><b>More resources:</b> <a href="https://github.com/azeem/webvs" target="_blank" rel="noopener">azeem/webvs</a> · <a href="https://www.npmjs.com/package/webvs" target="_blank" rel="noopener">npm package</a> · <a href="http://azeemarshad.in/webvs/examples/" target="_blank" rel="noopener">official test page</a> · <a href="https://github.com/visbot/awesome-avs" target="_blank" rel="noopener">awesome-avs</a> (more presets and converters for <code>.avs</code> files).</p>
+        <p style="font-size:.7rem;">Not an official Winamp or AVS product. “Winamp” and “AVS” are trademarks of their respective owners.</p>
+      </div>
+      <div class="section-title">webvs MIT License</div>
+      <div class="lic-box">MIT License
+
+Copyright (c) 2013 Azeem Arshad
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+(see license.txt in the github.com/azeem/webvs repository for the canonical text)</div>
+    </div>
+  </aside>
+</main>
+
+<footer>
+  <span>Visualizer rendering: <a href="https://github.com/azeem/webvs" target="_blank" rel="noopener">webvs</a> © 2013 Azeem Arshad, MIT licensed · This page is an unofficial fan project.</span>
+  <span>Spacebar = random preset</span>
+</footer>
+
+<!-- webvs from unpkg, pinned to the tested API version -->
+<script src="https://unpkg.com/webvs@3.0.0/dist/webvs.min.js"></script>
+<script>
+(function(){
+  'use strict';
+
+  /* ============ Preset helpers ============ */
+  function sc(source, code, colors){
+    return {
+      type:'SuperScope',
+      source: source,
+      audioSource: source, // Kept for compatibility with older webvs preset variants.
+      code:{
+        init: code.init || '',
+        perFrame: code.perFrame || '',
+        onBeat: code.onBeat || '',
+        perPoint: code.perPoint || ''
+      },
+      colors: (colors && colors.length) ? colors : ['#eae7df']
+    };
+  }
+  function preset(category, name, clearFrame, components){
+    return { category:category, name:name, preset:{ clearFrame:clearFrame, components:components } };
+  }
+
+  var BUILTIN_PRESETS = [
+    preset('Oscilloscope','Classic Line', true, [ sc('WAVEFORM', {perPoint:'x=i*2-1;y=v*0.85;'}, ['#eae7df']) ]),
+    preset('Oscilloscope','Two-Tone Wave', true, [ sc('WAVEFORM', {perPoint:'x=i*2-1;y=v*0.75;'}, ['#ff8a3d','#34e2c4']) ]),
+    preset('Spectrum','Analyzer Line', true, [ sc('SPECTRUM', {perPoint:'x=i*2-1;y=v*1.6-0.85;'}, ['#ff8a3d']) ]),
+    preset('Spectrum','Zigzag Grid', true, [ sc('SPECTRUM', {perFrame:'cols=44;', perPoint:'ang=i*cols*3.14159265;edge=sign(sin(ang));x=i*2-1;y=edge*(0.08+v*0.85);'}, ['#ffd23d','#ff5470']) ]),
+    preset('Spectrum','Radial EQ', true, [ sc('SPECTRUM', {perPoint:'ang=i*6.2831853;r=0.15+v*0.75;x=cos(ang)*r;y=sin(ang)*r;'}, ['#ff8a3d','#ff5470','#ffd23d']) ]),
+    preset('Spectrum','Double Fan', true, [
+      sc('SPECTRUM', {perPoint:'ang=i*3.14159265;r=0.1+v*0.8;x=cos(ang)*r;y=sin(ang)*r;'}, ['#34e2c4']),
+      sc('SPECTRUM', {perPoint:'ang=i*3.14159265+3.14159265;r=0.1+v*0.8;x=cos(ang)*r;y=sin(ang)*r;'}, ['#ff8a3d'])
+    ]),
+    preset('Geometry','Pulse Circle', true, [ sc('WAVEFORM', {init:'r=0.35;', onBeat:'r=r+0.18;', perFrame:'r=r*0.94;', perPoint:'ang=i*6.2831853;x=cos(ang)*r;y=sin(ang)*r;'}, ['#34e2c4']) ]),
+    preset('Geometry','Spiral', true, [ sc('WAVEFORM', {init:'a=0;', perFrame:'a=a+0.015;', perPoint:'ang=i*6.2831853*3+a;rad=i*0.9;x=cos(ang)*rad;y=sin(ang)*rad;'}, ['#ff8a3d','#ffd23d']) ]),
+    preset('Geometry','Rosette', true, [ sc('WAVEFORM', {perPoint:'k=6;ang=i*6.2831853;r=0.55*sin(k*ang)*(0.55+v*0.45);x=cos(ang)*r;y=sin(ang)*r;'}, ['#ff5470','#34e2c4']) ]),
+    preset('Geometry','Lissajous', true, [ sc('WAVEFORM', {init:'p=0;', perFrame:'p=p+0.006;', perPoint:'x=sin(i*6.2831853*3+p)*0.8;y=sin(i*6.2831853*2)*0.8*(0.55+v*0.45);'}, ['#ffd23d']) ]),
+    preset('Geometry','Diamond Pulse', true, [ sc('WAVEFORM', {init:'s=0.5;', onBeat:'s=0.85;', perFrame:'s=s*0.92+0.04;', perPoint:'ang=i*6.2831853;q=abs(cos(ang))+abs(sin(ang));x=cos(ang)/q*s;y=sin(ang)/q*s;'}, ['#eae7df','#ff8a3d']) ]),
+    preset('Particles','Beat Burst', true, [ sc('WAVEFORM', {init:'seedx=17;seedy=53;', onBeat:'seedx=rand(1000);seedy=rand(1000);', perPoint:'rx=sin(i*78.233+seedx);ry=cos(i*37.719+seedy);x=rx*0.85;y=ry*0.85;'}, ['#ffffff','#34e2c4']) ]),
+    preset('Particles','Star Ring', true, [ sc('WAVEFORM', {init:'spin=0;', perFrame:'spin=spin+0.008;', perPoint:'ang=i*6.2831853*23+spin;d=0.1+i*0.85;x=cos(ang)*d;y=sin(ang)*d;'}, ['#eae7df']) ]),
+    preset('Particles','Random Flash', true, [ sc('WAVEFORM', {init:'rot=0;', onBeat:'rot=rand(360)*0.017453293;', perPoint:'ang=i*6.2831853*2+rot;x=cos(ang)*0.7;y=sin(ang)*0.7;'}, ['#ff5470','#ffd23d','#34e2c4']) ]),
+    preset('Experiments','Double Helix', true, [
+      sc('WAVEFORM', {init:'ph=0;', perFrame:'ph=ph+0.03;', perPoint:'y=i*2-1;x=sin(i*6.2831853*4+ph)*0.5;'}, ['#ff8a3d']),
+      sc('WAVEFORM', {init:'ph=0;', perFrame:'ph=ph+0.03;', perPoint:'y=i*2-1;x=sin(i*6.2831853*4+ph+3.14159265)*0.5;'}, ['#34e2c4'])
+    ]),
+    preset('Experiments','Kaleidoscope Fan', true, [
+      sc('WAVEFORM', {init:'a=0;', perFrame:'a=a+0.01;', perPoint:'ang=i*6.2831853*4+a;r=0.2+v*0.6;x=cos(ang)*r;y=sin(ang)*r;'}, ['#ff8a3d']),
+      sc('WAVEFORM', {init:'a=0;', perFrame:'a=a+0.01;', perPoint:'ang=i*6.2831853*4+a+2.0943951;r=0.2+v*0.6;x=cos(ang)*r;y=sin(ang)*r;'}, ['#34e2c4']),
+      sc('WAVEFORM', {init:'a=0;', perFrame:'a=a+0.01;', perPoint:'ang=i*6.2831853*4+a+4.1887902;r=0.2+v*0.6;x=cos(ang)*r;y=sin(ang)*r;'}, ['#ff5470'])
+    ]),
+    preset('Experiments','Wave Mesh (Trail)', false, [ sc('WAVEFORM', {init:'ph=0;', perFrame:'ph=ph+0.04;', perPoint:'x=i*2-1;y=sin(i*6.2831853*5+ph)*0.35*(0.3+v);'}, ['#34e2c4']) ]),
+    preset('Experiments','Lissajous Trail', false, [ sc('WAVEFORM', {init:'p=0;', perFrame:'p=p+0.004;', perPoint:'x=sin(i*6.2831853*3+p)*0.75;y=sin(i*6.2831853*2+p*0.5)*0.75;'}, ['#ff8a3d']) ]),
+    preset('Experiments','Spiral (Trail)', false, [ sc('WAVEFORM', {init:'a=0;', perFrame:'a=a+0.008;', perPoint:'ang=i*6.2831853*2+a;rad=0.1+i*0.8;x=cos(ang)*rad;y=sin(ang)*rad*(0.6+v*0.4);'}, ['#ffd23d']) ]),
+    preset('Template','Blank (Edit Me)', true, [ sc('WAVEFORM', {perPoint:'x=i*2-1;y=v;'}, ['#ffffff']) ])
+  ];
+  BUILTIN_PRESETS.forEach(function(p,idx){ p.id = 'builtin-'+idx; p.builtin = true; });
+
+  /* ============ State ============ */
+  var customPresets = [];
+  try{ customPresets = JSON.parse(localStorage.getItem('avsweb.customPresets')||'[]'); }catch(e){ customPresets = []; }
+
+  var state = {
+    audioCtx:null, mediaStream:null, captureStream:null, sourceNode:null, gainNode:null, analyserNode:null,
+    webvsAnalyser:null, webvsMain:null, currentPreset:null, activeCategory:'All', meterRAF:null
+  };
+
+  /* ============ DOM ============ */
+  var $ = function(id){ return document.getElementById(id); };
+  var stage=$('stage'), canvas=$('vis'), hint=$('hint'), toasts=$('toasts');
+  var statusPill=$('statusPill'), statusText=$('statusText');
+  var gainSlider=$('gainSlider'), levelMeter=$('levelMeter');
+  var presetList=$('presetList'), categoryChips=$('categoryChips'), presetSearch=$('presetSearch');
+
+  function toast(msg, kind){
+    var d=document.createElement('div');
+    d.className='toast'+(kind?(' '+kind):'');
+    d.textContent=msg;
+    toasts.appendChild(d);
+    setTimeout(function(){ d.remove(); }, 4200);
+  }
+  function setStatus(text, mode){
+    statusText.textContent=text;
+    statusPill.className='status-pill'+(mode?(' '+mode):'');
+  }
+
+  /* ============ Preset normalization across webvs versions ============ */
+  function normalize(node){
+    if(Array.isArray(node)){ node.forEach(normalize); return node; }
+    if(node && typeof node==='object'){
+      if('source' in node && !('audioSource' in node)) node.audioSource=node.source;
+      if('audioSource' in node && !('source' in node)) node.source=node.audioSource;
+      if('channel' in node && !('audioChannel' in node)) node.audioChannel=node.channel;
+      for(var k in node){ if(node[k] && typeof node[k]==='object') normalize(node[k]); }
+    }
+    return node;
+  }
+
+  /* ============ Canvas / webvs ============ */
+  function resizeCanvas(){
+    var rect=stage.getBoundingClientRect();
+    var dpr=Math.min(window.devicePixelRatio||1,2);
+    canvas.width=Math.max(2,Math.round(rect.width*dpr));
+    canvas.height=Math.max(2,Math.round(rect.height*dpr));
+    if(state.webvsMain){ try{ state.webvsMain.notifyResize(); }catch(e){} }
+  }
+  window.addEventListener('resize', resizeCanvas);
+
+  function resetCanvasElement(){
+    var fresh=document.createElement('canvas');
+    fresh.id='vis';
+    canvas.replaceWith(fresh);
+    canvas=fresh;
+    resizeCanvas();
+  }
+
+  function applyPreset(p){
+    if(!state.webvsMain){ return; }
+    try{
+      var clone=normalize(JSON.parse(JSON.stringify(p.preset)));
+      state.webvsMain.loadPreset(clone);
+      state.currentPreset=p;
+      renderPresetList();
+    }catch(e){
+      console.error(e);
+      toast('Preset error: '+e.message, 'error');
+    }
+  }
+
+  function clearScreen(){
+    if(!state.webvsMain) return;
+    try{ state.webvsMain.loadPreset({clearFrame:true, components:[]}); }catch(e){}
+    setTimeout(function(){ if(state.currentPreset) applyPreset(state.currentPreset); }, 60);
+  }
+
+  /* ============ Audio ============ */
+  function stopAudio(){
+    if(state.meterRAF) cancelAnimationFrame(state.meterRAF);
+    if(state.mediaStream){ state.mediaStream.getTracks().forEach(function(t){ t.stop(); }); }
+    if(state.captureStream && state.captureStream!==state.mediaStream){
+      state.captureStream.getTracks().forEach(function(t){ t.stop(); });
+    }
+    if(state.audioCtx){ try{ state.audioCtx.close(); }catch(e){} }
+    if(state.webvsMain){ try{ state.webvsMain.stop(); }catch(e){} }
+    state.audioCtx=null; state.mediaStream=null; state.captureStream=null; state.sourceNode=null; state.gainNode=null;
+    state.analyserNode=null; state.webvsAnalyser=null; state.webvsMain=null;
+    $('btnDisconnect').disabled=true;
+    setStatus('Disconnected', '');
+    hint.style.display='flex';
+    resetLevelMeter();
+  }
+
+  function resetLevelMeter(){
+    Array.prototype.forEach.call(levelMeter.children, function(bar){ bar.style.height='15%'; });
+  }
+
+  function startLevelMeter(){
+    var data=new Uint8Array(state.analyserNode.frequencyBinCount);
+    var bars=levelMeter.children;
+    function tick(){
+      state.analyserNode.getByteFrequencyData(data);
+      var n=bars.length, step=Math.floor(data.length/n)||1;
+      for(var i=0;i<n;i++){
+        var v=data[i*step]/255;
+        bars[i].style.height=Math.max(10, Math.round(v*100))+'%';
+      }
+      state.meterRAF=requestAnimationFrame(tick);
+    }
+    tick();
+  }
+
+  async function connectSource(stream, label, captureStream){
+    stopAudio();
+    state.mediaStream=stream;
+    state.captureStream=captureStream || stream;
+    try{
+      state.audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+      if(state.audioCtx.state==='suspended') await state.audioCtx.resume();
+      state.sourceNode=state.audioCtx.createMediaStreamSource(stream);
+      state.gainNode=state.audioCtx.createGain();
+      state.gainNode.gain.value=parseFloat(gainSlider.value);
+      state.analyserNode=state.audioCtx.createAnalyser();
+      state.analyserNode.fftSize=2048;
+      state.analyserNode.smoothingTimeConstant=0.82;
+      state.sourceNode.connect(state.gainNode);
+      state.gainNode.connect(state.analyserNode);
+      // Intentionally not connected to audioCtx.destination: no echo or feedback.
+
+      state.webvsAnalyser=new Webvs.WebAudioAnalyser({ context: state.audioCtx });
+      state.webvsAnalyser.connectToNode(state.analyserNode);
+
+      resetCanvasElement();
+      state.webvsMain=new Webvs.Main({ canvas: canvas, analyser: state.webvsAnalyser, showStat:false });
+      applyPreset(state.currentPreset || BUILTIN_PRESETS[0]);
+      state.webvsMain.start();
+
+      startLevelMeter();
+      $('btnDisconnect').disabled=false;
+      setStatus('Active — '+label, 'live');
+      hint.style.display='none';
+    }catch(e){
+      console.error(e);
+      stopAudio();
+      toast('Connection failed: '+e.message,'error');
+      setStatus('Error', 'error');
+    }
+  }
+
+  function displayCaptureError(error){
+    if(error.name==='NotAllowedError' || error.name==='AbortError') return;
+    if(error.name==='NotFoundError'){
+      toast('No shareable audio source was found. For system audio, use Chrome or Edge and enable “Share audio” in the picker.', 'error');
+      return;
+    }
+    if(error.name==='NotSupportedError' || error.name==='TypeError'){
+      toast('This browser cannot capture tab or system audio. Use Chrome or Edge, or select a recording device.', 'error');
+      return;
+    }
+    toast('Screen audio could not be shared: '+error.message, 'error');
+  }
+
+  async function shareTabAudio(){
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia){
+      displayCaptureError({name:'NotSupportedError'});
+      return;
+    }
+    try{
+      var capture=await navigator.mediaDevices.getDisplayMedia({
+        video:true,
+        audio:{ suppressLocalAudioPlayback:false },
+        systemAudio:'include',
+        surfaceSwitching:'include'
+      });
+      var audioTracks=capture.getAudioTracks();
+      if(!audioTracks.length){
+        capture.getTracks().forEach(function(t){ t.stop(); });
+        toast('No audio was shared. In Chrome or Edge, choose a tab or screen and enable “Share audio”.', 'error');
+        return;
+      }
+      // Keep the original display stream—including its video track—alive. Some
+      // browsers end the entire capture session when the display track is stopped.
+      var audioStream=new MediaStream(audioTracks);
+      await connectSource(audioStream, 'Tab/system audio', capture);
+      var displayTrack=capture.getVideoTracks()[0];
+      if(displayTrack){
+        displayTrack.addEventListener('ended', function(){
+          if(state.captureStream===capture) stopAudio();
+        }, {once:true});
+      }
+    }catch(e){
+      displayCaptureError(e);
+    }
+  }
+
+  async function refreshDevices(){
+    try{
+      var tmp=await navigator.mediaDevices.getUserMedia({audio:true});
+      tmp.getTracks().forEach(function(t){ t.stop(); });
+      var devices=await navigator.mediaDevices.enumerateDevices();
+      var inputs=devices.filter(function(d){ return d.kind==='audioinput'; });
+      var sel=$('deviceSelect');
+      sel.innerHTML='<option value="">Choose a device…</option>';
+      inputs.forEach(function(d,idx){
+        var o=document.createElement('option');
+        o.value=d.deviceId; o.textContent=d.label||('Input device '+(idx+1));
+        sel.appendChild(o);
+      });
+      if(!inputs.length) toast('No audio input devices found.','error');
+      else toast(inputs.length+' device(s) found.','ok');
+    }catch(e){
+      toast('Access denied: '+e.message,'error');
+    }
+  }
+
+  async function useSelectedDevice(){
+    var id=$('deviceSelect').value;
+    if(!id){ toast('Choose a device first.'); return; }
+    try{
+      var s=await navigator.mediaDevices.getUserMedia({
+        audio:{ deviceId:{exact:id}, echoCancellation:false, noiseSuppression:false, autoGainControl:false }
+      });
+      await connectSource(s, $('deviceSelect').selectedOptions[0].textContent);
+    }catch(e){
+      toast('Error: '+e.message,'error');
+    }
+  }
+
+  /* ============ Preset list UI ============ */
+  function allPresets(){ return BUILTIN_PRESETS.concat(customPresets); }
+  function categories(){
+    var set={'All':1};
+    allPresets().forEach(function(p){ set[p.category]=1; });
+    return Object.keys(set);
+  }
+  function renderCategoryChips(){
+    categoryChips.innerHTML='';
+    categories().forEach(function(c){
+      var chip=document.createElement('div');
+      chip.className='chip'+(state.activeCategory===c?' active':'');
+      chip.textContent=c;
+      chip.onclick=function(){ state.activeCategory=c; renderPresetList(); renderCategoryChips(); };
+      categoryChips.appendChild(chip);
+    });
+  }
+  function renderPresetList(){
+    var q=(presetSearch.value||'').toLowerCase();
+    presetList.innerHTML='';
+    allPresets().filter(function(p){
+      if(state.activeCategory!=='All' && p.category!==state.activeCategory) return false;
+      if(q && p.name.toLowerCase().indexOf(q)===-1) return false;
+      return true;
+    }).forEach(function(p){
+      var card=document.createElement('div');
+      card.className='preset-card'+(state.currentPreset && state.currentPreset.id===p.id ? ' active':'');
+      var meta=document.createElement('div'); meta.className='meta';
+      var b=document.createElement('b'); b.textContent=p.name;
+      var span=document.createElement('span'); span.textContent=p.category;
+      meta.appendChild(b); meta.appendChild(span);
+      var btns=document.createElement('div'); btns.className='btns';
+      var applyBtn=document.createElement('button'); applyBtn.className='small'; applyBtn.textContent='▶';
+      applyBtn.title='Apply'; applyBtn.onclick=function(){ applyPreset(p); };
+      var editBtn=document.createElement('button'); editBtn.className='small ghost'; editBtn.textContent='✎';
+      editBtn.title='Open in editor'; editBtn.onclick=function(){ loadIntoEditor(p); switchTab('editor'); };
+      btns.appendChild(applyBtn); btns.appendChild(editBtn);
+      if(!p.builtin){
+        var delBtn=document.createElement('button'); delBtn.className='small ghost'; delBtn.textContent='✕';
+        delBtn.title='Delete'; delBtn.onclick=function(){ deleteCustomPreset(p); };
+        btns.appendChild(delBtn);
+      }
+      card.appendChild(meta); card.appendChild(btns);
+      presetList.appendChild(card);
+    });
+  }
+  function deleteCustomPreset(p){
+    customPresets=customPresets.filter(function(x){ return x.id!==p.id; });
+    localStorage.setItem('avsweb.customPresets', JSON.stringify(customPresets));
+    renderPresetList(); renderCategoryChips();
+  }
+  function saveCustomPreset(p){
+    p.id='custom-'+Date.now(); p.builtin=false;
+    customPresets.push(p);
+    localStorage.setItem('avsweb.customPresets', JSON.stringify(customPresets));
+    renderPresetList(); renderCategoryChips();
+    toast('Preset saved: '+p.name,'ok');
+  }
+
+  /* ============ Editor ============ */
+  var colorChips=$('colorChips');
+  function addColorChip(value){
+    var wrap=document.createElement('div'); wrap.className='row';
+    var input=document.createElement('input'); input.type='color'; input.value=value||'#ff8a3d';
+    var del=document.createElement('button'); del.className='color-del ghost'; del.textContent='✕';
+    del.onclick=function(){ wrap.remove(); };
+    wrap.appendChild(input); wrap.appendChild(del);
+    colorChips.appendChild(wrap);
+  }
+  function getEditorColors(){
+    return Array.prototype.map.call(colorChips.querySelectorAll('input[type=color]'), function(i){ return i.value; });
+  }
+  function buildPresetFromForm(){
+    var colors=getEditorColors();
+    return {
+      name: $('edName').value || 'Custom Preset',
+      category: 'Custom',
+      preset:{
+        clearFrame: $('edClear').checked,
+        components:[ sc($('edSource').value, {
+          init: $('edInit').value, perFrame: $('edFrame').value,
+          onBeat: $('edBeat').value, perPoint: $('edPoint').value
+        }, colors.length?colors:['#ffffff']) ]
+      }
+    };
+  }
+  function loadIntoEditor(p){
+    $('edName').value=p.name;
+    var comp=(p.preset.components && p.preset.components[0]) || null;
+    $('edClear').checked=!!p.preset.clearFrame;
+    colorChips.innerHTML='';
+    if(comp){
+      $('edSource').value=comp.source||'WAVEFORM';
+      $('edInit').value=(comp.code&&comp.code.init)||'';
+      $('edFrame').value=(comp.code&&comp.code.perFrame)||'';
+      $('edBeat').value=(comp.code&&comp.code.onBeat)||'';
+      $('edPoint').value=(comp.code&&comp.code.perPoint)||'';
+      (comp.colors||['#ffffff']).forEach(addColorChip);
+    }
+    $('edJson').value=JSON.stringify(p.preset, null, 2);
+  }
+
+  function downloadJson(obj, filename){
+    var blob=new Blob([JSON.stringify(obj,null,2)], {type:'application/json'});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a'); a.href=url; a.download=filename; a.click();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
+  }
+
+  /* ============ Tabs ============ */
+  function switchTab(name){
+    document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.tab===name); });
+    document.querySelectorAll('.tabpage').forEach(function(p){ p.classList.toggle('active', p.id==='tab-'+name); });
+  }
+  document.querySelectorAll('.tab-btn').forEach(function(b){ b.onclick=function(){ switchTab(b.dataset.tab); }; });
+
+  /* ============ Event-Wiring ============ */
+  $('btnShareTab').onclick=shareTabAudio;
+  $('hintShareTab').onclick=shareTabAudio;
+  $('btnRefreshDevices').onclick=refreshDevices;
+  $('btnUseDevice').onclick=useSelectedDevice;
+  $('btnDisconnect').onclick=stopAudio;
+  $('btnClear').onclick=clearScreen;
+  $('btnFullscreen').onclick=function(){
+    if(document.fullscreenElement) document.exitFullscreen();
+    else stage.requestFullscreen().catch(function(){});
+  };
+  $('btnTogglePanel').onclick=function(){ $('panel').classList.toggle('collapsed'); setTimeout(resizeCanvas,220); };
+  gainSlider.oninput=function(){ if(state.gainNode) state.gainNode.gain.value=parseFloat(gainSlider.value); };
+  presetSearch.oninput=renderPresetList;
+
+  $('btnImportFile').onclick=function(){ $('importFileInput').click(); };
+  $('importFileInput').onchange=function(e){
+    var file=e.target.files[0]; if(!file) return;
+    var reader=new FileReader();
+    reader.onload=function(){
+      try{
+        var json=JSON.parse(reader.result);
+        saveCustomPreset({ name:file.name.replace(/\.json$/i,''), category:'Imported', preset:json });
+      }catch(err){ toast('Invalid JSON: '+err.message,'error'); }
+    };
+    reader.readAsText(file);
+    e.target.value='';
+  };
+  $('btnImportUrl').onclick=async function(){
+    var url=$('importUrl').value.trim(); if(!url) return;
+    try{
+      var r=await fetch(url);
+      var json=await r.json();
+      var name=url.split('/').pop().replace(/\.json$/i,'') || 'Imported';
+      saveCustomPreset({ name:name, category:'Imported', preset:json });
+      $('importUrl').value='';
+    }catch(err){ toast('Loading failed (possibly CORS): '+err.message,'error'); }
+  };
+
+  $('btnAddColor').onclick=function(){ addColorChip('#ffffff'); };
+  $('btnPreviewEditor').onclick=function(){ applyPreset(buildPresetFromForm()); switchTab('presets'); };
+  $('btnSaveEditor').onclick=function(){ saveCustomPreset(buildPresetFromForm()); };
+  $('btnExportEditor').onclick=function(){ var p=buildPresetFromForm(); downloadJson(p.preset, (p.name||'preset')+'.json'); };
+  $('btnFormToJson').onclick=function(){ $('edJson').value=JSON.stringify(buildPresetFromForm().preset, null, 2); };
+  $('btnJsonToForm').onclick=function(){
+    try{
+      var obj=JSON.parse($('edJson').value);
+      loadIntoEditor({ name:$('edName').value, preset:obj });
+    }catch(e){ toast('JSON error: '+e.message,'error'); }
+  };
+  $('btnApplyJson').onclick=function(){
+    try{
+      var obj=JSON.parse($('edJson').value);
+      applyPreset({ id:'json-preview', name:'JSON Preview', preset:obj });
+      switchTab('presets');
+    }catch(e){ toast('JSON error: '+e.message,'error'); }
+  };
+
+  window.addEventListener('keydown', function(e){
+    if(e.code==='Space' && document.activeElement.tagName!=='TEXTAREA' && document.activeElement.tagName!=='INPUT'){
+      e.preventDefault();
+      var list=allPresets();
+      applyPreset(list[Math.floor(Math.random()*list.length)]);
+    }
+  });
+
+  /* ============ Init ============ */
+  resizeCanvas();
+  renderCategoryChips();
+  renderPresetList();
+  addColorChip('#ff8a3d'); addColorChip('#34e2c4');
+  $('edPoint').value='x=i*2-1;y=v;';
+  $('edJson').value=JSON.stringify(BUILTIN_PRESETS[0].preset, null, 2);
+  state.currentPreset=BUILTIN_PRESETS[0];
+
+  if(typeof Webvs==='undefined'){
+    toast('webvs could not be loaded from unpkg. Check your internet connection.', 'error');
+  }
+})();
+</script>
+</body>
+</html>
