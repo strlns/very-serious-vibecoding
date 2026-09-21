@@ -3,6 +3,21 @@ body {
   grid-template-rows: auto minmax(0, 1fr) auto;
 }
 
+header {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
+}
+header::-webkit-scrollbar { height: 6px; }
+header > button,
+header > .brand,
+header > .queueToggle,
+header > audio,
+header > label { flex: 0 0 auto; }
+header > .spacer { flex: 1 0 0; }
+
 main {
   height: auto;
 }
@@ -255,22 +270,62 @@ footer button,
 
 body.sidebar-collapsed #sidebar { display: none; }
 
-.queuePanel { position: relative; }
-.queuePanel > summary {
-  list-style: none;
-  cursor: pointer;
-  padding: .48rem .68rem;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: #191e27;
-  color: var(--text);
-  white-space: nowrap;
+#sidebar {
+  position: relative;
+  width: var(--sidebar-width, 360px);
+  max-width: min(65vw, 720px);
 }
-.queuePanel > summary::-webkit-details-marker { display: none; }
-.queuePanel[open] > summary { border-color: var(--orange); }
-.queuePanel summary span { color: var(--muted); font-size: .7rem; }
-.queuePopover {
+
+.sidebarResizeHandle {
   position: absolute;
+  z-index: 8;
+  top: 0;
+  bottom: 0;
+  left: -5px;
+  width: 10px;
+  cursor: col-resize;
+  touch-action: none;
+}
+.sidebarResizeHandle::after {
+  content: "";
+  position: absolute;
+  top: 45%;
+  bottom: 45%;
+  left: 4px;
+  width: 2px;
+  min-height: 30px;
+  border-radius: 2px;
+  background: transparent;
+}
+.sidebarResizeHandle:hover::after,
+.sidebarResizeHandle:focus-visible::after { background: var(--orange); }
+body.sidebar-resizing { cursor: col-resize; user-select: none; }
+
+.panelIcon {
+  position: relative;
+  display: block;
+  width: 17px;
+  height: 15px;
+  border: 1.5px solid currentColor;
+  border-radius: 3px;
+}
+.panelIcon::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  bottom: 2px;
+  width: 4px;
+  border-left: 1px solid currentColor;
+  background: currentColor;
+  opacity: .7;
+}
+.panelLabel { display: none; }
+
+.queueToggle[aria-expanded="true"] { border-color: var(--orange); }
+.queueToggle span { color: var(--muted); font-size: .7rem; }
+.queuePopover {
+  position: fixed;
   z-index: 40;
   top: calc(100% + .45rem);
   left: 0;
@@ -281,8 +336,20 @@ body.sidebar-collapsed #sidebar { display: none; }
   background: #10151df7;
   box-shadow: 0 14px 45px #000c;
 }
+.queuePopover[hidden] { display: none; }
 .queueToolbar { display: flex; gap: .35rem; margin-bottom: .4rem; }
 .queueToolbar button:last-child { margin-left: auto; }
+.queueToolbar button[aria-pressed="true"] { border-color: var(--orange); color: var(--orange); }
+.queueDropZone {
+  margin-bottom: .4rem;
+  padding: .48rem;
+  border: 1px dashed #3b4655;
+  border-radius: 5px;
+  color: var(--muted);
+  font-size: .7rem;
+  text-align: center;
+}
+.queueDropZone.dragover { border-color: var(--orange); background: #241a14; color: var(--text); }
 .queueList {
   position: relative;
   height: 44px;
@@ -318,28 +385,33 @@ body.sidebar-collapsed #sidebar { display: none; }
 }
 
 @media (max-width: 760px) {
+  main { flex-direction: column; }
+  #stage { flex: 1 1 50%; min-height: 0; }
   #sidebar {
-    z-index: 6;
-    width: min(360px, 92vw);
+    position: static;
+    flex: 1 1 50%;
+    width: 100%;
     max-width: none;
-    box-shadow: -14px 0 40px #000b;
+    min-height: 0;
+    border-top: 1px solid var(--line);
+    border-left: 0;
+    box-shadow: none;
   }
 
-  body:not(.sidebar-collapsed) #stage::after {
-    content: "";
-    position: absolute;
-    z-index: 2;
-    inset: 0;
-    background: #0008;
-    pointer-events: none;
-  }
-
+  .sidebarResizeHandle { display: none; }
+  .panelIcon { display: none; }
+  .panelLabel { display: inline; }
+  .panelLabel::before { content: "☰ "; }
   .presetQuickActions button { flex: 1 1 auto; }
+  .queuePopover { top: auto !important; right: .5rem !important; bottom: 2.4rem !important; left: .5rem !important; width: auto; }
 }
 
 @media (max-width: 520px) {
   header button { padding-inline: .52rem; }
-  #sidebar { width: min(390px, 96vw); }
   .trackTitle { flex-basis: 100%; max-width: none; order: 10; }
-  .queuePopover { position: fixed; top: auto; right: .5rem; bottom: 2.4rem; left: .5rem; width: auto; }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  html, body, button, summary, canvas { touch-action: manipulation; }
+  .queueDropZone { display: none; }
 }

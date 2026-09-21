@@ -34,6 +34,7 @@ let mediaQueue = [];
 let currentQueueId = null;
 let queueId = 0;
 let draggedQueueId = null;
+let repeatQueue = false;
 let normalizationGain = 1;
 let editRevision = 0;
 let applyInFlight = false;
@@ -44,6 +45,7 @@ let favoritesOnly = false;
 let favoritePresets = loadFavoritePresets();
 let shuffleTimer;
 let shuffleActive = false;
+let resizingSidebar = false;
 const supportedMediaExtension = /\.(mp3|m4a|aac|wav|flac|ogg|oga|opus|mp4|m4v|mov|webm)$/i;
 const queueItemHeight = 36;
 
@@ -59,7 +61,20 @@ function setSidebarExpanded(expanded) {
   document.body.classList.toggle("sidebar-collapsed", !expanded);
   const button = $("#sidebarToggle");
   button.setAttribute("aria-expanded", String(expanded));
-  button.textContent = expanded ? "× Panel" : "☰ Panel";
+  button.setAttribute("aria-label", expanded ? "Hide panel" : "Show panel");
+  button.title = expanded ? "Hide panel" : "Show panel";
+}
+
+function setSidebarWidth(width, remember=false) {
+  const maximum = Math.max(280, Math.min(720, innerWidth * .65));
+  const value = Math.round(Math.max(280, Math.min(maximum, Number(width) || 360)));
+  document.documentElement.style.setProperty("--sidebar-width", `${value}px`);
+  $("#sidebarResizeHandle").setAttribute("aria-valuemax", String(Math.round(maximum)));
+  $("#sidebarResizeHandle").setAttribute("aria-valuenow", String(value));
+  if (remember) {
+    try { localStorage.setItem("avs-sidebar-width-v1", String(value)); }
+    catch { /* The width simply resets next time when storage is unavailable. */ }
+  }
 }
 
 function showActiveSources() {
@@ -101,7 +116,7 @@ function renderMediaQueue() {
   $("#queueCount").textContent = String(mediaQueue.length);
   const currentIndex = queueIndexById(currentQueueId);
   $("#queuePrevious").disabled = currentIndex < 0;
-  $("#queueNext").disabled = currentIndex < 0 || currentIndex >= mediaQueue.length - 1;
+  $("#queueNext").disabled = currentIndex < 0 || (!repeatQueue && currentIndex >= mediaQueue.length - 1);
   $("#queueClear").disabled = mediaQueue.length === 0;
   const viewportHeight = Math.min(216, Math.max(44, mediaQueue.length * queueItemHeight));
   viewport.style.height = `${viewportHeight}px`;
@@ -162,6 +177,20 @@ function renderMediaQueue() {
     row.append(play, up, down, remove);
     canvas.append(row);
   }
+}
+
+function positionQueuePopover() {
+  const button = $("#queueToggle");
+  const popover = $("#queuePopover");
+  if (compactLayout.matches || popover.hidden) {
+    popover.style.removeProperty("top");
+    popover.style.removeProperty("left");
+    return;
+  }
+  const anchor = button.getBoundingClientRect();
+  const width = Math.min(360, innerWidth - 16);
+  popover.style.top = `${anchor.bottom + 7}px`;
+  popover.style.left = `${Math.max(8, Math.min(anchor.left, innerWidth - width - 8))}px`;
 }
 
 async function playQueueEntry(id) {
@@ -739,8 +768,9 @@ async function useAudioFile(file) {
   if (objectUrl) URL.revokeObjectURL(objectUrl);
   objectUrl = URL.createObjectURL(file);
   player.src = objectUrl;
+  const playback = player.play();
   await connectPlayer();
-  player.play().catch(() => {});
+  playback.catch(() => setStatus("Added to queue — tap the track to play it."));
 }
 
 function stopLiveSource() {
@@ -853,7 +883,26 @@ $("#audioPick").onclick = () => {
 };
 $("#audioInput").onchange = event => addMediaFiles(event.target.files);
 $("#queueList").onscroll = renderMediaQueue;
-$("#queuePanel").ontoggle = () => { if ($("#queuePanel").open) renderMediaQueue(); };
+function setQueueOpen(open) {
+  const popover = $("#queuePopover");
+  popover.hidden = !open;
+  $("#queueToggle").setAttribute("aria-expanded", String(open));
+  if (open) {
+    renderMediaQueue();
+    requestAnimationFrame(positionQueuePopover);
+  }
+}
+$("#queueToggle").onclick = event => {
+  event.stopPropagation();
+  setQueueOpen($("#queuePopover").hidden);
+};
+$("#queuePopover").onclick = event => event.stopPropagation();
+document.addEventListener("click", () => setQueueOpen(false));
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape") setQueueOpen(false);
+});
+document.querySelector("header").addEventListener("scroll", positionQueuePopover);
+addEventListener("resize", positionQueuePopover);
 $("#queuePrevious").onclick = () => {
   const index = queueIndexById(currentQueueId);
   if (player.currentTime > 3) {
@@ -861,11 +910,20 @@ $("#queuePrevious").onclick = () => {
     player.play().catch(() => {});
   } else if (index > 0) {
     playQueueEntry(mediaQueue[index - 1].id);
+  } else if (repeatQueue && mediaQueue.length) {
+    playQueueEntry(mediaQueue[mediaQueue.length - 1].id);
   }
 };
 $("#queueNext").onclick = () => {
   const index = queueIndexById(currentQueueId);
   if (index >= 0 && index < mediaQueue.length - 1) playQueueEntry(mediaQueue[index + 1].id);
+  else if (repeatQueue && mediaQueue.length) playQueueEntry(mediaQueue[0].id);
+};
+$("#queueRepeat").onclick = () => {
+  repeatQueue = !repeatQueue;
+  $("#queueRepeat").setAttribute("aria-pressed", String(repeatQueue));
+  $("#queueRepeat").title = repeatQueue ? "Stop repeating queue" : "Repeat queue";
+  renderMediaQueue();
 };
 $("#queueClear").onclick = clearMediaQueue;
 $("#presetPick").onclick = () => $("#presetInput").click();
@@ -875,6 +933,33 @@ $("#micAudio").onclick = useMicrophone;
 $("#sidebarToggle").onclick = () => {
   setSidebarExpanded($("#sidebarToggle").getAttribute("aria-expanded") !== "true");
 };
+const sidebarResizeHandle = $("#sidebarResizeHandle");
+sidebarResizeHandle.addEventListener("pointerdown", event => {
+  if (compactLayout.matches) return;
+  resizingSidebar = true;
+  sidebarResizeHandle.setPointerCapture(event.pointerId);
+  document.body.classList.add("sidebar-resizing");
+});
+sidebarResizeHandle.addEventListener("pointermove", event => {
+  if (resizingSidebar) setSidebarWidth(innerWidth - event.clientX);
+});
+sidebarResizeHandle.addEventListener("pointerup", event => {
+  if (!resizingSidebar) return;
+  resizingSidebar = false;
+  sidebarResizeHandle.releasePointerCapture(event.pointerId);
+  document.body.classList.remove("sidebar-resizing");
+  setSidebarWidth(innerWidth - event.clientX, true);
+});
+sidebarResizeHandle.addEventListener("lostpointercapture", () => {
+  resizingSidebar = false;
+  document.body.classList.remove("sidebar-resizing");
+});
+sidebarResizeHandle.addEventListener("keydown", event => {
+  if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+  event.preventDefault();
+  const current = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--sidebar-width"), 10) || 360;
+  setSidebarWidth(current + (event.key === "ArrowLeft" ? 20 : -20), true);
+});
 $("#resolution").onchange = () => {
   if (ready) worker.postMessage({type:"resize", ...renderSize()});
 };
@@ -899,6 +984,18 @@ function openAbout(section) {
 $("#aboutOpen").onclick = () => openAbout();
 $("#copyrightOpen").onclick = () => openAbout($("#presetRights"));
 $("#presetCopyright").onclick = () => openAbout($("#presetRights"));
+const aboutDialog = $("#about");
+aboutDialog.addEventListener("cancel", event => {
+  event.preventDefault();
+  aboutDialog.close();
+});
+aboutDialog.addEventListener("click", event => {
+  if (event.target !== aboutDialog) return;
+  const box = aboutDialog.getBoundingClientRect();
+  const outside = event.clientX < box.left || event.clientX > box.right
+    || event.clientY < box.top || event.clientY > box.bottom;
+  if (outside) aboutDialog.close();
+});
 $("#editorNew").onclick = createNewPreset;
 $("#editorApply").onclick = requestApply;
 $("#editorAutoApply").onchange = () => {
@@ -926,11 +1023,6 @@ document.querySelectorAll("[data-page]").forEach(button => button.onclick = () =
   if (button.dataset.page === "structure") stopShuffle();
   updateShuffleAvailability();
 });
-stage.addEventListener("click", () => {
-  if (compactLayout.matches && $("#sidebarToggle").getAttribute("aria-expanded") === "true") {
-    setSidebarExpanded(false);
-  }
-});
 player.addEventListener("play", () => {
   sourceRequest += 1;
   connectPlayer();
@@ -941,9 +1033,31 @@ player.addEventListener("ended", () => {
   showActiveSources();
   const index = queueIndexById(currentQueueId);
   if (index >= 0 && index < mediaQueue.length - 1) playQueueEntry(mediaQueue[index + 1].id);
+  else if (repeatQueue && mediaQueue.length) playQueueEntry(mediaQueue[0].id);
 });
 
 let dragDepth = 0;
+const queueDropZone = $("#queueDropZone");
+queueDropZone.addEventListener("dragenter", event => {
+  event.preventDefault();
+  event.stopPropagation();
+  queueDropZone.classList.add("dragover");
+});
+queueDropZone.addEventListener("dragover", event => {
+  event.preventDefault();
+  event.stopPropagation();
+  event.dataTransfer.dropEffect = "copy";
+});
+queueDropZone.addEventListener("dragleave", event => {
+  event.stopPropagation();
+  queueDropZone.classList.remove("dragover");
+});
+queueDropZone.addEventListener("drop", event => {
+  event.preventDefault();
+  event.stopPropagation();
+  queueDropZone.classList.remove("dragover");
+  addMediaFiles([...event.dataTransfer.files]);
+});
 addEventListener("dragenter", event => {
   if (draggedQueueId != null) return;
   event.preventDefault(); dragDepth += 1; document.body.classList.add("drag");
@@ -965,6 +1079,8 @@ new ResizeObserver(() => {
   if (ready) worker.postMessage({type:"resize", ...renderSize()});
 }).observe(stage);
 
+try { setSidebarWidth(localStorage.getItem("avs-sidebar-width-v1") || 360); }
+catch { setSidebarWidth(360); }
 setSidebarExpanded(!compactLayout.matches);
 compactLayout.addEventListener?.("change", event => setSidebarExpanded(!event.matches));
 renderMediaQueue();
