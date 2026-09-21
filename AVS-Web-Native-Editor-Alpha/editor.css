@@ -252,3 +252,94 @@ footer button,
     gap: .2rem;
   }
 }
+
+body.sidebar-collapsed #sidebar { display: none; }
+
+.queuePanel { position: relative; }
+.queuePanel > summary {
+  list-style: none;
+  cursor: pointer;
+  padding: .48rem .68rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #191e27;
+  color: var(--text);
+  white-space: nowrap;
+}
+.queuePanel > summary::-webkit-details-marker { display: none; }
+.queuePanel[open] > summary { border-color: var(--orange); }
+.queuePanel summary span { color: var(--muted); font-size: .7rem; }
+.queuePopover {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + .45rem);
+  left: 0;
+  width: min(360px, calc(100vw - 1rem));
+  padding: .45rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #10151df7;
+  box-shadow: 0 14px 45px #000c;
+}
+.queueToolbar { display: flex; gap: .35rem; margin-bottom: .4rem; }
+.queueToolbar button:last-child { margin-left: auto; }
+.queueList {
+  position: relative;
+  height: 44px;
+  max-height: 216px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid #2e3744;
+  border-radius: 5px;
+  background: #090c11;
+}
+.queueCanvas { position: relative; width: 100%; }
+.queueItem {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 36px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) repeat(3, 28px);
+  align-items: center;
+  gap: .2rem;
+  padding: .15rem .25rem;
+  border-bottom: 1px solid #202733;
+}
+.queueItem.dragging { opacity: .45; }
+.queueItem.active { background: #241a14; }
+.queuePlay { min-width: 0; overflow: hidden; text-align: left; text-overflow: ellipsis; white-space: nowrap; }
+.queueItem button { height: 28px; padding: 0 .3rem; font-size: .7rem; }
+.queueEmpty { padding: .7rem; color: var(--muted); font-size: .72rem; text-align: center; }
+
+#sidebarToggle[aria-expanded="false"] {
+  border-color: var(--orange);
+  color: var(--orange);
+}
+
+@media (max-width: 760px) {
+  #sidebar {
+    z-index: 6;
+    width: min(360px, 92vw);
+    max-width: none;
+    box-shadow: -14px 0 40px #000b;
+  }
+
+  body:not(.sidebar-collapsed) #stage::after {
+    content: "";
+    position: absolute;
+    z-index: 2;
+    inset: 0;
+    background: #0008;
+    pointer-events: none;
+  }
+
+  .presetQuickActions button { flex: 1 1 auto; }
+}
+
+@media (max-width: 520px) {
+  header button { padding-inline: .52rem; }
+  #sidebar { width: min(390px, 96vw); }
+  .trackTitle { flex-basis: 100%; max-width: none; order: 10; }
+  .queuePopover { position: fixed; top: auto; right: .5rem; bottom: 2.4rem; left: .5rem; width: auto; }
+}

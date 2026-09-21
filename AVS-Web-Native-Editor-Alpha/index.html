@@ -5,14 +5,25 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>AVS//Web — Visualizer</title>
   <link rel="stylesheet" href="styles.css?v=7">
-  <link rel="stylesheet" href="editor.css?v=11">
+  <link rel="stylesheet" href="editor.css?v=13">
   <link rel="stylesheet" href="info.css?v=5">
 </head>
 <body>
   <header>
     <div class="brand"><strong>AVS<span>//</span>Web</strong><small>WebASM Alpha</small></div>
     <button id="audioPick">♫ Media file</button>
-    <input id="audioInput" type="file" accept="audio/*,video/*" hidden>
+    <input id="audioInput" type="file" accept=".mp3,.m4a,.aac,.wav,.flac,.ogg,.oga,.opus,.mp4,.m4v,.mov,.webm,audio/mpeg,audio/mp4,audio/aac,audio/wav,audio/x-wav,audio/flac,audio/ogg,video/mp4,video/quicktime,video/webm" multiple hidden>
+    <details id="queuePanel" class="queuePanel">
+      <summary>Queue <span id="queueCount">0</span></summary>
+      <div class="queuePopover">
+        <div class="queueToolbar">
+          <button id="queuePrevious" type="button" aria-label="Previous media">←</button>
+          <button id="queueNext" type="button" aria-label="Next media">→</button>
+          <button id="queueClear" type="button">Clear</button>
+        </div>
+        <div id="queueList" class="queueList" role="listbox" aria-label="Media queue"><div id="queueCanvas" class="queueCanvas"></div></div>
+      </div>
+    </details>
     <button id="shareAudio" aria-pressed="false">▣ Share system audio</button>
     <button id="micAudio" aria-pressed="false">● Microphone</button>
     <audio id="player" controls preload="metadata"></audio>
@@ -26,6 +37,7 @@
       </select>
     </label>
     <div class="spacer"></div>
+    <button id="sidebarToggle" aria-controls="sidebar" aria-expanded="true">× Panel</button>
     <button id="fullscreen" aria-label="Fullscreen">⛶</button>
     <button id="aboutOpen">About &amp; licenses</button>
   </header>
@@ -35,7 +47,7 @@
       <canvas id="screen"></canvas>
       <div id="dropHint">Drop an audio/video file or a legacy <b>.avs</b> preset</div>
     </section>
-    <aside>
+    <aside id="sidebar">
       <div class="sideTabs">
         <button data-page="presets" disabled>Presets</button>
         <button data-page="structure">Editor</button>
@@ -50,6 +62,7 @@
         <p class="presetNotice">Some presets may not work. Presets known to require unsupported APE effects have been omitted. I did not create any of the bundled presets.</p>
         <div class="presetQuickActions">
           <button id="surprisePreset" disabled>⤨ Surprise me</button>
+          <button id="shufflePreset" aria-pressed="false" disabled title="Automatically choose another visible preset every 15 seconds">↻ Shuffle</button>
           <button id="favoriteFilter" aria-pressed="false">★ Favorites</button>
           <button id="presetCopyright" class="presetLegal">Preset copyright / takedown</button>
         </div>
@@ -104,6 +117,11 @@
       nlohmann/json (Niels Lohmann), stb_image (Sean Barrett), and toolchain runtime code.
       Their complete notices are included with this bundle.</p>
     <p><a href="THIRD-PARTY-NOTICES.txt" target="_blank">Third-party notices</a></p>
+    <h2>AI-assisted development</h2>
+    <p>The web UI and the Emscripten/WebAssembly compilation work for this port were
+      created with assistance from generative AI. The original AVS source code and
+      bundled legacy presets were created by their respective human authors and retain
+      their existing copyright, attribution and license status.</p>
     <section id="presetRights" tabindex="-1">
       <h2>Presets and AVS components: copyright and takedown</h2>
       <p>I collected the bundled presets from publicly available legacy sources.</p>
@@ -132,6 +150,6 @@
     </div>
   </section>
 
-  <script type="module" src="app.js?v=17"></script>
+  <script type="module" src="app.js?v=20"></script>
 </body>
 </html>

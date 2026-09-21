@@ -5,6 +5,7 @@ const stage = $("#stage");
 const list = $("#presetList");
 const status = $("#status");
 const player = $("#player");
+const compactLayout = matchMedia("(max-width: 760px)");
 let OFFICIAL_PRESETS = [];
 let worker;
 let ready = false;
@@ -29,6 +30,10 @@ let fileSource;
 let liveSource;
 let sourceRequest = 0;
 let objectUrl;
+let mediaQueue = [];
+let currentQueueId = null;
+let queueId = 0;
+let draggedQueueId = null;
 let normalizationGain = 1;
 let editRevision = 0;
 let applyInFlight = false;
@@ -37,6 +42,10 @@ let statusTimer;
 let sourceStateTimer;
 let favoritesOnly = false;
 let favoritePresets = loadFavoritePresets();
+let shuffleTimer;
+let shuffleActive = false;
+const supportedMediaExtension = /\.(mp3|m4a|aac|wav|flac|ogg|oga|opus|mp4|m4v|mov|webm)$/i;
+const queueItemHeight = 36;
 
 function setStatus(text, mode="") {
   clearTimeout(statusTimer);
@@ -44,6 +53,13 @@ function setStatus(text, mode="") {
   status.lastElementChild.textContent = text;
   status.hidden = false;
   statusTimer = setTimeout(() => { status.hidden = true; }, mode === "error" ? 8000 : 3500);
+}
+
+function setSidebarExpanded(expanded) {
+  document.body.classList.toggle("sidebar-collapsed", !expanded);
+  const button = $("#sidebarToggle");
+  button.setAttribute("aria-expanded", String(expanded));
+  button.textContent = expanded ? "× Panel" : "☰ Panel";
 }
 
 function showActiveSources() {
@@ -62,6 +78,138 @@ function showActiveSources() {
     widget.hidden = true;
     widget.parentElement.classList.remove("sources-visible");
   }, 4500);
+}
+
+function isSupportedMediaFile(file) {
+  return Boolean(file && (/^(audio|video)\//.test(file.type) || supportedMediaExtension.test(file.name)));
+}
+
+function queueIndexById(id) {
+  return mediaQueue.findIndex(entry => entry.id === id);
+}
+
+function moveQueueEntry(from, to) {
+  if (from < 0 || to < 0 || from === to || from >= mediaQueue.length || to >= mediaQueue.length) return;
+  const [entry] = mediaQueue.splice(from, 1);
+  mediaQueue.splice(to, 0, entry);
+  renderMediaQueue();
+}
+
+function renderMediaQueue() {
+  const viewport = $("#queueList");
+  const canvas = $("#queueCanvas");
+  $("#queueCount").textContent = String(mediaQueue.length);
+  const currentIndex = queueIndexById(currentQueueId);
+  $("#queuePrevious").disabled = currentIndex < 0;
+  $("#queueNext").disabled = currentIndex < 0 || currentIndex >= mediaQueue.length - 1;
+  $("#queueClear").disabled = mediaQueue.length === 0;
+  const viewportHeight = Math.min(216, Math.max(44, mediaQueue.length * queueItemHeight));
+  viewport.style.height = `${viewportHeight}px`;
+  canvas.style.height = `${Math.max(44, mediaQueue.length * queueItemHeight)}px`;
+  canvas.replaceChildren();
+  if (!mediaQueue.length) {
+    const empty = document.createElement("div");
+    empty.className = "queueEmpty";
+    empty.textContent = "Choose media files to build a temporary playlist.";
+    canvas.append(empty);
+    return;
+  }
+  const start = Math.max(0, Math.floor(viewport.scrollTop / queueItemHeight) - 2);
+  const end = Math.min(mediaQueue.length, start + Math.ceil(viewportHeight / queueItemHeight) + 4);
+  for (let index = start; index < end; index += 1) {
+    const entry = mediaQueue[index];
+    const row = document.createElement("div");
+    row.className = `queueItem${entry.id === currentQueueId ? " active" : ""}`;
+    row.style.top = `${index * queueItemHeight}px`;
+    row.draggable = true;
+    row.setAttribute("role", "option");
+    row.setAttribute("aria-selected", String(entry.id === currentQueueId));
+    const play = document.createElement("button");
+    play.className = "queuePlay";
+    play.textContent = entry.file.name;
+    play.title = entry.file.name;
+    play.onclick = () => playQueueEntry(entry.id);
+    const up = document.createElement("button");
+    up.textContent = "↑";
+    up.title = "Move up";
+    up.disabled = index === 0;
+    up.onclick = () => moveQueueEntry(index, index - 1);
+    const down = document.createElement("button");
+    down.textContent = "↓";
+    down.title = "Move down";
+    down.disabled = index === mediaQueue.length - 1;
+    down.onclick = () => moveQueueEntry(index, index + 1);
+    const remove = document.createElement("button");
+    remove.textContent = "×";
+    remove.title = "Remove from queue";
+    remove.onclick = () => removeQueueEntry(entry.id);
+    row.addEventListener("dragstart", event => {
+      draggedQueueId = entry.id;
+      row.classList.add("dragging");
+      event.dataTransfer.effectAllowed = "move";
+    });
+    row.addEventListener("dragend", () => {
+      draggedQueueId = null;
+      row.classList.remove("dragging");
+      document.body.classList.remove("drag");
+    });
+    row.addEventListener("dragover", event => { event.preventDefault(); event.dataTransfer.dropEffect = "move"; });
+    row.addEventListener("drop", event => {
+      event.preventDefault();
+      event.stopPropagation();
+      moveQueueEntry(queueIndexById(draggedQueueId), queueIndexById(entry.id));
+    });
+    row.append(play, up, down, remove);
+    canvas.append(row);
+  }
+}
+
+async function playQueueEntry(id) {
+  const entry = mediaQueue.find(item => item.id === id);
+  if (!entry) return;
+  currentQueueId = id;
+  renderMediaQueue();
+  await useAudioFile(entry.file);
+}
+
+function addMediaFiles(files) {
+  const supported = [...files].filter(isSupportedMediaFile);
+  if (!supported.length) {
+    setStatus("Please choose a supported audio or video file.", "error");
+    return;
+  }
+  const firstNewId = ++queueId;
+  mediaQueue.push({id:firstNewId, file:supported[0]});
+  for (const file of supported.slice(1)) mediaQueue.push({id:++queueId, file});
+  renderMediaQueue();
+  if (currentQueueId == null) playQueueEntry(firstNewId);
+}
+
+function clearMediaQueue() {
+  mediaQueue = [];
+  currentQueueId = null;
+  player.pause();
+  player.removeAttribute("src");
+  player.load();
+  if (objectUrl) URL.revokeObjectURL(objectUrl);
+  objectUrl = null;
+  $("#trackTitle").hidden = true;
+  renderMediaQueue();
+  showActiveSources();
+}
+
+function removeQueueEntry(id) {
+  const index = queueIndexById(id);
+  if (index < 0) return;
+  const wasCurrent = id === currentQueueId;
+  mediaQueue.splice(index, 1);
+  if (wasCurrent) {
+    const replacement = mediaQueue[index] || mediaQueue[index - 1];
+    if (replacement) playQueueEntry(replacement.id);
+    else clearMediaQueue();
+  } else {
+    renderMediaQueue();
+  }
 }
 
 function renderSize() {
@@ -180,10 +328,12 @@ function choosePreset(index) {
   document.querySelectorAll(".preset").forEach(button => button.classList.toggle("active", button.dataset.index === String(index)));
   $("#surprisePreset").disabled = ![...list.querySelectorAll(".preset[data-index]")]
     .some(button => button.dataset.index !== String(index));
+  updateShuffleAvailability();
   const item = OFFICIAL_PRESETS[index];
   if (item && ready) {
     sendPreset(decode(item.data), item.name);
   }
+  if (compactLayout.matches) setSidebarExpanded(false);
 }
 
 function populate(filter="") {
@@ -228,6 +378,7 @@ function populate(filter="") {
   });
   $("#presetCount").textContent = `${visible} of ${OFFICIAL_PRESETS.length}`;
   $("#surprisePreset").disabled = alternatives < 1;
+  updateShuffleAvailability();
 }
 
 function loadFavoritePresets() {
@@ -262,6 +413,45 @@ function surprisePreset() {
   const next = choices[Math.floor(Math.random() * choices.length)];
   choosePreset(next);
   list.querySelector(`[data-index="${next}"]`)?.scrollIntoView({block:"nearest"});
+}
+
+function stopShuffle() {
+  clearInterval(shuffleTimer);
+  shuffleTimer = undefined;
+  shuffleActive = false;
+  const button = $("#shufflePreset");
+  button.setAttribute("aria-pressed", "false");
+  button.textContent = "↻ Shuffle";
+}
+
+function updateShuffleAvailability() {
+  const button = $("#shufflePreset");
+  if (!button) return;
+  const editing = $("#structurePage")?.classList.contains("active");
+  const unavailable = editing || $("#surprisePreset").disabled;
+  if (unavailable && shuffleActive) stopShuffle();
+  button.disabled = unavailable;
+}
+
+function toggleShuffle() {
+  if (shuffleActive) {
+    stopShuffle();
+    updateShuffleAvailability();
+    return;
+  }
+  if ($("#shufflePreset").disabled) return;
+  shuffleActive = true;
+  $("#shufflePreset").setAttribute("aria-pressed", "true");
+  $("#shufflePreset").textContent = "■ Stop shuffle";
+  surprisePreset();
+  shuffleTimer = setInterval(() => {
+    if ($("#structurePage").classList.contains("active")) {
+      stopShuffle();
+      updateShuffleAvailability();
+    } else {
+      surprisePreset();
+    }
+  }, 15000);
 }
 
 async function ensureAudio() {
@@ -311,6 +501,7 @@ function indexSchema(json) {
 }
 
 function markEditorDirty() {
+  if (shuffleActive) stopShuffle();
   editorDirty = true;
   editRevision += 1;
   refreshApplyButton();
@@ -536,7 +727,10 @@ async function connectPlayer() {
 }
 
 async function useAudioFile(file) {
-  if (!file || !/^(audio|video)\//.test(file.type)) return;
+  if (!isSupportedMediaFile(file)) {
+    setStatus("Please choose a supported audio or video file.", "error");
+    return;
+  }
   sourceRequest += 1;
   const trackTitle = $("#trackTitle");
   trackTitle.textContent = file.name;
@@ -657,16 +851,36 @@ $("#audioPick").onclick = () => {
   $("#audioInput").value = "";
   $("#audioInput").click();
 };
-$("#audioInput").onchange = event => useAudioFile(event.target.files[0]);
+$("#audioInput").onchange = event => addMediaFiles(event.target.files);
+$("#queueList").onscroll = renderMediaQueue;
+$("#queuePanel").ontoggle = () => { if ($("#queuePanel").open) renderMediaQueue(); };
+$("#queuePrevious").onclick = () => {
+  const index = queueIndexById(currentQueueId);
+  if (player.currentTime > 3) {
+    player.currentTime = 0;
+    player.play().catch(() => {});
+  } else if (index > 0) {
+    playQueueEntry(mediaQueue[index - 1].id);
+  }
+};
+$("#queueNext").onclick = () => {
+  const index = queueIndexById(currentQueueId);
+  if (index >= 0 && index < mediaQueue.length - 1) playQueueEntry(mediaQueue[index + 1].id);
+};
+$("#queueClear").onclick = clearMediaQueue;
 $("#presetPick").onclick = () => $("#presetInput").click();
 $("#presetInput").onchange = event => openPreset(event.target.files[0]);
 $("#shareAudio").onclick = shareSystemAudio;
 $("#micAudio").onclick = useMicrophone;
+$("#sidebarToggle").onclick = () => {
+  setSidebarExpanded($("#sidebarToggle").getAttribute("aria-expanded") !== "true");
+};
 $("#resolution").onchange = () => {
   if (ready) worker.postMessage({type:"resize", ...renderSize()});
 };
 $("#search").oninput = event => populate(event.target.value);
 $("#surprisePreset").onclick = surprisePreset;
+$("#shufflePreset").onclick = toggleShuffle;
 $("#favoriteFilter").onclick = () => {
   favoritesOnly = !favoritesOnly;
   $("#favoriteFilter").setAttribute("aria-pressed", String(favoritesOnly));
@@ -709,6 +923,13 @@ document.querySelectorAll("[data-page]").forEach(button => button.onclick = () =
   button.disabled = true;
   $("#presetsPage").classList.toggle("active", button.dataset.page === "presets");
   $("#structurePage").classList.toggle("active", button.dataset.page === "structure");
+  if (button.dataset.page === "structure") stopShuffle();
+  updateShuffleAvailability();
+});
+stage.addEventListener("click", () => {
+  if (compactLayout.matches && $("#sidebarToggle").getAttribute("aria-expanded") === "true") {
+    setSidebarExpanded(false);
+  }
 });
 player.addEventListener("play", () => {
   sourceRequest += 1;
@@ -716,21 +937,37 @@ player.addEventListener("play", () => {
   showActiveSources();
 });
 player.addEventListener("pause", showActiveSources);
-player.addEventListener("ended", showActiveSources);
+player.addEventListener("ended", () => {
+  showActiveSources();
+  const index = queueIndexById(currentQueueId);
+  if (index >= 0 && index < mediaQueue.length - 1) playQueueEntry(mediaQueue[index + 1].id);
+});
 
 let dragDepth = 0;
-addEventListener("dragenter", event => { event.preventDefault(); dragDepth += 1; document.body.classList.add("drag"); });
-addEventListener("dragleave", () => { if (--dragDepth <= 0) document.body.classList.remove("drag"); });
+addEventListener("dragenter", event => {
+  if (draggedQueueId != null) return;
+  event.preventDefault(); dragDepth += 1; document.body.classList.add("drag");
+});
+addEventListener("dragleave", () => {
+  if (draggedQueueId != null) return;
+  if (--dragDepth <= 0) document.body.classList.remove("drag");
+});
 addEventListener("dragover", event => event.preventDefault());
 addEventListener("drop", event => {
+  if (draggedQueueId != null) return;
   event.preventDefault(); dragDepth = 0; document.body.classList.remove("drag");
-  const file = event.dataTransfer.files[0];
-  if (/\.avs$/i.test(file?.name || "")) openPreset(file); else useAudioFile(file);
+  const files = [...event.dataTransfer.files];
+  if (files.length === 1 && /\.avs$/i.test(files[0]?.name || "")) openPreset(files[0]);
+  else addMediaFiles(files.filter(file => !/\.avs$/i.test(file.name)));
 });
 
 new ResizeObserver(() => {
   if (ready) worker.postMessage({type:"resize", ...renderSize()});
 }).observe(stage);
+
+setSidebarExpanded(!compactLayout.matches);
+compactLayout.addEventListener?.("change", event => setSidebarExpanded(!event.matches));
+renderMediaQueue();
 
 let booted = false;
 
