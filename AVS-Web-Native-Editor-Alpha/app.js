@@ -34,6 +34,7 @@ let mediaQueue = [];
 let currentQueueId = null;
 let queueId = 0;
 let draggedQueueId = null;
+let touchQueueDrag = null;
 let repeatQueue = false;
 let normalizationGain = 1;
 let editRevision = 0;
@@ -59,10 +60,12 @@ function setStatus(text, mode="") {
 
 function setSidebarExpanded(expanded) {
   document.body.classList.toggle("sidebar-collapsed", !expanded);
-  const button = $("#sidebarToggle");
-  button.setAttribute("aria-expanded", String(expanded));
-  button.setAttribute("aria-label", expanded ? "Hide panel" : "Show panel");
-  button.title = expanded ? "Hide panel" : "Show panel";
+  for (const button of [$("#sidebarToggle"), $("#sidebarMobileToggle")]) {
+    button.setAttribute("aria-expanded", String(expanded));
+    button.setAttribute("aria-label", expanded ? "Hide presets and editor" : "Show presets and editor");
+    button.title = expanded ? "Hide presets and editor" : "Show presets and editor";
+  }
+  $("#sidebarMobileToggle").textContent = `${expanded ? "▾" : "▴"} Presets / Editor`;
 }
 
 function setSidebarWidth(width, remember=false) {
@@ -110,6 +113,45 @@ function moveQueueEntry(from, to) {
   renderMediaQueue();
 }
 
+function moveQueueWithFocus(id, to, control) {
+  moveQueueEntry(queueIndexById(id), to);
+  const viewport = $("#queueList");
+  if (to >= 0 && to < mediaQueue.length) {
+    if (to * queueItemHeight < viewport.scrollTop) viewport.scrollTop = to * queueItemHeight;
+    else if ((to + 1) * queueItemHeight > viewport.scrollTop + viewport.clientHeight)
+      viewport.scrollTop = (to + 1) * queueItemHeight - viewport.clientHeight;
+    renderMediaQueue();
+  }
+  const row = [...$("#queueCanvas").children].find(item => item.dataset.id === String(id));
+  let button = row?.querySelector(`.${control}`);
+  if (button?.disabled) button = row.querySelector(control === "queueUp" ? ".queueDown" : ".queueUp");
+  button?.focus({preventScroll:true});
+}
+
+function stopTouchQueueDrag(event, cancel=false) {
+  if (!touchQueueDrag || event.pointerId !== touchQueueDrag.pointerId) return;
+  const {id, target} = touchQueueDrag;
+  touchQueueDrag = null;
+  const viewport = $("#queueList");
+  if (viewport.hasPointerCapture(event.pointerId)) viewport.releasePointerCapture(event.pointerId);
+  viewport.classList.remove("reordering");
+  $("#queueCanvas").querySelector(".dropTarget")?.classList.remove("dropTarget");
+  if (!cancel) moveQueueWithFocus(id, target, "queueHandle");
+}
+
+function updateTouchQueueDrag(event) {
+  if (!touchQueueDrag || event.pointerId !== touchQueueDrag.pointerId) return;
+  const viewport = $("#queueList");
+  const bounds = viewport.getBoundingClientRect();
+  if (event.clientY < bounds.top + 25) viewport.scrollTop -= 12;
+  if (event.clientY > bounds.bottom - 25) viewport.scrollTop += 12;
+  const position = viewport.scrollTop + event.clientY - bounds.top;
+  touchQueueDrag.target = Math.max(0, Math.min(mediaQueue.length - 1, Math.floor(position / queueItemHeight)));
+  viewport.querySelector(".dropTarget")?.classList.remove("dropTarget");
+  const targetId = mediaQueue[touchQueueDrag.target]?.id;
+  [...$("#queueCanvas").children].find(item => item.dataset.id === String(targetId))?.classList.add("dropTarget");
+}
+
 function renderMediaQueue() {
   const viewport = $("#queueList");
   const canvas = $("#queueCanvas");
@@ -135,25 +177,49 @@ function renderMediaQueue() {
     const entry = mediaQueue[index];
     const row = document.createElement("div");
     row.className = `queueItem${entry.id === currentQueueId ? " active" : ""}`;
+    row.dataset.id = entry.id;
+    if (touchQueueDrag?.target === index) row.classList.add("dropTarget");
     row.style.top = `${index * queueItemHeight}px`;
-    row.draggable = true;
+    row.draggable = !matchMedia("(pointer: coarse)").matches;
     row.setAttribute("role", "option");
     row.setAttribute("aria-selected", String(entry.id === currentQueueId));
     const play = document.createElement("button");
     play.className = "queuePlay";
     play.textContent = entry.file.name;
     play.title = entry.file.name;
+    play.setAttribute("aria-label", `${entry.id === currentQueueId ? "Now playing: " : "Play: "}${entry.file.name}`);
     play.onclick = () => playQueueEntry(entry.id);
+    const handle = document.createElement("button");
+    handle.type = "button";
+    handle.className = "queueHandle";
+    handle.textContent = "☰";
+    handle.title = `Drag to reorder ${entry.file.name}`;
+    handle.setAttribute("aria-label", `Reorder ${entry.file.name}; use arrow keys or drag`);
+    handle.addEventListener("keydown", event => {
+      if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
+      event.preventDefault();
+      moveQueueWithFocus(entry.id, queueIndexById(entry.id) + (event.key === "ArrowUp" ? -1 : 1), "queueHandle");
+    });
+    handle.addEventListener("pointerdown", event => {
+      if (event.pointerType === "mouse") return;
+      event.preventDefault();
+      touchQueueDrag = {id:entry.id, target:index, pointerId:event.pointerId};
+      const viewport = $("#queueList");
+      viewport.setPointerCapture(event.pointerId);
+      viewport.classList.add("reordering");
+    });
     const up = document.createElement("button");
+    up.className = "queueUp";
     up.textContent = "↑";
     up.title = "Move up";
     up.disabled = index === 0;
-    up.onclick = () => moveQueueEntry(index, index - 1);
+    up.onclick = () => moveQueueWithFocus(entry.id, queueIndexById(entry.id) - 1, "queueUp");
     const down = document.createElement("button");
+    down.className = "queueDown";
     down.textContent = "↓";
     down.title = "Move down";
     down.disabled = index === mediaQueue.length - 1;
-    down.onclick = () => moveQueueEntry(index, index + 1);
+    down.onclick = () => moveQueueWithFocus(entry.id, queueIndexById(entry.id) + 1, "queueDown");
     const remove = document.createElement("button");
     remove.textContent = "×";
     remove.title = "Remove from queue";
@@ -174,7 +240,7 @@ function renderMediaQueue() {
       event.stopPropagation();
       moveQueueEntry(queueIndexById(draggedQueueId), queueIndexById(entry.id));
     });
-    row.append(play, up, down, remove);
+    row.append(handle, play, up, down, remove);
     canvas.append(row);
   }
 }
@@ -273,11 +339,12 @@ function startWorker() {
     } else if (data.type === "presetApplied") {
       currentPresetBytes = new Uint8Array(data.bytes);
       lastPreset = {bytes:currentPresetBytes.slice(), name:currentPresetName};
+      const wasCreatingPreset = creatingPreset;
       if (creatingPreset) originalPresetBytes = currentPresetBytes.slice();
       creatingPreset = false;
       applyInFlight = false;
       if (data.revision == null || data.revision === editRevision) {
-        loadEditorJson(data.presetJson, false);
+        loadEditorJson(data.presetJson, false, !wasCreatingPreset);
         $("#editorState").textContent = selected >= 0
           ? "Built-in preset — edits are temporary; save a copy."
           : "Changes applied; ready to save.";
@@ -362,7 +429,6 @@ function choosePreset(index) {
   if (item && ready) {
     sendPreset(decode(item.data), item.name);
   }
-  if (compactLayout.matches) setSidebarExpanded(false);
 }
 
 function populate(filter="") {
@@ -647,7 +713,7 @@ function addComponentControl(components) {
     if (effectSchemas.get(select.value)?.children) component.components = [];
     components.push(component);
     markEditorDirty();
-    renderEditor();
+    renderEditor(true);
   };
   row.append(select, add);
   return row;
@@ -689,15 +755,23 @@ function componentEditor(component, parent, index, depth=0, open=false) {
     const remove = document.createElement("button");
     remove.type = "button";
     remove.textContent = "Remove component";
-    remove.onclick = () => { parent.splice(index, 1); markEditorDirty(); renderEditor(); };
+    remove.onclick = () => { parent.splice(index, 1); markEditorDirty(); renderEditor(true); };
     details.append(remove);
   }
   return details;
 }
 
-function renderEditor() {
+function renderEditor(preserveView=false) {
   const wrapper = $("#structure");
+  const previous = preserveView ? [...wrapper.querySelectorAll("details")].map(item => item.open) : [];
+  const scrollTop = preserveView ? wrapper.scrollTop : 0;
+  const fields = preserveView ? [...wrapper.querySelectorAll("input, select, textarea")] : [];
+  const focusIndex = fields.indexOf(document.activeElement);
+  const selectionStart = focusIndex >= 0 ? fields[focusIndex].selectionStart : null;
+  const selectionEnd = focusIndex >= 0 ? fields[focusIndex].selectionEnd : null;
   wrapper.replaceChildren();
+  $("#editorCollapse").disabled = !currentPreset;
+  $("#editorExpand").disabled = !currentPreset;
   if (!currentPreset) return;
   const rootConfig = currentPreset.config ||= {};
   const rootSchema = presetSchema?.properties?.config?.properties || {};
@@ -725,9 +799,16 @@ function renderEditor() {
     wrapper.append(componentEditor(component, components, index, 0, leadingComments.length === 0 && displayIndex === 0));
   });
   wrapper.append(addComponentControl(components));
+  if (preserveView) {
+    wrapper.querySelectorAll("details").forEach((item, index) => { if (index < previous.length) item.open = previous[index]; });
+    wrapper.scrollTop = scrollTop;
+    const focus = [...wrapper.querySelectorAll("input, select, textarea")][focusIndex];
+    focus?.focus({preventScroll:true});
+    if (focus?.setSelectionRange && selectionStart != null) focus.setSelectionRange(selectionStart, selectionEnd);
+  }
 }
 
-function loadEditorJson(json, dirty) {
+function loadEditorJson(json, dirty, preserveView=false) {
   try {
     currentPreset = JSON.parse(json);
     editorDirty = dirty;
@@ -739,7 +820,7 @@ function loadEditorJson(json, dirty) {
     $("#editorState").textContent = dirty ? "Unapplied changes" : selected >= 0
       ? "Built-in preset — edits are temporary; save a copy."
       : "Preset loaded";
-    renderEditor();
+    renderEditor(preserveView);
   } catch {
     currentPreset = null;
     $("#structure").textContent = "The preset structure could not be displayed.";
@@ -769,8 +850,12 @@ async function useAudioFile(file) {
   objectUrl = URL.createObjectURL(file);
   player.src = objectUrl;
   const playback = player.play();
-  await connectPlayer();
-  playback.catch(() => setStatus("Added to queue — tap the track to play it."));
+  try {
+    await connectPlayer();
+  } catch {
+    setStatus("Audio playback could not be connected. Tap Play to retry.", "error");
+  }
+  playback.catch(() => setStatus("Added to queue — tap Play to start it.", "error"));
 }
 
 function stopLiveSource() {
@@ -878,11 +963,15 @@ function animation(time) {
 }
 
 $("#audioPick").onclick = () => {
+  connectPlayer().catch(() => {});
   $("#audioInput").value = "";
   $("#audioInput").click();
 };
 $("#audioInput").onchange = event => addMediaFiles(event.target.files);
 $("#queueList").onscroll = renderMediaQueue;
+$("#queueList").addEventListener("pointermove", updateTouchQueueDrag);
+$("#queueList").addEventListener("pointerup", event => stopTouchQueueDrag(event));
+$("#queueList").addEventListener("pointercancel", event => stopTouchQueueDrag(event, true));
 function setQueueOpen(open) {
   const popover = $("#queuePopover");
   popover.hidden = !open;
@@ -901,8 +990,16 @@ document.addEventListener("click", () => setQueueOpen(false));
 document.addEventListener("keydown", event => {
   if (event.key === "Escape") setQueueOpen(false);
 });
-document.querySelector("header").addEventListener("scroll", positionQueuePopover);
-addEventListener("resize", positionQueuePopover);
+function updateHeaderScrollHint() {
+  const header = document.querySelector("header");
+  $("#headerScrollHint").hidden = !compactLayout.matches
+    || header.scrollLeft + header.clientWidth >= header.scrollWidth - 16;
+}
+document.querySelector("header").addEventListener("scroll", () => {
+  positionQueuePopover();
+  updateHeaderScrollHint();
+});
+addEventListener("resize", () => { positionQueuePopover(); updateHeaderScrollHint(); });
 $("#queuePrevious").onclick = () => {
   const index = queueIndexById(currentQueueId);
   if (player.currentTime > 3) {
@@ -932,6 +1029,9 @@ $("#shareAudio").onclick = shareSystemAudio;
 $("#micAudio").onclick = useMicrophone;
 $("#sidebarToggle").onclick = () => {
   setSidebarExpanded($("#sidebarToggle").getAttribute("aria-expanded") !== "true");
+};
+$("#sidebarMobileToggle").onclick = () => {
+  setSidebarExpanded($("#sidebarMobileToggle").getAttribute("aria-expanded") !== "true");
 };
 const sidebarResizeHandle = $("#sidebarResizeHandle");
 sidebarResizeHandle.addEventListener("pointerdown", event => {
@@ -963,6 +1063,8 @@ sidebarResizeHandle.addEventListener("keydown", event => {
 $("#resolution").onchange = () => {
   if (ready) worker.postMessage({type:"resize", ...renderSize()});
 };
+$("#editorCollapse").onclick = () => $("#structure").querySelectorAll("details").forEach(item => { item.open = false; });
+$("#editorExpand").onclick = () => $("#structure").querySelectorAll("details").forEach(item => { item.open = true; });
 $("#search").oninput = event => populate(event.target.value);
 $("#surprisePreset").onclick = surprisePreset;
 $("#shufflePreset").onclick = toggleShuffle;
@@ -1084,6 +1186,7 @@ catch { setSidebarWidth(360); }
 setSidebarExpanded(!compactLayout.matches);
 compactLayout.addEventListener?.("change", event => setSidebarExpanded(!event.matches));
 renderMediaQueue();
+requestAnimationFrame(updateHeaderScrollHint);
 
 let booted = false;
 

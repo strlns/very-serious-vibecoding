@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>AVS//Web — Visualizer</title>
   <link rel="stylesheet" href="styles.css?v=7">
-  <link rel="stylesheet" href="editor.css?v=17">
+  <link rel="stylesheet" href="editor.css?v=18">
   <link rel="stylesheet" href="info.css?v=5">
 </head>
 <body>
   <header>
-    <div class="brand"><strong>AVS<span>//</span>Web</strong><small>WebASM Alpha</small></div>
+    <a class="brand" href="https://github.com/strlns/very-serious-vibecoding/tree/main/AVS-Web-Native-Editor-Alpha" target="_blank" rel="noopener noreferrer" title="AVS//Web source on GitHub"><strong>AVS<span>//</span>Web</strong><small>WebASM Alpha</small></a>
     <button id="queueToggle" class="queueToggle" type="button" aria-expanded="false" aria-controls="queuePopover">♫ Media queue <span id="queueCount">0</span></button>
     <button id="shareAudio" aria-pressed="false">▣ Share system audio</button>
     <button id="micAudio" aria-pressed="false">● Microphone</button>
@@ -20,15 +20,16 @@
       <select id="resolution">
         <option value="auto">Auto</option>
         <option value="320x240">320 × 240</option>
-        <option value="640x480">640 × 480</option>
+        <option value="640x480" selected>640 × 480</option>
         <option value="800x600">800 × 600</option>
       </select>
     </label>
     <div class="spacer"></div>
-    <button id="sidebarToggle" aria-controls="sidebar" aria-expanded="true" aria-label="Hide panel" title="Hide panel"><span class="panelIcon" aria-hidden="true"></span><span class="panelLabel">Panel</span></button>
+    <button id="sidebarToggle" aria-controls="sidebar" aria-expanded="true" aria-label="Hide presets and editor" title="Hide presets and editor"><span class="panelIcon" aria-hidden="true"></span><span class="panelLabel">Presets / Editor</span></button>
     <button id="fullscreen" aria-label="Fullscreen">⛶</button>
     <button id="aboutOpen">About &amp; licenses</button>
   </header>
+  <span id="headerScrollHint" class="headerScrollHint" aria-hidden="true" hidden>More →</span>
 
   <div id="queuePopover" class="queuePopover" hidden>
     <div class="queueToolbar">
@@ -44,6 +45,7 @@
   </div>
 
   <main>
+    <button id="sidebarMobileToggle" type="button" aria-controls="sidebar" aria-expanded="true" aria-label="Hide presets and editor" title="Hide presets and editor">Presets / Editor</button>
     <section id="stage">
       <canvas id="screen"></canvas>
       <div id="dropHint">Drop an audio/video file or a legacy <b>.avs</b> preset</div>
@@ -77,6 +79,8 @@
           <label class="autoApplyControl"><input id="editorAutoApply" type="checkbox"> Auto-apply</label>
           <button id="editorRevert" disabled>Revert</button>
           <button id="editorSave" disabled>Save .avs</button>
+          <button id="editorCollapse" type="button" disabled>Collapse all</button>
+          <button id="editorExpand" type="button" disabled>Expand all</button>
         </div>
         <div id="editorState">Load a supported preset to inspect it.</div>
         <div id="structure" class="structure"></div>
@@ -152,6 +156,6 @@
     </div>
   </section>
 
-  <script type="module" src="app.js?v=25"></script>
+  <script type="module" src="app.js?v=26"></script>
 </body>
 </html>
