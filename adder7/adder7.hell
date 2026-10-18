@@ -1,0 +1,1673 @@
+/* Seven-digit decimal adder with complete byte validation.
+ * Derived arithmetic from Matthias Lutter's GPLv3 LMAO example_adder.
+ * See COPYING and README.md. */
+.CODE
+@1 INVALID_LOW_CODE: MovD Jmp
+
+@248 MOVED: MovD/Nop Jmp
+
+@180 CRAZY: Opr/Nop Jmp
+
+@345 ROT: Rot/Nop Jmp
+
+@201 HALT: Hlt
+
+@217 OUT: Out/Nop Jmp
+
+@235 IN: In/Nop Jmp
+
+N1_DIGIT0_HIGH: Nop/Nop/Nop/Nop/MovD Jmp
+
+N1_DIGIT0_LOW: Nop/MovD Jmp
+
+N1_DIGIT1_HIGH: Nop/Nop/Nop/Nop/MovD Jmp
+
+N1_DIGIT1_LOW: Nop/MovD Jmp
+
+N1_DIGIT2_HIGH: Nop/Nop/Nop/Nop/MovD Jmp
+
+N1_DIGIT2_LOW: Nop/MovD Jmp
+
+N1_DIGIT3_HIGH: Nop/Nop/Nop/Nop/MovD Jmp
+
+N1_DIGIT3_LOW: Nop/MovD Jmp
+
+N1_DIGIT4_HIGH: Nop/Nop/Nop/Nop/MovD Jmp
+
+N1_DIGIT4_LOW: Nop/MovD Jmp
+
+N1_DIGIT5_HIGH: Nop/Nop/Nop/Nop/MovD Jmp
+
+N1_DIGIT5_LOW: Nop/MovD Jmp
+
+N1_DIGIT6_HIGH: Nop/Nop/Nop/Nop/MovD Jmp
+
+N1_DIGIT6_LOW: Nop/MovD Jmp
+
+N2_DIGIT0_HIGH: Nop/Nop/Nop/Nop/MovD Jmp
+
+N2_DIGIT0_LOW: Nop/MovD Jmp
+
+N2_DIGIT1_HIGH: Nop/Nop/Nop/Nop/MovD Jmp
+
+N2_DIGIT1_LOW: Nop/MovD Jmp
+
+N2_DIGIT2_HIGH: Nop/Nop/Nop/Nop/MovD Jmp
+
+N2_DIGIT2_LOW: Nop/MovD Jmp
+
+N2_DIGIT3_HIGH: Nop/Nop/Nop/Nop/MovD Jmp
+
+N2_DIGIT3_LOW: Nop/MovD Jmp
+
+N2_DIGIT4_HIGH: Nop/Nop/Nop/Nop/MovD Jmp
+
+N2_DIGIT4_LOW: Nop/MovD Jmp
+
+N2_DIGIT5_HIGH: Nop/Nop/Nop/Nop/MovD Jmp
+
+N2_DIGIT5_LOW: Nop/MovD Jmp
+
+N2_DIGIT6_HIGH: Nop/Nop/Nop/Nop/MovD Jmp
+
+N2_DIGIT6_LOW: Nop/MovD Jmp
+
+DEREF: MovD/Nop
+ Nop/Nop Nop/Nop Nop/Nop/Nop/Nop
+DEREF_SECOND: MovD/Nop
+ Jmp
+
+TMP_DIGIT_HIGH: Nop/Nop/Nop/Nop/MovD Jmp
+
+TMP2_DIGIT_HIGH: Nop/Nop/Nop/Nop/MovD Jmp
+
+TMP_DIGIT_LOW: Nop/MovD Jmp
+
+LOOP2: Nop/MovD Jmp
+
+TRANSFORM_FIRST: Nop/MovD Jmp
+
+TRANSFORM_SECOND: Nop/MovD Jmp
+
+READING_SECOND: Nop/MovD Jmp
+
+HAVE_DIGIT: Nop/MovD Jmp
+
+PLUS_SEEN: Nop/MovD Jmp
+
+PRINT_MODE: Nop/MovD Jmp
+
+PRINTED: Nop/MovD Jmp
+
+CHECK_U_HIGH: MovD/Nop/Nop/Nop/Nop Jmp
+
+CHECK_T_HIGH: Nop/Nop/Nop/Nop/MovD Jmp
+
+CHECK_T_LOW: MovD/Nop Jmp
+
+INPUT_COUNT: Nop/Nop/Nop/Nop/Nop/Nop/Nop/MovD/Nop Jmp
+
+PRINT_COUNT: Nop/Nop/Nop/Nop/Nop/Nop/MovD/Nop/Nop Jmp
+
+PRINT_MALFORMED:
+ Rot
+ Out
+ Rot
+ Out
+ Rot
+ Out
+ Rot
+ Out
+ Rot
+ Out
+ Rot
+ Out
+ Rot
+ Out
+ Rot
+ Out
+ Rot
+ Out
+ Rot
+ Out
+ Hlt
+
+PRINT_FOOL:
+ Rot
+ Out
+ Rot
+ Out
+ Rot
+ Out
+ Rot
+ Out
+ Rot
+ Out
+ Rot
+ Out
+ Rot
+ Out
+ Rot
+ Out
+ Rot
+ Out
+ Rot
+ Out
+ Rot
+ Out
+ Rot
+ Out
+ Rot
+ Out
+ Hlt
+
+PRINT_NEWLINE:
+ Rot
+ Out
+ Hlt
+
+MASKING: Nop/MovD Jmp
+
+.DATA
+@244 INIT_RETURN_GUARD: 81
+
+@29528 INPUT_EOF: eof_handle
+
+@83 INVALID_LOW_POINTER: invalid_low_handle
+
+@40 INVALID_CONTROL_PORT: MOVED malformed_entry
+ FINAL_ENTRY_POINTER: ENTRY
+
+@97 INVALID_CONTROL_TWO: MOVED malformed_entry
+
+@99 INVALID_CONTROL_SIX: MOVED malformed_entry
+
+invalid_low_handle: MOVED malformed_entry
+
+@29444 INVALID_PORT_HIGH: MOVED malformed_entry
+
+@3 INPUT_NUL: 81
+
+@58324 INPUT_TABLE:
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?
+?-
+?-
+?-
+?
+?
+?
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?-
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+byte_43_handle
+?
+?
+?
+?
+?
+byte_49_handle
+byte_50_handle
+byte_48_handle
+byte_52_handle
+byte_53_handle
+byte_51_handle
+?
+?
+?
+?
+byte_32_handle
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+byte_57_handle
+?
+?
+?
+byte_55_handle
+byte_56_handle
+byte_54_handle
+?
+?
+?
+?
+?
+?
+byte_10_handle
+?
+byte_9_handle
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+
+byte_9_handle: MOVED separator_from_input
+
+byte_10_handle: MOVED separator_from_input
+
+byte_32_handle: MOVED separator_from_input
+
+byte_43_handle: MOVED plus_from_input
+
+byte_48_handle:  MOVED digit_0
+
+byte_49_handle:  R_TMP_DIGIT_LOW
+ MOVED digit_0
+
+byte_50_handle:  MOVED digit_2
+
+byte_51_handle:  R_TMP_DIGIT_LOW
+ MOVED digit_2
+
+byte_52_handle:  MOVED digit_4
+
+byte_53_handle:  R_TMP_DIGIT_LOW
+ MOVED digit_4
+
+byte_54_handle:  MOVED digit_6
+
+byte_55_handle:  R_TMP_DIGIT_LOW
+ MOVED digit_6
+
+byte_56_handle:  MOVED digit_8
+
+byte_57_handle:  R_TMP_DIGIT_LOW
+ MOVED digit_8
+
+eof_handle: MOVED input_eof
+
+ENTRY:
+ R_MOVED
+read_char:
+ R_MOVED
+ ROT C1 R_ROT
+ R_TRANSFORM_FIRST
+ MOVED do_op
+
+second_reset:
+ R_TRANSFORM_SECOND
+ MOVED do_op
+
+third_reset:
+ ROT C0 R_ROT
+ R_MASKING
+ MOVED do_op
+
+read_byte:
+ IN ?- R_IN
+ R_TMP_DIGIT_LOW
+ MOVED do_op
+
+tag_byte:
+ ROT C2 R_ROT
+ R_MOVED
+do_op:
+ R_MOVED
+ U_CRAZY input_pointer
+input_dispatch:
+ R_MOVED
+ DEREF
+input_pointer:
+ C1
+ R_CRAZY
+ TRANSFORM_FIRST second_reset R_TRANSFORM_FIRST
+ TRANSFORM_SECOND third_reset R_TRANSFORM_SECOND
+ MASKING read_byte R_MASKING
+ TMP_DIGIT_LOW tag_byte R_TMP_DIGIT_LOW
+ MOVED input_dispatch
+
+input_eof:
+ R_DEREF ?- ?- ?- ?- R_MOVED
+ PRINTED eof_complete
+ R_PRINTED
+ HAVE_DIGIT eof_digits
+ MOVED malformed_entry
+eof_digits:
+ READING_SECOND eof_complete
+ MOVED malformed_entry
+eof_complete:
+ MOVED add_begin
+
+plus_from_input:
+ R_DEREF ?- ?- ?- ?- R_MOVED
+ PRINTED malformed
+ R_PRINTED
+ READING_SECOND plus_after_first
+ HAVE_DIGIT plus_end_first
+ MOVED malformed_entry
+plus_end_first:
+ R_PLUS_SEEN
+ MOVED save_0
+plus_after_first:
+ R_READING_SECOND
+ HAVE_DIGIT malformed
+ R_HAVE_DIGIT
+ PLUS_SEEN malformed
+ MOVED read_char
+
+separator_from_input:
+ R_DEREF ?- ?- ?- ?- R_MOVED
+ PRINTED trailing_space
+ R_PRINTED
+ HAVE_DIGIT end_number
+ R_HAVE_DIGIT
+ MOVED read_char
+trailing_space:
+ R_PRINTED
+ MOVED read_char
+end_number:
+ READING_SECOND finish_second
+ MOVED save_0
+finish_second:
+ R_PRINTED
+ MOVED read_char
+
+digit_8:
+ R_TMP_DIGIT_HIGH
+digit_6:
+ R_TMP_DIGIT_HIGH
+digit_4:
+ R_TMP_DIGIT_HIGH
+digit_2:
+ R_TMP_DIGIT_HIGH
+digit_0:
+ R_DEREF ?- ?- ?- ?- 
+digit_accepted_entry:
+    R_MOVED
+digit_accepted:
+ PRINTED malformed
+ R_PRINTED
+    HAVE_DIGIT digit_accepted
+    INPUT_COUNT malformed
+    R_MOVED
+shift_6:
+ R_MOVED
+shift_6_body:
+ N1_DIGIT5_HIGH shift_6_transfer
+ R_TMP2_DIGIT_HIGH
+ MOVED shift_6
+shift_6_back:
+ R_MOVED
+shift_6_transfer:
+ TMP2_DIGIT_HIGH shift_6_low
+ R_N1_DIGIT6_HIGH
+ MOVED shift_6_back
+shift_6_low:
+ N1_DIGIT5_LOW shift_6_one
+ R_N1_DIGIT5_LOW
+ MOVED shift_5
+shift_6_one:
+ R_N1_DIGIT6_LOW
+ R_MOVED
+shift_5:
+ R_MOVED
+shift_5_body:
+ N1_DIGIT4_HIGH shift_5_transfer
+ R_TMP2_DIGIT_HIGH
+ MOVED shift_5
+shift_5_back:
+ R_MOVED
+shift_5_transfer:
+ TMP2_DIGIT_HIGH shift_5_low
+ R_N1_DIGIT5_HIGH
+ MOVED shift_5_back
+shift_5_low:
+ N1_DIGIT4_LOW shift_5_one
+ R_N1_DIGIT4_LOW
+ MOVED shift_4
+shift_5_one:
+ R_N1_DIGIT5_LOW
+ R_MOVED
+shift_4:
+ R_MOVED
+shift_4_body:
+ N1_DIGIT3_HIGH shift_4_transfer
+ R_TMP2_DIGIT_HIGH
+ MOVED shift_4
+shift_4_back:
+ R_MOVED
+shift_4_transfer:
+ TMP2_DIGIT_HIGH shift_4_low
+ R_N1_DIGIT4_HIGH
+ MOVED shift_4_back
+shift_4_low:
+ N1_DIGIT3_LOW shift_4_one
+ R_N1_DIGIT3_LOW
+ MOVED shift_3
+shift_4_one:
+ R_N1_DIGIT4_LOW
+ R_MOVED
+shift_3:
+ R_MOVED
+shift_3_body:
+ N1_DIGIT2_HIGH shift_3_transfer
+ R_TMP2_DIGIT_HIGH
+ MOVED shift_3
+shift_3_back:
+ R_MOVED
+shift_3_transfer:
+ TMP2_DIGIT_HIGH shift_3_low
+ R_N1_DIGIT3_HIGH
+ MOVED shift_3_back
+shift_3_low:
+ N1_DIGIT2_LOW shift_3_one
+ R_N1_DIGIT2_LOW
+ MOVED shift_2
+shift_3_one:
+ R_N1_DIGIT3_LOW
+ R_MOVED
+shift_2:
+ R_MOVED
+shift_2_body:
+ N1_DIGIT1_HIGH shift_2_transfer
+ R_TMP2_DIGIT_HIGH
+ MOVED shift_2
+shift_2_back:
+ R_MOVED
+shift_2_transfer:
+ TMP2_DIGIT_HIGH shift_2_low
+ R_N1_DIGIT2_HIGH
+ MOVED shift_2_back
+shift_2_low:
+ N1_DIGIT1_LOW shift_2_one
+ R_N1_DIGIT1_LOW
+ MOVED shift_1
+shift_2_one:
+ R_N1_DIGIT2_LOW
+ R_MOVED
+shift_1:
+ R_MOVED
+shift_1_body:
+ N1_DIGIT0_HIGH shift_1_transfer
+ R_TMP2_DIGIT_HIGH
+ MOVED shift_1
+shift_1_back:
+ R_MOVED
+shift_1_transfer:
+ TMP2_DIGIT_HIGH shift_1_low
+ R_N1_DIGIT1_HIGH
+ MOVED shift_1_back
+shift_1_low:
+ N1_DIGIT0_LOW shift_1_one
+ R_N1_DIGIT0_LOW
+ MOVED shift_0
+shift_1_one:
+ R_N1_DIGIT1_LOW
+ R_MOVED
+shift_0:
+ R_MOVED
+shift_0_body:
+ TMP_DIGIT_HIGH shift_0_transfer
+ R_TMP2_DIGIT_HIGH
+ MOVED shift_0
+shift_0_back:
+ R_MOVED
+shift_0_transfer:
+ TMP2_DIGIT_HIGH shift_0_low
+ R_N1_DIGIT0_HIGH
+ MOVED shift_0_back
+shift_0_low:
+ TMP_DIGIT_LOW shift_0_one
+ R_TMP_DIGIT_LOW
+ MOVED shift_done
+shift_0_one:
+ R_N1_DIGIT0_LOW
+ R_MOVED
+shift_done:
+ R_MOVED
+ PRINT_MODE print_digit R_PRINT_MODE
+ MOVED read_char
+
+save_0:
+ R_MOVED
+save_0_body:
+ N1_DIGIT0_HIGH save_0_low
+ R_N2_DIGIT0_HIGH
+ MOVED save_0
+save_0_low:
+ N1_DIGIT0_LOW save_0_one
+ R_N1_DIGIT0_LOW
+ MOVED save_1
+save_0_one:
+ R_N2_DIGIT0_LOW
+ R_MOVED
+save_1:
+ R_MOVED
+save_1_body:
+ N1_DIGIT1_HIGH save_1_low
+ R_N2_DIGIT1_HIGH
+ MOVED save_1
+save_1_low:
+ N1_DIGIT1_LOW save_1_one
+ R_N1_DIGIT1_LOW
+ MOVED save_2
+save_1_one:
+ R_N2_DIGIT1_LOW
+ R_MOVED
+save_2:
+ R_MOVED
+save_2_body:
+ N1_DIGIT2_HIGH save_2_low
+ R_N2_DIGIT2_HIGH
+ MOVED save_2
+save_2_low:
+ N1_DIGIT2_LOW save_2_one
+ R_N1_DIGIT2_LOW
+ MOVED save_3
+save_2_one:
+ R_N2_DIGIT2_LOW
+ R_MOVED
+save_3:
+ R_MOVED
+save_3_body:
+ N1_DIGIT3_HIGH save_3_low
+ R_N2_DIGIT3_HIGH
+ MOVED save_3
+save_3_low:
+ N1_DIGIT3_LOW save_3_one
+ R_N1_DIGIT3_LOW
+ MOVED save_4
+save_3_one:
+ R_N2_DIGIT3_LOW
+ R_MOVED
+save_4:
+ R_MOVED
+save_4_body:
+ N1_DIGIT4_HIGH save_4_low
+ R_N2_DIGIT4_HIGH
+ MOVED save_4
+save_4_low:
+ N1_DIGIT4_LOW save_4_one
+ R_N1_DIGIT4_LOW
+ MOVED save_5
+save_4_one:
+ R_N2_DIGIT4_LOW
+ R_MOVED
+save_5:
+ R_MOVED
+save_5_body:
+ N1_DIGIT5_HIGH save_5_low
+ R_N2_DIGIT5_HIGH
+ MOVED save_5
+save_5_low:
+ N1_DIGIT5_LOW save_5_one
+ R_N1_DIGIT5_LOW
+ MOVED save_6
+save_5_one:
+ R_N2_DIGIT5_LOW
+ R_MOVED
+save_6:
+ R_MOVED
+save_6_body:
+ N1_DIGIT6_HIGH save_6_low
+ R_N2_DIGIT6_HIGH
+ MOVED save_6
+save_6_low:
+ N1_DIGIT6_LOW save_6_one
+ R_N1_DIGIT6_LOW
+ MOVED reset_count
+save_6_one:
+ R_N2_DIGIT6_LOW
+ R_MOVED
+reset_count:
+ R_MOVED
+ INPUT_COUNT count_reset
+ MOVED reset_count
+count_reset:
+ R_INPUT_COUNT
+ PRINT_MODE recount_entry
+ R_PRINT_MODE
+ MOVED read_char
+
+recount_entry:
+ R_PRINT_MODE
+ R_MOVED
+add_begin:
+ R_MOVED
+decrement_0:
+ N2_DIGIT0_LOW increment_0_body
+ N2_DIGIT0_HIGH decrement_1
+ MOVED increment_0
+decrement_1:
+ N2_DIGIT1_LOW increment_0_body
+ N2_DIGIT1_HIGH decrement_2
+ MOVED increment_0
+decrement_2:
+ N2_DIGIT2_LOW increment_0_body
+ N2_DIGIT2_HIGH decrement_3
+ MOVED increment_0
+decrement_3:
+ N2_DIGIT3_LOW increment_0_body
+ N2_DIGIT3_HIGH decrement_4
+ MOVED increment_0
+decrement_4:
+ N2_DIGIT4_LOW increment_0_body
+ N2_DIGIT4_HIGH decrement_5
+ MOVED increment_0
+decrement_5:
+ N2_DIGIT5_LOW increment_0_body
+ N2_DIGIT5_HIGH enter_chunk1
+ MOVED increment_0
+
+enter_chunk1:
+ R_READING_SECOND
+ R_MOVED
+add_chunk1:
+ R_MOVED
+decrement_6:
+ N2_DIGIT6_LOW increment_6_body
+ N2_DIGIT6_HIGH addition_underflow
+ increment_6_body:
+ N1_DIGIT6_LOW increment_high_6
+ MOVED increment_done
+increment_high_6:
+ N1_DIGIT6_HIGH increment_overflow
+ MOVED increment_done
+
+increment_0:
+ R_MOVED
+increment_0_body:
+ N1_DIGIT0_LOW increment_high_0
+ MOVED increment_done
+increment_high_0:
+ N1_DIGIT0_HIGH increment_1_body
+ MOVED increment_done
+
+increment_1_body:
+ N1_DIGIT1_LOW increment_high_1
+ MOVED increment_done
+increment_high_1:
+ N1_DIGIT1_HIGH increment_2_body
+ MOVED increment_done
+
+increment_2_body:
+ N1_DIGIT2_LOW increment_high_2
+ MOVED increment_done
+increment_high_2:
+ N1_DIGIT2_HIGH increment_3_body
+ MOVED increment_done
+
+increment_3_body:
+ N1_DIGIT3_LOW increment_high_3
+ MOVED increment_done
+increment_high_3:
+ N1_DIGIT3_HIGH increment_4_body
+ MOVED increment_done
+
+increment_4_body:
+ N1_DIGIT4_LOW increment_high_4
+ MOVED increment_done
+increment_high_4:
+ N1_DIGIT4_HIGH increment_5_body
+ MOVED increment_done
+
+increment_5_body:
+ N1_DIGIT5_LOW increment_high_5
+ MOVED increment_done
+increment_high_5:
+ N1_DIGIT5_HIGH increment_6_body
+ MOVED increment_done
+
+increment_overflow:
+ PRINT_MODE recount_overflow
+ R_PRINT_MODE
+ R_TRANSFORM_SECOND
+ MOVED increment_done
+recount_overflow:
+ R_PRINT_MODE
+ R_MOVED
+increment_done:
+ R_MOVED
+ PRINT_MODE count_remainder
+ R_PRINT_MODE
+ MOVED return_chunk
+
+count_remainder:
+ R_PRINT_MODE
+ count_tick:
+ HAVE_DIGIT counted
+ CHECK_U_HIGH count_tens
+ MOVED count_finished
+count_tens:
+ CHECK_T_LOW counted
+ CHECK_T_HIGH remainder_wrapped
+ MOVED count_finished
+remainder_wrapped:
+ R_CHECK_U_HIGH R_CHECK_U_HIGH R_CHECK_U_HIGH R_CHECK_U_HIGH
+ R_HAVE_DIGIT
+ MOVED count_finished
+counted:
+ R_MOVED
+count_finished:
+return_chunk:
+ R_MOVED
+ READING_SECOND return_middle R_READING_SECOND
+ MOVED add_begin
+return_middle:
+ R_READING_SECOND
+ MOVED add_chunk1
+
+
+addition_underflow:
+ PRINT_MODE recount_underflow
+ R_PRINT_MODE
+ TRANSFORM_SECOND initial_top
+ R_TRANSFORM_SECOND
+ MOVED recount_prepare
+initial_top:
+ R_TRANSFORM_SECOND
+ R_TRANSFORM_FIRST
+ R_MOVED
+recount_prepare:
+ R_MOVED
+ READING_SECOND cleared_chunk1 R_READING_SECOND
+cleared_chunk1:
+ N2_DIGIT0_LOW clear_low_0 R_N2_DIGIT0_LOW
+clear_low_0:
+ N2_DIGIT1_LOW clear_low_1 R_N2_DIGIT1_LOW
+clear_low_1:
+ N2_DIGIT2_LOW clear_low_2 R_N2_DIGIT2_LOW
+clear_low_2:
+ N2_DIGIT3_LOW clear_low_3 R_N2_DIGIT3_LOW
+clear_low_3:
+ N2_DIGIT4_LOW clear_low_4 R_N2_DIGIT4_LOW
+clear_low_4:
+ N2_DIGIT5_LOW clear_low_5 R_N2_DIGIT5_LOW
+clear_low_5:
+ N2_DIGIT6_LOW clear_low_6 R_N2_DIGIT6_LOW
+clear_low_6:
+ R_PRINT_MODE
+ MOVED save_0
+
+recount_underflow:
+ R_PRINT_MODE
+ TRANSFORM_FIRST increment_6_body
+ check_remainder:
+ R_CHECK_T_HIGH R_CHECK_T_HIGH R_CHECK_T_HIGH R_CHECK_T_HIGH
+ CHECK_T_HIGH check_tens_low
+ MOVED checked_numeric
+check_tens_low:
+ CHECK_T_LOW check_units_high
+ MOVED checked_numeric
+check_units_high:
+ CHECK_U_HIGH check_units_low
+ MOVED checked_numeric
+check_units_low:
+ HAVE_DIGIT not_divisible
+ MOVED fool_me
+not_divisible:
+ R_MOVED
+checked_numeric:
+ R_MOVED
+ R_PRINT_MODE
+ TRANSFORM_SECOND print_top_one
+ MOVED print_start
+print_top_one:
+  ROT '1'<<1 R_ROT OUT ?- R_OUT
+ R_PRINTED
+ R_MOVED
+print_start:
+ R_MOVED
+print_digit:
+ N1_DIGIT6_HIGH print_high4
+ N1_DIGIT6_HIGH print_high3
+ N1_DIGIT6_HIGH print_high2
+ N1_DIGIT6_HIGH print_high1
+ R_N1_DIGIT6_HIGH
+ print_low0:
+ N1_DIGIT6_LOW print_odd0
+ R_N1_DIGIT6_LOW
+  PRINTED zero_after_nonzero
+ R_PRINTED
+ MOVED after_print
+zero_after_nonzero:
+ R_PRINTED
+ R_MOVED
+out_0:
+ R_MOVED
+ ROT C2 R_ROT
+ U_CRAZY literal_0
+literal_0:
+ 69
+ R_CRAZY
+ LOOP2 after_emit
+ OUT ?- R_OUT
+ MOVED out_0
+print_odd0:
+ mark_1:
+ PRINTED mark_1
+ R_MOVED
+out_1:
+ R_MOVED
+ ROT C2 R_ROT
+ U_CRAZY literal_1
+literal_1:
+ 71
+ R_CRAZY
+ LOOP2 after_emit
+ OUT ?- R_OUT
+ MOVED out_1
+
+print_high1:
+print_low1:
+ N1_DIGIT6_LOW print_odd1
+ R_N1_DIGIT6_LOW
+ mark_2:
+ PRINTED mark_2
+ R_MOVED
+out_2:
+ R_MOVED
+ ROT C2 R_ROT
+ U_CRAZY literal_2
+literal_2:
+ 70
+ R_CRAZY
+ LOOP2 after_emit
+ OUT ?- R_OUT
+ MOVED out_2
+print_odd1:
+ mark_3:
+ PRINTED mark_3
+ R_MOVED
+out_3:
+ R_MOVED
+ ROT C2 R_ROT
+ U_CRAZY literal_3
+literal_3:
+ 66
+ R_CRAZY
+ LOOP2 after_emit
+ OUT ?- R_OUT
+ MOVED out_3
+
+print_high2:
+print_low2:
+ N1_DIGIT6_LOW print_odd2
+ R_N1_DIGIT6_LOW
+ mark_4:
+ PRINTED mark_4
+ R_MOVED
+out_4:
+ R_MOVED
+ ROT C2 R_ROT
+ U_CRAZY literal_4
+literal_4:
+ 68
+ R_CRAZY
+ LOOP2 after_emit
+ OUT ?- R_OUT
+ MOVED out_4
+print_odd2:
+ mark_5:
+ PRINTED mark_5
+ R_MOVED
+out_5:
+ R_MOVED
+ ROT C2 R_ROT
+ U_CRAZY literal_5
+literal_5:
+ 67
+ R_CRAZY
+ LOOP2 after_emit
+ OUT ?- R_OUT
+ MOVED out_5
+
+print_high3:
+print_low3:
+ N1_DIGIT6_LOW print_odd3
+ R_N1_DIGIT6_LOW
+ mark_6:
+ PRINTED mark_6
+ R_MOVED
+out_6:
+ R_MOVED
+ ROT C2 R_ROT
+ U_CRAZY literal_6
+literal_6:
+ 27
+ R_CRAZY
+ LOOP2 after_emit
+ OUT ?- R_OUT
+ MOVED out_6
+print_odd3:
+ mark_7:
+ PRINTED mark_7
+ R_MOVED
+out_7:
+ R_MOVED
+ ROT C2 R_ROT
+ U_CRAZY literal_7
+literal_7:
+ 29
+ R_CRAZY
+ LOOP2 after_emit
+ OUT ?- R_OUT
+ MOVED out_7
+
+print_high4:
+print_low4:
+ N1_DIGIT6_LOW print_odd4
+ R_N1_DIGIT6_LOW
+ mark_8:
+ PRINTED mark_8
+ R_MOVED
+out_8:
+ R_MOVED
+ ROT C2 R_ROT
+ U_CRAZY literal_8
+literal_8:
+ 28
+ R_CRAZY
+ LOOP2 after_emit
+ OUT ?- R_OUT
+ MOVED out_8
+print_odd4:
+ mark_9:
+ PRINTED mark_9
+ R_MOVED
+out_9:
+ R_MOVED
+ ROT C2 R_ROT
+ U_CRAZY literal_9
+literal_9:
+ 33
+ R_CRAZY
+ LOOP2 after_emit
+ OUT ?- R_OUT
+ MOVED out_9
+
+after_emit:
+ R_MOVED
+after_print:
+ R_MOVED
+ PRINT_COUNT print_done
+ R_PRINT_MODE
+ MOVED shift_6
+
+print_done:
+print_newline:
+ PRINT_NEWLINE '\n'<<1 ?-
+
+malformed_entry:
+ R_MOVED
+malformed:
+ PRINT_MALFORMED
+'M'<<1 ?- 'A'<<1 ?- 'L'<<1 ?- 'F'<<1 ?- 'O'<<1 ?- 'R'<<1 ?- 'M'<<1 ?- 'E'<<1 ?- 'D'<<1 ?- '\n'<<1 ?- 
+
+fool_me:
+ PRINT_FOOL
+'F'<<1 ?- 'O'<<1 ?- 'O'<<1 ?- 'L'<<1 ?- ' '<<1 ?- 'M'<<1 ?- 'E'<<1 ?- ' '<<1 ?- 'O'<<1 ?- 'N'<<1 ?- 'C'<<1 ?- 'E'<<1 ?- '\n'<<1 ?- 
