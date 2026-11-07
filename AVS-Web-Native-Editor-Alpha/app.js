@@ -1077,14 +1077,20 @@ $("#fullscreen").onclick = () => stage.requestFullscreen?.();
 function openAbout(section) {
   const dialog = $("#about");
   dialog.showModal();
+  // Set focus explicitly so reopening cannot restore focus to a lower link.
+  const focusTarget = section || dialog.querySelector(".close");
+  focusTarget.focus({preventScroll:true});
   requestAnimationFrame(() => {
     dialog.scrollTop = section ? Math.max(0, section.offsetTop - 16) : 0;
-    section?.focus({preventScroll:true});
   });
 }
 
+$("#presetNoticeDismiss").onclick = () => {
+  $(".presetNotice").hidden = true;
+  $("#search").focus();
+};
 $("#aboutOpen").onclick = () => openAbout();
-$("#copyrightOpen").onclick = () => openAbout($("#presetRights"));
+$("#copyrightOpen").onclick = () => openAbout();
 $("#presetCopyright").onclick = () => openAbout($("#presetRights"));
 const aboutDialog = $("#about");
 aboutDialog.addEventListener("cancel", event => {
@@ -1118,12 +1124,29 @@ $("#editorSave").onclick = () => {
   setTimeout(() => URL.revokeObjectURL(link.href), 1000);
 };
 document.querySelectorAll("[data-page]").forEach(button => button.onclick = () => {
-  document.querySelectorAll("[data-page]").forEach(item => item.disabled = false);
-  button.disabled = true;
+  document.querySelectorAll("[data-page]").forEach(item => {
+    const active = item === button;
+    item.setAttribute("aria-selected", String(active));
+    item.tabIndex = active ? 0 : -1;
+  });
   $("#presetsPage").classList.toggle("active", button.dataset.page === "presets");
   $("#structurePage").classList.toggle("active", button.dataset.page === "structure");
   if (button.dataset.page === "structure") stopShuffle();
   updateShuffleAvailability();
+});
+$(".sideTabs").addEventListener("keydown", event => {
+  const tabs = [...document.querySelectorAll(".sideTabs [role='tab']")];
+  const index = tabs.indexOf(document.activeElement);
+  if (index < 0) return;
+  let next;
+  if (event.key === "ArrowRight") next = (index + 1) % tabs.length;
+  else if (event.key === "ArrowLeft") next = (index - 1 + tabs.length) % tabs.length;
+  else if (event.key === "Home") next = 0;
+  else if (event.key === "End") next = tabs.length - 1;
+  else return;
+  event.preventDefault();
+  tabs[next].click();
+  tabs[next].focus();
 });
 player.addEventListener("play", () => {
   sourceRequest += 1;

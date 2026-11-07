@@ -4,6 +4,16 @@ AVS//Web third-party notices
 This distribution includes the following third-party components. Complete license
 texts are provided alongside this file and form part of this distribution.
 
+grandchild/vis_avs — modern C++ AVS port and libavs
+The renderer is based on revision 1cee1f3 of this project, including the work of
+grandchild and other upstream contributors. Its modernization and library APIs
+are the foundation of this web port, not original AVS//Web work.
+Source: https://github.com/grandchild/vis_avs
+Contributors: https://github.com/grandchild/vis_avs/graphs/contributors
+License: BSD 3-Clause. Upstream LICENSE.TXT at this revision is reproduced
+verbatim in LICENSE-AVS.txt (Copyright 2005 Nullsoft, Inc.).
+See CREDITS.txt and SOURCE-NOTICE.txt for attribution and web-port modifications.
+
 WDL-EEL2
 Copyright (C) 2004-2013 and later Cockos Incorporated.
 Portions copyright (C) 1999-2003 Nullsoft, Inc. and other contributors.

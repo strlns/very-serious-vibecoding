@@ -5,6 +5,13 @@ AVS/libavs source basis:
   https://github.com/grandchild/vis_avs
   revision 1cee1f3
 
+This is the modern C++ AVS port and libavs library developed by grandchild and
+other upstream contributors. AVS//Web builds on their modernization, APIs, and
+renderer work; these are not original contributions of this web port.
+See CREDITS.txt for project and contributor references.
+The upstream LICENSE.TXT at revision 1cee1f3 is reproduced verbatim in
+LICENSE-AVS.txt (BSD 3-Clause; Copyright 2005 Nullsoft, Inc.).
+
 Original AVS project source:
   https://github.com/visbot/vis_avs
 

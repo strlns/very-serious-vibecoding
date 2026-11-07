@@ -68,16 +68,33 @@ footer.sources-visible .status { bottom: calc(100% + 3.3rem); }
 }
 
 .presetNotice {
+  position: relative;
   margin: -.1rem 0 0;
-  padding: .5rem .6rem;
+  padding: .5rem 1.9rem .5rem .6rem;
   border: 1px solid #313b49;
-  border-left: 3px solid var(--orange);
+  border-left: 3px solid var(--accent);
   border-radius: 5px;
   background: #17130f;
   color: #b8bec8;
   font-size: .69rem;
   line-height: 1.45;
 }
+
+.presetNotice[hidden] { display: none; }
+.presetNotice p { margin: 0; color: inherit; font-size: inherit; line-height: inherit; }
+#presetNoticeDismiss {
+  position: absolute;
+  top: .15rem;
+  right: .15rem;
+  padding: .1rem .35rem;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1.2;
+}
+#presetNoticeDismiss:hover { color: var(--text); }
+#presetNoticeDismiss:focus-visible { outline: 2px solid var(--mint); }
 
 .motionGate {
   position: fixed;

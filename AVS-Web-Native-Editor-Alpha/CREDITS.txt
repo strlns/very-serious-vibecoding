@@ -1,0 +1,39 @@
+AVS//Web — credits and source acknowledgements
+=============================================
+
+Modern C++ renderer and libavs foundation
+----------------------------------------
+This web port builds on grandchild/vis_avs, the modern C++ port of Advanced
+Visualization Studio and its libavs library, at revision 1cee1f3.
+Credit belongs to grandchild and the many other upstream contributors for the
+modernization, library APIs, effect implementations, and continued development.
+These contributions predate this web port and were not created by AVS//Web.
+
+Project: https://github.com/grandchild/vis_avs
+History at the source basis: https://github.com/grandchild/vis_avs/commits/1cee1f3/
+Contributors: https://github.com/grandchild/vis_avs/graphs/contributors
+Upstream license: https://github.com/grandchild/vis_avs/blob/1cee1f3/LICENSE.TXT
+
+The upstream LICENSE.TXT at that revision is BSD 3-Clause and is reproduced
+verbatim in LICENSE-AVS.txt (Copyright 2005 Nullsoft, Inc.). The shared license
+text does not diminish the authorship of the modern port or its contributors.
+Individual third-party components retain their own notices and licenses.
+
+Original Advanced Visualization Studio
+--------------------------------------
+AVS was originally developed by Justin Frankel and other contributors at Nullsoft.
+Original source repository: https://github.com/visbot/vis_avs
+License: LICENSE-AVS.txt
+
+Web adaptation
+--------------
+AVS//Web adds the browser UI, audio integration, worker, and the Emscripten /
+WebAssembly adaptation described in SOURCE-NOTICE.txt, with generative AI
+assistance. This work builds on the human-authored upstream renderer.
+
+Other dependencies and legacy presets
+-------------------------------------
+See THIRD-PARTY-NOTICES.txt and the accompanying LICENSE-*.txt files for dependency
+attribution and license terms. Bundled presets belong to their individual authors;
+their embedded Comment components preserve attribution. They are not collectively
+licensed under the AVS source-code license. See README.md for takedown information.

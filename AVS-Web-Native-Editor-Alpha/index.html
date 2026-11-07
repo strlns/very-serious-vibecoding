@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>AVS//Web — Visualizer</title>
-  <link rel="stylesheet" href="styles.css?v=7">
-  <link rel="stylesheet" href="editor.css?v=18">
-  <link rel="stylesheet" href="info.css?v=5">
+  <link rel="stylesheet" href="styles.css?v=9">
+  <link rel="stylesheet" href="editor.css?v=23">
+  <link rel="stylesheet" href="info.css?v=7">
 </head>
 <body>
   <header>
@@ -52,27 +52,30 @@
     </section>
     <aside id="sidebar">
       <div id="sidebarResizeHandle" class="sidebarResizeHandle" role="separator" aria-label="Resize panel" aria-orientation="vertical" aria-valuemin="280" aria-valuemax="720" tabindex="0"></div>
-      <div class="sideTabs">
-        <button data-page="presets" disabled>Presets</button>
-        <button data-page="structure">Editor</button>
+      <div class="sideTabs" role="tablist" aria-label="Presets and editor">
+        <button id="presetsTab" data-page="presets" role="tab" aria-controls="presetsPage" aria-selected="true" tabindex="0">Presets</button>
+        <button id="structureTab" data-page="structure" role="tab" aria-controls="structurePage" aria-selected="false" tabindex="-1">Editor</button>
       </div>
-      <div id="presetsPage" class="sidePage active">
+      <div id="presetsPage" class="sidePage active" role="tabpanel" aria-labelledby="presetsTab">
         <div class="asideHead">
           <div><b>Legacy presets</b><small id="presetCount">Loading…</small></div>
           <button id="presetPick">Open .avs</button>
           <input id="presetInput" type="file" accept=".avs,application/octet-stream" hidden>
         </div>
         <input id="search" type="search" placeholder="Filter presets…" autocomplete="off">
-        <p class="presetNotice">Some presets may not work. Presets known to require unsupported APE effects have been omitted. I did not create any of the bundled presets.</p>
+        <div class="presetNotice">
+          <button id="presetNoticeDismiss" type="button" aria-label="Dismiss preset notice" title="Dismiss notice">×</button>
+          <p>Some presets may not work. Presets known to require unsupported APE effects have been omitted. <strong>I did not create any of the bundled presets.</strong></p>
+        </div>
         <div class="presetQuickActions">
           <button id="surprisePreset" disabled>⤨ Surprise me</button>
           <button id="shufflePreset" aria-pressed="false" disabled title="Automatically choose another visible preset every 15 seconds">↻ Shuffle</button>
           <button id="favoriteFilter" aria-pressed="false">★ Favorites</button>
-          <button id="presetCopyright" class="presetLegal">Preset copyright / takedown</button>
+          <button id="presetCopyright" class="presetLegal"><svg class="legalIcon" aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v16M5 18h10M3 6h14M4 6l-3 6h6L4 6Zm12 0-3 6h6l-3-6Z"/><path d="M1 12a3 3 0 0 0 6 0m6 0a3 3 0 0 0 6 0"/></svg> Copyright / Takedown</button>
         </div>
         <div id="presetList" class="presetList"></div>
       </div>
-      <div id="structurePage" class="sidePage">
+      <div id="structurePage" class="sidePage" role="tabpanel" aria-labelledby="structureTab">
         <div class="editorToolbar">
           <button id="editorNew" class="primary">+ New preset</button>
           <button id="editorApply" disabled>Apply</button>
@@ -91,13 +94,13 @@
   <footer>
     <span id="status" class="status" hidden><i></i><span></span></span>
     <span id="sourceState" class="sourceState" hidden><i></i><span></span></span>
-    <span>ALL CREDITS TO THE OG AVS COMMUNITIES AND CREATORS</span>
-    <button id="copyrightOpen">Copyright information</button>
+    <span>AVS AUTHORS · PRESET CREATORS · MODERN LIBAVS CONTRIBUTORS</span>
+    <button id="copyrightOpen"><svg class="legalIcon" aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v16M5 18h10M3 6h14M4 6l-3 6h6L4 6Zm12 0-3 6h6l-3-6Z"/><path d="M1 12a3 3 0 0 0 6 0m6 0a3 3 0 0 0 6 0"/></svg> CREDITS &amp; LICENSES</button>
     <noscript>DMCA Takedown contact: <a href="mailto:mo@max-hirschfluss.de">mo@max-hirschfluss.de</a></noscript>
   </footer>
 
   <dialog id="about">
-    <form method="dialog"><button class="close" aria-label="Close">×</button></form>
+    <form method="dialog"><button class="close" aria-label="Close" autofocus>×</button></form>
     <h1>About &amp; licenses</h1>
     <p>This alpha runs the original AVS C/C++ rendering core in WebAssembly. It loads
       legacy binary <code>.avs</code> files directly; the bundled presets are not Webvs
@@ -108,11 +111,20 @@
     <h2>AVS source and license</h2>
     <p>The original AVS source is available from
       <a href="https://github.com/visbot/vis_avs" target="_blank" rel="noreferrer">visbot/vis_avs</a>.
-      This port is based on the maintained
-      <a href="https://github.com/grandchild/vis_avs" target="_blank" rel="noreferrer">libavs fork</a>.
-      AVS is distributed under the BSD 3-Clause license: Copyright 2005 Nullsoft, Inc.;
-      all rights reserved. The license also protects the names of its contributors.</p>
-    <p><a href="LICENSE-AVS.txt" target="_blank">AVS BSD 3-Clause license</a></p>
+      Original AVS was developed by Justin Frankel and other Nullsoft contributors.</p>
+    <p>This web port builds on
+      <a href="https://github.com/grandchild/vis_avs" target="_blank" rel="noreferrer">grandchild/vis_avs</a>,
+      the modern C++ AVS port and libavs library, at revision <code>1cee1f3</code>.
+      Credit for its modernization, library APIs and renderer work belongs to grandchild
+      and the other
+      <a href="https://github.com/grandchild/vis_avs/graphs/contributors" target="_blank" rel="noreferrer">upstream contributors</a>.
+      Their work is the foundation of AVS//Web.</p>
+    <p>The modern port's upstream license at that revision is BSD 3-Clause and is
+      reproduced verbatim below: Copyright 2005 Nullsoft, Inc.; all rights reserved.
+      The license also protects the names of its contributors. Individual third-party
+      components retain their own notices and licenses.</p>
+    <p><a href="LICENSE-AVS.txt" target="_blank">AVS / libavs upstream BSD 3-Clause license</a>
+      · <a href="CREDITS.txt" target="_blank">Credits and source acknowledgements</a></p>
     <h2>Bundled legacy presets</h2>
     <p>The presets are a separate, mixed legacy collection gathered from publicly
       available sources. They were created by their respective authors, not by this
@@ -125,7 +137,8 @@
     <p><a href="THIRD-PARTY-NOTICES.txt" target="_blank">Third-party notices</a></p>
     <h2>AI-assisted development</h2>
     <p>The web UI and the Emscripten/WebAssembly compilation work for this port were
-      created with assistance from generative AI. The original AVS source code and
+      created with assistance from generative AI. The original AVS source code,
+      the modern C++ port and libavs by grandchild and other upstream contributors, and
       bundled legacy presets were created by their respective human authors and retain
       their existing copyright, attribution and license status.</p>
     <section id="presetRights" tabindex="-1">
@@ -156,6 +169,6 @@
     </div>
   </section>
 
-  <script type="module" src="app.js?v=26"></script>
+  <script type="module" src="app.js?v=29"></script>
 </body>
 </html>
