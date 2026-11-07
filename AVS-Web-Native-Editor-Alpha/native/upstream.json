@@ -1,0 +1,32 @@
+{
+  "repository": "https://github.com/grandchild/vis_avs",
+  "revision": "1cee1f3d4f783b830538c3e4d2082a2c59521dee",
+  "archiveUrl": "https://codeload.github.com/grandchild/vis_avs/tar.gz/1cee1f3",
+  "archiveSha256": "e643b73e727e54bb17cb7ff45117bfe2ef6a1c8ab3908fe33b95c7a3bfba1c6a",
+  "modifiedFiles": [
+    "platform.h",
+    "vis_avs/audio.cpp",
+    "vis_avs/audio.h",
+    "vis_avs/blend.cpp",
+    "vis_avs/e_blitterfeedback.cpp",
+    "vis_avs/e_colormap.h",
+    "vis_avs/e_colorreduction.cpp",
+    "vis_avs/e_convolution.h",
+    "vis_avs/e_dynamicmovement.cpp",
+    "vis_avs/e_fadeout.cpp",
+    "vis_avs/e_fastbright.cpp",
+    "vis_avs/e_invert.cpp",
+    "vis_avs/e_movement.cpp",
+    "vis_avs/e_multifilter.cpp",
+    "vis_avs/e_multiplier.cpp",
+    "vis_avs/e_normalise.cpp",
+    "vis_avs/e_root.cpp",
+    "vis_avs/e_texer.cpp",
+    "vis_avs/e_water.cpp",
+    "vis_avs/effect_info.cpp",
+    "vis_avs/effect_library.cpp",
+    "vis_avs/instance.cpp",
+    "vis_avs/instance.h"
+  ],
+  "note": "AVS//Web browser adaptations; initial upstream changes are recorded in web-port.patch"
+}

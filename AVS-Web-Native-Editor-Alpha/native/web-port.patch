@@ -1,0 +1,656 @@
+--- a/avs/platform.h
++++ b/avs/platform.h
+@@ -1,5 +1,6 @@
+ #pragma once
+ 
++#include <stddef.h>
+ #include <stdbool.h>
+ #include <stdint.h>
+ 
+--- a/avs/vis_avs/audio.cpp
++++ b/avs/vis_avs/audio.cpp
+@@ -2,6 +2,7 @@
+ 
+ #include "../3rdparty/md_fft.h"
+ 
++#include <algorithm>
+ #include <cmath>
+ #include <cstdio>
+ #include <cstring>
+@@ -67,31 +68,40 @@
+ }
+ 
+ void Audio::get(int64_t until_time_samples) {
+-    size_t dest_back_offset = 0;
+-    if (until_time_samples == 0) {
+-        until_time_samples = this->latest_sample_time;
+-    } else if (until_time_samples > this->latest_sample_time) {
+-        auto silence_samples = until_time_samples - this->latest_sample_time;
+-        dest_back_offset += silence_samples;
+-        auto dest_silence_start = AUDIO_BUFFER_LEN - silence_samples;
+-        memset(&this->osc.left[dest_silence_start], 0, silence_samples * sizeof(float));
+-        memset(
+-            &this->osc.right[dest_silence_start], 0, silence_samples * sizeof(float));
+-        memset(
+-            &this->spec.left[dest_silence_start], 0, silence_samples * sizeof(float));
+-        memset(
+-            &this->spec.right[dest_silence_start], 0, silence_samples * sizeof(float));
++    // FFT needs the complete 1024-sample window, while legacy AVS waveform
++    // effects use only 576 samples. Never write the FFT window into osc[576].
++    std::vector<float> left(this->buffer.size()), right(this->buffer.size());
++    const size_t size = this->buffer.size();
++    for (size_t i = 0; i < size; ++i) {
++        const auto& frame = this->buffer[(this->write_head + i) % size];
++        left[i] = frame.left;
++        right[i] = frame.right;
+     }
+-    for (RingIter it(this->buffer.size() - dest_back_offset, this->write_head, true);
+-         it.linear > dest_back_offset;
+-         ++it) {
+-        this->osc.left[it.linear - dest_back_offset] = this->buffer[it.ring].left;
+-        this->osc.right[it.linear - dest_back_offset] = this->buffer[it.ring].right;
++    for (size_t i = 0; i < AUDIO_BUFFER_LEN; ++i) {
++        this->osc.left[i] = left[size - AUDIO_BUFFER_LEN + i];
++        this->osc.right[i] = right[size - AUDIO_BUFFER_LEN + i];
+     }
+-    this->fft->time_to_frequency_domain(this->osc.left, this->spec.left);
+-    this->fft->time_to_frequency_domain(this->osc.right, this->spec.right);
++    this->fft->time_to_frequency_domain(left.data(), this->spec.left);
++    this->fft->time_to_frequency_domain(right.data(), this->spec.right);
+     this->osc.average_center();
+     this->spec.average_center();
++    // Ported from upstream vis_avs/main.cpp's waveform detector. Native audio
++    // capture is bypassed in the browser, so run it on externally supplied PCM.
++    int levels[2] = {};
++    for (int i = 0; i < AUDIO_BUFFER_LEN; ++i) {
++        levels[0] += std::abs(int(int8_t(this->osc.left[i] * 127.0f)));
++        levels[1] += std::abs(int(int8_t(this->osc.right[i] * 127.0f)));
++    }
++    const int level = std::max(levels[0], levels[1]);
++    beat_peak1 = (beat_peak1 * 125 + beat_peak2 * 3) / 128;
++    ++beat_count;
++    this->is_beat = false;
++    if (level >= (beat_peak1 * 34) / 32 && level > AUDIO_BUFFER_LEN * 16) {
++        if (beat_count > 0) { beat_count = 0; this->is_beat = true; }
++        beat_peak1 = (level + beat_peak1_peak) / 2;
++        beat_peak1_peak = level;
++    } else if (level > beat_peak2) beat_peak2 = level;
++    else beat_peak2 = (beat_peak2 * 14) / 16;
+ }
+ 
+ int32_t Audio::set(const float* audio_left,
+@@ -99,7 +109,7 @@
+                    size_t audio_length,
+                    size_t samples_per_second,
+                    int64_t end_time_samples) {
+-    printf("set: %ld\n", end_time_samples);
++
+     auto remaining = this->samples_remaining(end_time_samples);
+     if (audio_length != 0 && this->latest_sample_time < end_time_samples) {
+         if (audio_left == nullptr || audio_right == nullptr
+@@ -118,7 +128,7 @@
+         }
+         this->samples_per_second = samples_per_second;
+         for (RingIter it(this->buffer.capacity(), this->write_head);
+-             it.linear < audio_length;
++             it.linear < audio_length - source_audio_offset;
+              ++it, ++this->write_head) {
+             this->buffer[it.ring].left =
+                 fminf(1.0, fmaxf(-1.0, audio_left[source_audio_offset + it.linear]));
+--- a/avs/vis_avs/audio.h
++++ b/avs/vis_avs/audio.h
+@@ -61,4 +61,6 @@
+     int64_t latest_sample_time;
+     size_t samples_per_second;
+     FFT* fft;
++    // AVS waveform-level detector, state isolated per audio instance.
++    int beat_peak1 = 0, beat_peak2 = 0, beat_count = 0, beat_peak1_peak = 0;
+ };
+--- a/avs/vis_avs/blend.cpp
++++ b/avs/vis_avs/blend.cpp
+@@ -5,7 +5,9 @@
+ #include "../platform.h"
+ 
+ #include <cstdint>
++#ifdef SIMD_MODE_X86_SSE
+ #include <immintrin.h>
++#endif
+ #include <stdio.h>
+ #include <string.h>
+ 
+@@ -76,6 +78,7 @@
+     *dest = out | min(channel, 0xff0000);
+ }
+ 
++#ifdef SIMD_MODE_X86_SSE
+ static inline void blend_add_rgb0_8_x86v128(const uint32_t* src1,
+                                             const uint32_t* src2,
+                                             uint32_t* dest) {
+@@ -83,6 +86,7 @@
+     __m128i src2_4px = _mm_loadu_si128((__m128i*)src2);
+     _mm_storeu_si128((__m128i*)dest, _mm_adds_epu8(src1_4px, src2_4px));
+ }
++#endif
+ 
+ void blend_add(const uint32_t* src1,
+                const uint32_t* src2,
+@@ -109,6 +113,7 @@
+     *dest = ((*src1 >> 1) & strip_high_bit_mask) + ((*src2 >> 1) & strip_high_bit_mask);
+ }
+ 
++#ifdef SIMD_MODE_X86_SSE
+ static inline void blend_5050_rgb0_8_x86v128(const uint32_t* src1,
+                                              const uint32_t* src2,
+                                              uint32_t* dest) {
+@@ -122,6 +127,7 @@
+     __m128i src2_half = _mm_and_si128(_mm_srli_epi16(src2_4px, 1), strip_high_bit_mask);
+     _mm_storeu_si128((__m128i*)dest, _mm_adds_epu8(src1_half, src2_half));
+ }
++#endif
+ 
+ void blend_5050(const uint32_t* src1,
+                 const uint32_t* src2,
+@@ -150,6 +156,7 @@
+     *dest = result;
+ }
+ 
++#ifdef SIMD_MODE_X86_SSE
+ static inline void blend_multiply_rgb0_8_x86v128(const uint32_t* src1,
+                                                  const uint32_t* src2,
+                                                  uint32_t* dest) {
+@@ -166,6 +173,7 @@
+     __m128i packed = _mm_packus_epi16(mul_lo_norm, mul_hi_norm);
+     _mm_storeu_si128((__m128i*)dest, packed);
+ }
++#endif
+ 
+ void blend_multiply(const uint32_t* src1,
+                     const uint32_t* src2,
+@@ -194,6 +202,7 @@
+     *dest = result;
+ }
+ 
++#ifdef SIMD_MODE_X86_SSE
+ static inline void blend_screen_rgb0_8_x86v128(const uint32_t* src1,
+                                                const uint32_t* src2,
+                                                uint32_t* dest) {
+@@ -213,6 +222,7 @@
+     packed = _mm_xor_si128(packed, _mm_set1_epi32(0x00ffffff));
+     _mm_storeu_si128((__m128i*)dest, packed);
+ }
++#endif
+ 
+ void blend_screen(const uint32_t* src1,
+                   const uint32_t* src2,
+@@ -243,6 +253,7 @@
+     *dest = out | max(channel, *src2 & 0xff0000);
+ }
+ 
++#ifdef SIMD_MODE_X86_SSE
+ static inline void blend_maximum_rgb0_8_x86v128(const uint32_t* src1,
+                                                 const uint32_t* src2,
+                                                 uint32_t* dest) {
+@@ -250,6 +261,7 @@
+     __m128i src2_4px = _mm_loadu_si128((__m128i*)src2);
+     _mm_storeu_si128((__m128i*)dest, _mm_max_epu8(src1_4px, src2_4px));
+ }
++#endif
+ 
+ void blend_maximum(const uint32_t* src1,
+                    const uint32_t* src2,
+@@ -276,6 +288,7 @@
+             | min(*src1 & 0xff0000, *src2 & 0xff0000);
+ }
+ 
++#ifdef SIMD_MODE_X86_SSE
+ static inline void blend_minimum_rgb0_8_x86v128(const uint32_t* src1,
+                                                 const uint32_t* src2,
+                                                 uint32_t* dest) {
+@@ -283,6 +296,7 @@
+     __m128i src2_4px = _mm_loadu_si128((__m128i*)src2);
+     _mm_storeu_si128((__m128i*)dest, _mm_min_epu8(src1_4px, src2_4px));
+ }
++#endif
+ 
+ void blend_minimum(const uint32_t* src1,
+                    const uint32_t* src2,
+@@ -379,6 +393,7 @@
+     *dest = out | max(0, channel);
+ }
+ 
++#ifdef SIMD_MODE_X86_SSE
+ static inline void blend_sub_src1_from_src2_rgb0_8_x86v128(const uint32_t* src1,
+                                                            const uint32_t* src2,
+                                                            uint32_t* dest) {
+@@ -386,6 +401,7 @@
+     __m128i src2_4px = _mm_loadu_si128((__m128i*)src2);
+     _mm_storeu_si128((__m128i*)dest, _mm_subs_epu8(src2_4px, src1_4px));
+ }
++#endif
+ 
+ void blend_sub_src1_from_src2(const uint32_t* src1,
+                               const uint32_t* src2,
+@@ -416,6 +432,7 @@
+     *dest = out | max(0, channel);
+ }
+ 
++#ifdef SIMD_MODE_X86_SSE
+ static inline void blend_sub_src2_from_src1_rgb0_8_x86v128(const uint32_t* src1,
+                                                            const uint32_t* src2,
+                                                            uint32_t* dest) {
+@@ -423,6 +440,7 @@
+     __m128i src2_4px = _mm_loadu_si128((__m128i*)src2);
+     _mm_storeu_si128((__m128i*)dest, _mm_subs_epu8(src1_4px, src2_4px));
+ }
++#endif
+ 
+ void blend_sub_src2_from_src1(const uint32_t* src1,
+                               const uint32_t* src2,
+@@ -452,6 +470,7 @@
+             | abs_i32((int32_t)(*src2 & 0xff0000) - (*src1 & 0xff0000));
+ }
+ 
++#ifdef SIMD_MODE_X86_SSE
+ static inline void blend_sub_src1_from_src2_abs_rgb0_8_x86v128(const uint32_t* src1,
+                                                                const uint32_t* src2,
+                                                                uint32_t* dest) {
+@@ -467,6 +486,7 @@
+     //                 _mm_subs_epu8(_mm_max_epu8(src2_4px, src1_4px),
+     //                               _mm_min_epu8(src2_4px, src1_4px)));
+ }
++#endif
+ 
+ void blend_sub_src1_from_src2_abs(const uint32_t* src1,
+                                   const uint32_t* src2,
+@@ -492,6 +512,7 @@
+     *dest = *src1 ^ *src2;
+ }
+ 
++#ifdef SIMD_MODE_X86_SSE
+ static inline void blend_xor_rgb0_8_x86v128(const uint32_t* src1,
+                                             const uint32_t* src2,
+                                             uint32_t* dest) {
+@@ -499,6 +520,7 @@
+     __m128i src2_4px = _mm_loadu_si128((__m128i*)src2);
+     _mm_storeu_si128((__m128i*)dest, _mm_xor_si128(src1_4px, src2_4px));
+ }
++#endif
+ 
+ void blend_xor(const uint32_t* src1,
+                const uint32_t* src2,
+@@ -613,6 +635,7 @@
+     *dest = output;
+ }
+ 
++#ifdef SIMD_MODE_X86_SSE
+ static inline void blend_adjustable_rgb0_8_x86v128(const uint32_t* src1,
+                                                    const uint32_t* src2,
+                                                    uint32_t* dest,
+@@ -637,6 +660,7 @@
+     __m128i packed = _mm_packus_epi16(lo_norm, hi_norm);
+     _mm_storeu_si128((__m128i*)dest, packed);
+ }
++#endif
+ 
+ void blend_adjustable(const uint32_t* src1,
+                       const uint32_t* src2,
+@@ -714,6 +738,7 @@
+             | (lut_u8_multiply[src1_b][v] + lut_u8_multiply[src2_b][iv]);
+ }
+ 
++#ifdef SIMD_MODE_X86_SSE
+ static inline void blend_buffer_rgb0_8_x86v128(const uint32_t* src1,
+                                                const uint32_t* src2,
+                                                uint32_t* dest,
+@@ -776,6 +801,7 @@
+     __m128i packed = _mm_packus_epi16(los8, his8);
+     _mm_storeu_si128((__m128i*)dest, packed);
+ }
++#endif
+ 
+ void blend_buffer(const uint32_t* src1,
+                   const uint32_t* src2,
+@@ -831,11 +857,13 @@
+                  << 16;
+ }
+ 
++#ifdef SIMD_MODE_X86_SSE
+ static inline void print_m128i(__m128i a) {
+     uint32_t debug[] = {0, 0, 0, 0};
+     _mm_storeu_si128((__m128i*)debug, a);
+     printf(":: %08x %08x %08x %08x\n", debug[3], debug[2], debug[1], debug[0]);
+ }
++#endif
+ 
+ // Some older compilers don't implement the `_mm_storeu_si32()` instrinsic. They do
+ // implement the `_mm_store_ss()` intrinsic which stores the same, just expects floats.
+@@ -844,6 +872,7 @@
+     _mm_store_ss(reinterpret_cast<float*>(dest), _mm_castsi128_ps(a));
+ #endif
+ 
++#ifdef SIMD_MODE_X86_SSE
+ static inline uint32_t blend_bilinear_2x2_rgb0_8_x86v128(const uint32_t* src,
+                                                          uint32_t w,
+                                                          uint8_t lerp_x,
+@@ -895,6 +924,7 @@
+     _mm_storeu_si32(&iresult, result);
+     return iresult;
+ }
++#endif
+ 
+ uint32_t blend_bilinear_2x2(const uint32_t* src,
+                             uint32_t w,
+--- a/avs/vis_avs/e_blitterfeedback.cpp
++++ b/avs/vis_avs/e_blitterfeedback.cpp
+@@ -154,13 +154,13 @@
+                 ypart = (ypart * 255) >> 8;
+                 int32_t x = w / 4;
+                 while (x--) {
+-                    fbout[0] = BLEND4(src + (s_x >> 16), w, (s_x >> 8) & 0xff, ypart);
+-                    s_x += ds_x;
+-                    fbout[1] = BLEND4(src + (s_x >> 16), w, (s_x >> 8) & 0xff, ypart);
+-                    s_x += ds_x;
+-                    fbout[2] = BLEND4(src + (s_x >> 16), w, (s_x >> 8) & 0xff, ypart);
+-                    s_x += ds_x;
+-                    fbout[3] = BLEND4(src + (s_x >> 16), w, (s_x >> 8) & 0xff, ypart);
++                    fbout[0] = blend_bilinear_2x2((uint32_t*)(src + (s_x >> 16)), w, (s_x >> 8) & 0xff, ypart);
++                    s_x += ds_x;
++                    fbout[1] = blend_bilinear_2x2((uint32_t*)(src + (s_x >> 16)), w, (s_x >> 8) & 0xff, ypart);
++                    s_x += ds_x;
++                    fbout[2] = blend_bilinear_2x2((uint32_t*)(src + (s_x >> 16)), w, (s_x >> 8) & 0xff, ypart);
++                    s_x += ds_x;
++                    fbout[3] = blend_bilinear_2x2((uint32_t*)(src + (s_x >> 16)), w, (s_x >> 8) & 0xff, ypart);
+                     s_x += ds_x;
+                     fbout += 4;
+                 }
+--- a/avs/vis_avs/e_colormap.h
++++ b/avs/vis_avs/e_colormap.h
+@@ -5,7 +5,9 @@
+ #include "effect_info.h"
+ #include "handles.h"
+ 
++#ifdef SIMD_MODE_X86_SSE
+ #include <immintrin.h>
++#endif
+ #include <string>
+ #include <vector>
+ 
+--- a/avs/vis_avs/e_colorreduction.cpp
++++ b/avs/vis_avs/e_colorreduction.cpp
+@@ -35,7 +35,9 @@
+ 
+ #include "../util.h"  // ssizeof32()
+ 
++#ifdef SIMD_MODE_X86_SSE
+ #include <immintrin.h>
++#endif
+ 
+ constexpr Parameter ColorReduction_Info::parameters[];
+ 
+--- a/avs/vis_avs/e_convolution.h
++++ b/avs/vis_avs/e_convolution.h
+@@ -4,7 +4,9 @@
+ #include "effect_info.h"
+ 
+ #include <cstdint>
++#ifdef SIMD_MODE_X86_SSE
+ #include <mmintrin.h>
++#endif
+ 
+ #define CONVO_KERNEL_DIM       7
+ #define CONVO_KERNEL_SIZE      CONVO_KERNEL_DIM* CONVO_KERNEL_DIM
+--- a/avs/vis_avs/e_dynamicmovement.cpp
++++ b/avs/vis_avs/e_dynamicmovement.cpp
+@@ -35,7 +35,9 @@
+ #include "instance.h"
+ 
+ #include <math.h>
++#ifdef SIMD_MODE_X86_SSE
+ #include <mmintrin.h>
++#endif
+ 
+ #define PUT_INT(y)                   \
+     data[pos] = (y) & 255;           \
+--- a/avs/vis_avs/e_fadeout.cpp
++++ b/avs/vis_avs/e_fadeout.cpp
+@@ -32,7 +32,9 @@
+ // alphachannel safe 11/21/99
+ #include "e_fadeout.h"
+ 
++#ifdef SIMD_MODE_X86_SSE
+ #include <immintrin.h>
++#endif
+ 
+ constexpr Parameter Fadeout_Info::parameters[];
+ 
+@@ -138,6 +140,7 @@
+             t += 4;
+         }
+     } else {
++#ifdef SIMD_MODE_X86_SSE
+         uint32_t fadelen_noalpha = this->config.fadelen | (this->config.fadelen << 8)
+                                    | (this->config.fadelen << 16);
+         __m128i adj = _mm_set1_epi32(fadelen_noalpha);
+@@ -145,6 +148,13 @@
+             __m128i fb_4px = _mm_loadu_si128((__m128i*)&framebuffer[i]);
+             _mm_storeu_si128((__m128i*)&framebuffer[i], _mm_subs_epu8(fb_4px, adj));
+         }
++#else
++        auto* bytes = reinterpret_cast<unsigned char*>(framebuffer);
++        for (int i = 0; i < w * h; ++i) {
++            for (int channel = 0; channel < 3; ++channel)
++                bytes[i * 4 + channel] = fadtab[channel][bytes[i * 4 + channel]];
++        }
++#endif
+     }
+     return 0;
+ }
+--- a/avs/vis_avs/e_fastbright.cpp
++++ b/avs/vis_avs/e_fastbright.cpp
+@@ -31,7 +31,9 @@
+ */
+ #include "e_fastbright.h"
+ 
++#ifdef SIMD_MODE_X86_SSE
+ #include <immintrin.h>
++#endif
+ 
+ #define GET_INT() \
+     (data[pos] | (data[pos + 1] << 8) | (data[pos + 2] << 16) | (data[pos + 3] << 24))
+--- a/avs/vis_avs/e_invert.cpp
++++ b/avs/vis_avs/e_invert.cpp
+@@ -31,7 +31,9 @@
+ */
+ #include "e_invert.h"
+ 
++#ifdef SIMD_MODE_X86_SSE
+ #include <immintrin.h>
++#endif
+ #include <stdlib.h>
+ 
+ E_Invert::E_Invert(AVS_Instance* avs) : Configurable_Effect(avs) {}
+@@ -43,6 +45,7 @@
+     }
+ }
+ 
++#ifdef SIMD_MODE_X86_SSE
+ static void render_simd(int* framebuffer, int length) {
+     __m128i mask = _mm_set1_epi32(0xffffff);
+     for (int i = 0; i < length; i += 4) {
+@@ -51,6 +54,7 @@
+         _mm_store_si128((__m128i*)&framebuffer[i], four_px);
+     }
+ }
++#endif
+ 
+ int E_Invert::render(char[2][2][576],
+                      int is_beat,
+--- a/avs/vis_avs/e_movement.cpp
++++ b/avs/vis_avs/e_movement.cpp
+@@ -37,7 +37,9 @@
+ #include "blend.h"
+ 
+ #include <math.h>
++#ifdef SIMD_MODE_X86_SSE
+ #include <mmintrin.h>
++#endif
+ 
+ #define REFFECT_MIN 2
+ #define REFFECT_MAX 22
+--- a/avs/vis_avs/e_multifilter.cpp
++++ b/avs/vis_avs/e_multifilter.cpp
+@@ -4,7 +4,9 @@
+ 
+ #include "../util.h"  // ssizeof32()
+ 
+-#include <emmintrin.h>  // SSE2 SIMD intrinsics
++#ifdef SIMD_MODE_X86_SSE
++#include <emmintrin.h>
++#endif  // SSE2 SIMD intrinsics
+ #include <string.h>
+ 
+ constexpr Parameter MultiFilter_Info::parameters[];
+--- a/avs/vis_avs/e_multiplier.cpp
++++ b/avs/vis_avs/e_multiplier.cpp
+@@ -32,7 +32,9 @@
+ #include "e_multiplier.h"
+ 
+ #ifdef SIMD_MODE_X86_SSE
++#ifdef SIMD_MODE_X86_SSE
+ #include <immintrin.h>
++#endif
+ #endif
+ 
+ constexpr Parameter Multiplier_Info::parameters[];
+--- a/avs/vis_avs/e_normalise.cpp
++++ b/avs/vis_avs/e_normalise.cpp
+@@ -1,7 +1,11 @@
+ #include "e_normalise.h"
+ 
++#ifdef SIMD_MODE_X86_SSE
+ #include <emmintrin.h>
++#endif
++#ifdef SIMD_MODE_X86_SSE
+ #include <xmmintrin.h>
++#endif
+ 
+ /* This is a tradeoff heuristic used in the SSE2 implementation. Checking more often
+ (->lower number) will increase total cost for scan, but will exit (slightly) earlier, if
+--- a/avs/vis_avs/e_root.cpp
++++ b/avs/vis_avs/e_root.cpp
+@@ -108,6 +108,11 @@
+ }
+ 
+ void E_Root::load_legacy(unsigned char* data, int len) {
++    // Legacy files carry none of the constructor-generated JSON metadata.
++    this->config.date_init.clear();
++    this->config.date_last.clear();
++    this->config.name.clear();
++    this->config.id.clear();
+     int32_t pos = 0;
+     if (len >= 1) {
+         this->config.clear = data[pos++];
+--- a/avs/vis_avs/e_texer.cpp
++++ b/avs/vis_avs/e_texer.cpp
+@@ -8,7 +8,9 @@
+ 
+ #include "../util.h"  // ssizeof32()
+ 
+-#include <emmintrin.h>  // SSE2 SIMD intrinsics
++#ifdef SIMD_MODE_X86_SSE
++#include <emmintrin.h>
++#endif  // SSE2 SIMD intrinsics
+ 
+ // IMAGE_DATA_ROW_EXPAND depends on the stepping of the SIMD-enabled render method.
+ // Currently 4 pixels are processed at once, so we are at most 3 pixels outside of the
+--- a/avs/vis_avs/e_water.cpp
++++ b/avs/vis_avs/e_water.cpp
+@@ -34,7 +34,9 @@
+ 
+ #include "pixel_format.h"
+ 
++#ifdef SIMD_MODE_X86_SSE
+ #include <immintrin.h>
++#endif
+ 
+ #define PUT_INT(y)                   \
+     data[pos] = (y) & 255;           \
+--- a/avs/vis_avs/effect_info.cpp
++++ b/avs/vis_avs/effect_info.cpp
+@@ -39,6 +39,11 @@
+ static void deserialize_color(const std::string& color_str,
+                               uint64_t* color_out,
+                               AVS_Pixel_Format* pixel_format_out) {
++    if (color_str.size() == 7 && color_str[0] == '#') {
++        *color_out = std::stoull(color_str.substr(1), nullptr, 16);
++        *pixel_format_out = AVS_PIXEL_RGB0_8;
++        return;
++    }
+     std::string pixel_format_str;
+     static const size_t num_channels = 4;
+     std::string channel_strs[num_channels] = {"0", "0", "0", "0"};
+--- a/avs/vis_avs/effect_library.cpp
++++ b/avs/vis_avs/effect_library.cpp
+@@ -103,24 +103,7 @@
+     MAKE_EFFECT_LIB_ENTRY(DynamicMovement);
+     MAKE_EFFECT_LIB_ENTRY(FastBright);
+     MAKE_EFFECT_LIB_ENTRY(ColorModifier);
+-    /* APEs */
+-    MAKE_EFFECT_LIB_ENTRY(ChannelShift);
+-    MAKE_EFFECT_LIB_ENTRY(ColorReduction);
+-    MAKE_EFFECT_LIB_ENTRY(Multiplier);
+-    MAKE_EFFECT_LIB_ENTRY(VideoDelay);
+-    MAKE_EFFECT_LIB_ENTRY(MultiDelay);
+-    MAKE_EFFECT_LIB_ENTRY(Convolution);
+-    MAKE_EFFECT_LIB_ENTRY(Texer2);
+-    MAKE_EFFECT_LIB_ENTRY(Normalise);
+-    MAKE_EFFECT_LIB_ENTRY(ColorMap);
+-    MAKE_EFFECT_LIB_ENTRY(AddBorders);
+-    MAKE_EFFECT_LIB_ENTRY(Triangle);
+-    MAKE_EFFECT_LIB_ENTRY(EelTrans);
+-    MAKE_EFFECT_LIB_ENTRY(GlobalVariables);
+-    MAKE_EFFECT_LIB_ENTRY(MultiFilter);
+-    MAKE_EFFECT_LIB_ENTRY(Picture2);
+-    MAKE_EFFECT_LIB_ENTRY(FramerateLimiter);
+-    MAKE_EFFECT_LIB_ENTRY(Texer);
++    /* Native APE implementations are excluded from the web build. */
+     /* Example */
+     // MAKE_EFFECT_LIB_ENTRY(Example);
+ 
+--- a/avs/vis_avs/instance.cpp
++++ b/avs/vis_avs/instance.cpp
+@@ -195,6 +195,7 @@
+     }
+     lock_lock(this->render_lock);
+     this->root.swap(this->root_secondary);
++    std::swap(this->root.config, this->root_secondary.config);
+     lock_unlock(this->render_lock);
+     // this->root.print_tree();
+     return true;
+@@ -218,6 +219,7 @@
+         }
+         lock_lock(this->render_lock);
+         this->root.swap(this->root_secondary);
++    std::swap(this->root.config, this->root_secondary.config);
+         lock_unlock(this->render_lock);
+         this->root.print_tree();
+         return true;
+--- a/avs/vis_avs/instance.h
++++ b/avs/vis_avs/instance.h
+@@ -98,11 +98,11 @@
+         /* Global memory for such things as gmegabuf & regXX vars. Usually shared among
+            all EEL VMs (i.e. an intra-effect shared code context) but we need separation
+            per AVS instance. */
+-        void* global_ram;
+-        char visdata[2][2][AUDIO_BUFFER_LEN];
+-        bool log_errors;
+-        const char* (*pre_compile_hook)(void* ctx, char* code, void* avs_instance);
+-        void (*post_compile_hook)(void* avs_instance);
++        void* global_ram = nullptr;
++        char visdata[2][2][AUDIO_BUFFER_LEN]{};
++        bool log_errors = true;
++        const char* (*pre_compile_hook)(void* ctx, char* code, void* avs_instance) = nullptr;
++        void (*post_compile_hook)(void* avs_instance) = nullptr;
+ 
+         void error(const char* error_str);
+         void clear_errors();

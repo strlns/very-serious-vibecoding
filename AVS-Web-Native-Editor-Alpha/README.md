@@ -32,29 +32,96 @@ preset is stored as one record per line so an individual preset can be removed
 without changing application code. Entries known to require unsupported APE
 effects are not included.
 
-## Start locally
+## Build and run
 
-Serve this folder over **HTTP**. Opening `index.html` via `file://` does not
-work: the app uses an ES-module Web Worker and WebAssembly. If an “Open in” action
-opens a local file URL, use the HTTP address below instead.
+The project builds both the editable C++ renderer and the web interface locally.
+Use **Node.js 24.11.0** (pinned in `.nvmrc`), npm, and Python 3. Vite is pinned to
+**8.3.6**. The compiler is **Emscripten 4.0.15**, pinned in `package.json` and the
+local devDependency `@avs-web/emscripten-toolchain` at `vendor/emsdk-4.0.15/`.
 
-With Python 3 installed, run one of the included launchers from this directory:
-
-- **Windows:** `start-server.bat`
-- **macOS/Linux:** `./start-server.sh`
-
-Or start the server directly:
+Initial setup:
 
 ```sh
-python3 -m http.server 8080 --bind 127.0.0.1
+nvm use
+npm ci
+npm run setup:wasm
 ```
 
-On Windows, use `py -3` instead of `python3`. If your Python 3 executable is named
-`python`, `python -m http.server 8080 --bind 127.0.0.1` also works.
+`setup:wasm` uses the vendored, official emsdk installer to download and activate
+exactly 4.0.15 into the ignored project-local `.cache/emsdk/` directory. It installs
+compiler binaries and supporting tools; it does not change your global compiler
+or shell configuration. This large download is needed only once per checkout.
+The npm registry supplies Vite and its locked dependencies; the local toolchain
+package uses the official Emscripten SDK installer. Set `PYTHON` to a Python 3 executable if it is not named `python3`.
 
-Then open [http://127.0.0.1:8080/](http://127.0.0.1:8080/).
-The launchers run this same server; no application build is needed to run the
-included JavaScript and WebAssembly files.
+```sh
+npm run dev       # Compile C++/WASM, run renderer checks, start Vite
+npm run build     # Compile C++/WASM, run renderer checks, bundle into dist/
+npm run preview   # Serve the production bundle
+```
+
+Open [http://127.0.0.1:8080/](http://127.0.0.1:8080/). `npm ci` installs the exact
+dependency tree in `package-lock.json`. Vite supports Node 20.19+ or 22.12+, but
+Node 24 is the tested project version; Node 16 is too old.
+
+Edit native renderer code in `native/avs/` and the browser adapter in `native/web/`.
+`npm run build:wasm` recompiles the renderer into `build/native/` and runs targeted
+checks covering schema, waveform rendering, colors, legacy serialization, metadata,
+root settings, beat response to externally supplied PCM, and EEL execution.
+Compilation is incremental and notices source/header changes. When Vite is already
+running, rerun `npm run build:wasm` after C++ edits, then reload the page.
+`npm run check:wasm` reruns those checks without compiling.
+
+`dist/` contains the complete static app, optional presets, licenses, credit/source
+notices, this README, its screenshot, and the legacy `app/index.html` redirect.
+Copy the **contents of `dist/`** to an HTTP host; relative assets support subdirectory
+hosting. The source checkout requires Vite; the production output needs only HTTP:
+
+```sh
+python3 -m http.server 8080 --bind 127.0.0.1 --directory dist
+```
+
+On Windows use `py -3` instead of `python3`. The included `start-server.sh` and
+`start-server.bat` serve `dist/` from a source checkout, or their own directory when
+included in the built distribution. They require an existing production build.
+Opening `index.html` via `file://` does not work because of the module worker and
+WebAssembly. Use the HTTP URL if an “Open in” action opens a local file URL.
+
+## Adaptations to the AVS fork
+
+AVS//Web adapts the C++ renderer from `grandchild/vis_avs` for WebAssembly:
+
+- Portable rendering paths and the architecture-neutral WDL-EEL2 interpreter,
+  with an 8 MiB WASM stack and initialized EEL global RAM and callbacks.
+- The original waveform-level beat detector adapted for external Web Audio PCM,
+  with separate 1024-sample FFT and 576-sample legacy waveform buffers.
+- Fixes for root configuration swapping, `#RRGGBB` colors, and metadata absent
+  from legacy presets.
+- A browser API and single-worker platform layer for audio input, rendering,
+  isolated preset loading, schema access, and legacy serialization.
+
+The editable sources are in `native/avs/` and `native/web/`.
+`native/web-port.patch` records the initial upstream changes, already applied to
+those sources. Native APE implementations remain excluded. See
+[native/README.md](native/README.md) for implementation and build details.
+
+## Source versions and checksums
+
+The source basis is
+[`grandchild/vis_avs` at `1cee1f3d4f783b830538c3e4d2082a2c59521dee`](https://github.com/grandchild/vis_avs/tree/1cee1f3d4f783b830538c3e4d2082a2c59521dee).
+Its renderer and bundled dependency sources are included under `native/avs/` with
+their original notices. `native/upstream.json` records the source archive's SHA256.
+The application builds its JS/WASM from these sources; precompiled historical
+artifacts are not required.
+
+The official **Emscripten 4.0.15** SDK installer archive has SHA256
+`35be7626493e3bd22860ee2177147f9bca3b6ff871edeab27c5b061a9ed9d23d`.
+Its vendored files are individually recorded in
+`vendor/emsdk-4.0.15/provenance.json`; `npm run verify:vendor` checks them.
+
+Each native build records the compiler version, current JS/WASM SHA256 values,
+and native source-tree hash in `build/native/provenance.json`. The production
+bundle includes the same information as `dist/renderer-provenance.json`.
 
 ## Audio
 
@@ -68,8 +135,7 @@ If the browser exposes screen sharing without a usable audio track, the app repo
 that system audio is unsupported and leaves file playback and the renderer usable.
 
 The browser signal is normalized independently of playback volume. The native port
-also restores AVS's original waveform-level beat detector; earlier alpha builds passed
-waveform/spectrum data but never raised the beat flag.
+also runs AVS's original waveform-level beat detector on the supplied audio.
 
 ## Editor
 
@@ -94,7 +160,7 @@ fixed resolutions can substantially reduce CPU use for complex presets.
 
 * Native APE plug-ins are skipped safely.
 * Presets known to contain unsupported APE/unknown components are omitted.
-* The Structure tab can edit supported fields and add/remove components. Apply
+* The Editor tab can edit supported fields and add/remove components. Apply
   validates changes through libavs; Save writes a legacy binary .avs file.
 * Saving without applying changes preserves the original preset bytes exactly.
 * Picture/video effects cannot yet resolve external media files.

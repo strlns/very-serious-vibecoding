@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>AVS//Web — Visualizer</title>
-  <link rel="stylesheet" href="styles.css?v=9">
-  <link rel="stylesheet" href="editor.css?v=23">
-  <link rel="stylesheet" href="info.css?v=7">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="editor.css">
+  <link rel="stylesheet" href="info.css">
 </head>
 <body>
   <header>
@@ -125,6 +125,11 @@
       components retain their own notices and licenses.</p>
     <p><a href="LICENSE-AVS.txt" target="_blank">AVS / libavs upstream BSD 3-Clause license</a>
       · <a href="CREDITS.txt" target="_blank">Credits and source acknowledgements</a></p>
+    <h2>AVS//Web adaptations</h2>
+    <p>This web port adds portable rendering and EEL execution, beat detection for
+      browser audio, preset configuration and metadata fixes, and a single-worker
+      browser API. The editable C++ sources and Emscripten build are included in the
+      project. See <a href="SOURCE-NOTICE.txt" target="_blank">source and modification notices</a>.</p>
     <h2>Bundled legacy presets</h2>
     <p>The presets are a separate, mixed legacy collection gathered from publicly
       available sources. They were created by their respective authors, not by this
@@ -169,6 +174,6 @@
     </div>
   </section>
 
-  <script type="module" src="app.js?v=29"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>

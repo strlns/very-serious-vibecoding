@@ -3,7 +3,7 @@ Source provenance and modifications
 
 AVS/libavs source basis:
   https://github.com/grandchild/vis_avs
-  revision 1cee1f3
+  revision 1cee1f3d4f783b830538c3e4d2082a2c59521dee
 
 This is the modern C++ AVS port and libavs library developed by grandchild and
 other upstream contributors. AVS//Web builds on their modernization, APIs, and
@@ -23,20 +23,29 @@ Bundled presets:
 WDL-EEL2 upstream:
   https://github.com/justinfrankel/WDL
 
-This alpha adds an Emscripten platform layer and browser API, enables WDL-EEL2's
-architecture-neutral interpreter, increases the WebAssembly stack required by that
-interpreter, initializes per-instance EEL global memory deterministically, isolates
-preset loading, clears shared framebuffer state when switching presets, exposes the
-native preset schema and legacy serializer to the browser editor, and excludes native
-APE implementations from the browser build.
+AVS//Web fork adaptations
+-------------------------
+native/avs/ contains the upstream source basis with local browser adaptations.
+native/upstream.json records the full revision and source archive SHA256.
+native/web-port.patch records the initial changes to upstream, already applied
+to the source tree. native/web/ contains the browser platform layer and worker ABI.
 
-The distributed WebAssembly binary was linked with Emscripten 4.0.15. Its exact
-selected runtime-library notices are collected in LICENSE-Emscripten.txt.
+Changes include portable C rendering paths, EEL global RAM and callback
+initialization, root configuration swapping, #RRGGBB colors, missing legacy metadata,
+and a waveform-level beat detector adapted from upstream vis_avs/main.cpp.
+Audio processing separates the 1024-sample FFT window from 576-sample legacy buffers
+and bounds writes when incoming PCM exceeds ring capacity. Browser normalization
+remains in app.js and changes the analysis signal, not audible playback volume.
+The worker uses external PCM input; native APE implementations remain excluded.
 
-It also restores the original AVS waveform-level beat detector, fixes root preset
-configuration swapping (including Clear), and accepts the schema's #RRGGBB color form.
-Legacy preset loading clears constructor-generated metadata that was not present in the
-binary source file.
+native/build.py compiles these sources with Emscripten 4.0.15. The official SDK
+installer is vendored as a local npm devDependency in vendor/emsdk-4.0.15/; compiler
+binaries are downloaded into the ignored .cache/emsdk/ directory. package.json
+pins the version. The official SDK is used for native compilation. Current artifact and
+source hashes are emitted to build/native/provenance.json and included in dist/.
 
-The browser app loads original binary preset bytes; @visbot/webvsc and Webvs are no
-longer part of the renderer or distribution.
+The linked Emscripten runtime notices are in LICENSE-Emscripten.txt. Dependency
+source headers and bundled notices remain in native/avs/ and the LICENSE-*.txt files.
+The web build uses Vite 8.3.6; its license is included in LICENSE-Vite.txt.
+The browser app still loads original binary preset bytes. Webvs and @visbot/webvsc
+are not part of the renderer or distribution.

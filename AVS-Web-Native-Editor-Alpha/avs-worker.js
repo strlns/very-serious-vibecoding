@@ -1,4 +1,5 @@
-import createAVS from "./libavs.js?v=5";
+import rendererUrl from "./build/native/libavs.js?url";
+import wasmUrl from "./build/native/libavs.wasm?url";
 
 let avs;
 let width = 0;
@@ -58,11 +59,8 @@ function ensureAudio(samples) {
 self.onmessage = async ({data}) => {
   try {
     if (data.type === "init") {
-      avs = await createAVS({locateFile:file => {
-        const url = new URL(file, import.meta.url);
-        url.searchParams.set("v", "5");
-        return url.href;
-      }});
+      const {default: createAVS} = await import(/* @vite-ignore */ rendererUrl);
+      avs = await createAVS({locateFile: () => wasmUrl});
       if (!avs._avs_wasm_init()) throw new Error(errorText());
       resize(data.width, data.height);
       const schemaPointer = avs._avs_wasm_preset_schema();

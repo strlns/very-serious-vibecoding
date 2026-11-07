@@ -322,7 +322,7 @@ function startWorker() {
   worker?.terminate();
   ready = false;
   renderPending = false;
-  worker = new Worker("avs-worker.js?v=5", {type:"module"});
+  worker = new Worker(new URL("./avs-worker.js", import.meta.url), {type:"module"});
   worker.onmessage = ({data}) => {
     if (data.type === "ready") {
       ready = true;
@@ -488,7 +488,8 @@ function saveFavoritePresets() {
 
 async function loadBundledPresets() {
   try {
-    const module = await import("./presets/bundled-presets.js?v=1");
+    const presetUrl = new URL(`${import.meta.env.BASE_URL}presets/bundled-presets.js`, document.baseURI);
+    const module = await import(/* @vite-ignore */ presetUrl.href);
     OFFICIAL_PRESETS = Array.isArray(module.BUNDLED_PRESETS) ? module.BUNDLED_PRESETS : [];
   } catch {
     OFFICIAL_PRESETS = [];

@@ -1,0 +1,27 @@
+{
+  "name": "avs-web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "predev": "npm run build:wasm",
+    "build": "vite build",
+    "prebuild": "npm run build:wasm",
+    "preview": "vite preview",
+    "setup:wasm": "node vendor/emsdk-4.0.15/setup.mjs",
+    "build:wasm": "node scripts/build-wasm.mjs && node scripts/check-renderer.mjs",
+    "check:wasm": "node scripts/check-renderer.mjs",
+    "verify:vendor": "node scripts/verify-vendor.mjs"
+  },
+  "devDependencies": {
+    "vite": "8.3.6",
+    "@avs-web/emscripten-toolchain": "file:vendor/emsdk-4.0.15"
+  },
+  "config": {
+    "emscriptenVersion": "4.0.15"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "upstream": "https://github.com/grandchild/vis_avs",
+  "revision": "1cee1f3",
+  "emscriptenVersion": "4.0.15",
+  "versionEvidence": "SOURCE-NOTICE.txt; original SDK and build recipe are not included",
+  "modifications": "See SOURCE-NOTICE.txt; this is a project-specific native port, not a stock upstream binary",
+  "sha256": {
+    "libavs.js": "e88559a6dcdfe796be2927edeb4ac93d2b4ff989abd7526370a96003f03d6dc1",
+    "libavs.wasm": "0456f3b897330389cfc6647b7f8df60e36686b6bba90f4663108ea50142c78f8"
+  },
+  "buildHistory": {
+    "reportedBy": "project owner",
+    "environment": "cloud VM in original ChatGPT conversation",
+    "conversationId": "6aaffb1b-0bf0-83ed-ad59-9682b691342b",
+    "reportedChange": "C++ recompiled to fix beat detection for browser Web Audio sources",
+    "recoveredNativeSources": false,
+    "recoveredBuildCommands": false
+  }
+}

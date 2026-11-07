@@ -1,6 +1,6 @@
 # AVS//Web — project guidance
 
-This file belongs in the `AVS-Web-Native-Editor-Alpha/` subdirectory of the larger `veryseriousvibecoding/` Git repository. Keep work scoped to this subdirectory unless the user explicitly asks otherwise. The user reviews diffs and performs Git staging, commits, and pushes locally; do not commit, push, force-push, publish, or deploy on their behalf unless explicitly requested.
+This file belongs in the `AVS-Web-Native-Editor-Alpha/` subdirectory of the larger `veryseriousvibecoding/` Git repository. Keep work scoped to this subdirectory unless the user explicitly asks otherwise. Codex may create local Git commits. The user performs all pushes; do not push or force-push.
 
 ## Repository layout
 
@@ -11,17 +11,17 @@ This file belongs in the `AVS-Web-Native-Editor-Alpha/` subdirectory of the larg
 ## What this project is
 
 - A standalone, English-language web UI for the original AVS renderer compiled from C/C++ to WebAssembly. It loads legacy binary `.avs` presets directly; it does not use Webvs or converted JSON presets at runtime.
-- `index.html`, `app.js`, `avs-worker.js`, `libavs.js`, `libavs.wasm`, the CSS files, and `presets/bundled-presets.js` comprise the distributable app. `app/index.html` is a backward-compatibility redirect; preserve it when packaging.
-- The existing WASM binary is already built. This directory does not contain a complete native source checkout, Emscripten build recipe, or `package.json`. Read `SOURCE-NOTICE.txt` for the pinned native source basis and modifications; do not claim a WASM rebuild is reproducible here or silently replace it with a JS approximation.
+- Vite builds the complete distributable into `dist/`, including the compiled native renderer, optional presets, documentation, and license/notice files. `app/index.html` is a backward-compatibility redirect; preserve it when packaging.
+- The editable C++ renderer is in `native/avs/`, with the browser ABI/platform layer in `native/web/`. The upstream revision and patch are recorded in `native/upstream.json` and `native/web-port.patch`. Emscripten 4.0.15 is a pinned local devDependency in `vendor/emsdk-4.0.15/`; run `npm run setup:wasm` once, then `npm run build:wasm`. Generated renderer files go into ignored `build/native/`. Read `SOURCE-NOTICE.txt` before native edits; do not replace the renderer with a JS approximation.
 - Bundled presets are optional and separate from application code. The app must still start with its new waveform preset if `presets/bundled-presets.js` is absent. Unsupported APE plugins remain out of scope unless the user changes that decision.
 
 ## Working on the app
 
 - Read `README.md`, `SOURCE-NOTICE.txt`, and the relevant files before editing. Preserve working visualization, audio input, queue, editor, reduced-motion warning, and mobile behavior when making focused changes.
-- Run the app from this directory with `./start-server.sh` on macOS/Linux or `start-server.bat` on Windows, then open `http://127.0.0.1:8080/`. HTTP is needed for its ES-module worker and WASM; opening `index.html` via `file://` is not the supported run path.
+- Use Node 24 (`nvm use`), `npm ci`, and `npm run setup:wasm` for initial setup. `npm run dev` builds the renderer and starts Vite at `http://127.0.0.1:8080/`. `npm run build` builds native code and the static distribution; `npm run preview` or the Python launchers serve `dist/`. HTTP is required; opening `index.html` via `file://` is unsupported.
 - Keep UI copy in English. Use system font stacks and local assets; do not add CDN dependencies or external fonts without an explicit reason and appropriate notices.
 - Prefer a small syntax check or targeted manual inspection for ordinary changes. Do not create a blanket regression suite for the mixed legacy presets or run broad, expensive tests without a concrete need or the user's go-ahead.
-- When making a deliverable, include the complete app directory and license/notice files in the ZIP. The user extracts it over the same subdirectory in their local Git checkout, reviews `git diff`, stages, commits, and pushes there. Do not overwrite unrelated folders in the parent repository or interfere with its hooks and generated directory listing.
+- Package the complete `dist/` directory and its license/notice files for a runnable deliverable. Include native sources and build configuration when a source archive is requested. Do not overwrite unrelated folders in the parent repository or interfere with its hooks and generated directory listing.
 
 ## Attribution and licensing
 

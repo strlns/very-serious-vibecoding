@@ -43,6 +43,16 @@ The linked runtime set was verified from the actual link invocation: Emscripten
 runtime libraries, musl-derived libc, dlmalloc, compiler-rt, libc++, and libc++abi.
 Their complete notices are collected in LICENSE-Emscripten.txt.
 
+Official emsdk installer, tag 4.0.15
+Source: https://github.com/emscripten-core/emsdk/tree/4.0.15
+The installer sources are vendored in vendor/emsdk-4.0.15/upstream/ and wrapped
+as a local npm devDependency. License: MIT, in LICENSE-emsdk.txt.
+
+Vite 8.3.6
+Copyright (c) 2019-present, VoidZero Inc. and Vite contributors.
+Source: https://github.com/vitejs/vite
+Build tooling and generated JavaScript helpers. License: MIT, in LICENSE-Vite.txt.
+
 AVS FFT and component code
 md_fft portions copyright 2005-2013 Nullsoft, Inc.; other AVS contributors are
 identified in the upstream source. These portions use the AVS BSD 3-Clause terms.

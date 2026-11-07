@@ -1,0 +1,20 @@
+{
+  "name": "@avs-web/emscripten-toolchain",
+  "version": "4.0.15",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "bin": {
+    "avs-emcc": "run.mjs",
+    "avs-empp": "run.mjs"
+  },
+  "files": [
+    "upstream",
+    "run.mjs",
+    "setup.mjs",
+    "provenance.json"
+  ],
+  "scripts": {
+    "setup": "node setup.mjs"
+  }
+}
