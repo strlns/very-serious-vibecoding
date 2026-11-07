@@ -87,6 +87,34 @@ included in the built distribution. They require an existing production build.
 Opening `index.html` via `file://` does not work because of the module worker and
 WebAssembly. Use the HTTP URL if an “Open in” action opens a local file URL.
 
+### GitHub Pages deployment
+
+The repository's `.github/workflows/static.yml` installs the pinned Node.js and
+Emscripten toolchain, runs `npm ci` and `npm run build`, and publishes the resulting
+`dist/` contents under `AVS-Web-Native-Editor-Alpha/`. Other tracked projects and
+the repository index are preserved in the Pages artifact.
+
+`dist/`, `build/`, and `.cache/` stay ignored by Git: Actions generates them on the
+runner before uploading the Pages artifact. No local build or committed binaries
+are needed for deployment. Publishing the source checkout directly will not work;
+Vite must resolve its worker and `?url` asset imports first.
+
+## Project layout
+
+- `index.html`: Vite's HTML entry point.
+- `src/app.js`: UI, editor, audio integration, and worker coordination.
+- `src/avs-worker.js`: worker-side renderer integration.
+- `src/styles/`: application stylesheets.
+- `native/`: editable C++ renderer, browser adapter, and native build script.
+- `vendor/`: pinned official Emscripten SDK installer and local npm wrapper.
+- `scripts/`: build and verification helpers.
+- `presets/` and `docs/`: optional preset collection and documentation assets.
+- `build/native/` and `dist/`: generated native artifacts and production website,
+  both ignored by Git.
+
+Vite bundles the UI, worker, and CSS for production. The generated Emscripten
+loader and WASM remain separate assets and are copied without rewriting their bytes.
+
 ## Adaptations to the AVS fork
 
 AVS//Web adapts the C++ renderer from `grandchild/vis_avs` for WebAssembly:

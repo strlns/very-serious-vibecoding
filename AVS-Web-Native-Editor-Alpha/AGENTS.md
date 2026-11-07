@@ -11,6 +11,7 @@ This file belongs in the `AVS-Web-Native-Editor-Alpha/` subdirectory of the larg
 ## What this project is
 
 - A standalone, English-language web UI for the original AVS renderer compiled from C/C++ to WebAssembly. It loads legacy binary `.avs` presets directly; it does not use Webvs or converted JSON presets at runtime.
+- UI JavaScript and the renderer worker live in `src/`; CSS lives in `src/styles/`. Keep `index.html` as the Vite entry point in the project root.
 - Vite builds the complete distributable into `dist/`, including the compiled native renderer, optional presets, documentation, and license/notice files. `app/index.html` is a backward-compatibility redirect; preserve it when packaging.
 - The editable C++ renderer is in `native/avs/`, with the browser ABI/platform layer in `native/web/`. The upstream revision and patch are recorded in `native/upstream.json` and `native/web-port.patch`. Emscripten 4.0.15 is a pinned local devDependency in `vendor/emsdk-4.0.15/`; run `npm run setup:wasm` once, then `npm run build:wasm`. Generated renderer files go into ignored `build/native/`. Read `SOURCE-NOTICE.txt` before native edits; do not replace the renderer with a JS approximation.
 - Bundled presets are optional and separate from application code. The app must still start with its new waveform preset if `presets/bundled-presets.js` is absent. Unsupported APE plugins remain out of scope unless the user changes that decision.

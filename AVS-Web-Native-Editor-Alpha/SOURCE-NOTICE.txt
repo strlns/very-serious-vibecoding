@@ -35,7 +35,7 @@ initialization, root configuration swapping, #RRGGBB colors, missing legacy meta
 and a waveform-level beat detector adapted from upstream vis_avs/main.cpp.
 Audio processing separates the 1024-sample FFT window from 576-sample legacy buffers
 and bounds writes when incoming PCM exceeds ring capacity. Browser normalization
-remains in app.js and changes the analysis signal, not audible playback volume.
+remains in src/app.js and changes the analysis signal, not audible playback volume.
 The worker uses external PCM input; native APE implementations remain excluded.
 
 native/build.py compiles these sources with Emscripten 4.0.15. The official SDK

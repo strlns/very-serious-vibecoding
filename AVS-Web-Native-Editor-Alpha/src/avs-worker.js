@@ -1,5 +1,5 @@
-import rendererUrl from "./build/native/libavs.js?url";
-import wasmUrl from "./build/native/libavs.wasm?url";
+import rendererUrl from "../build/native/libavs.js?url";
+import wasmUrl from "../build/native/libavs.wasm?url";
 
 let avs;
 let width = 0;

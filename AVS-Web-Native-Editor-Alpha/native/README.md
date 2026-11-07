@@ -17,7 +17,7 @@ clear metadata absent from legacy files. The original waveform-level beat detect
 from upstream `main.cpp` is adapted into `Audio::get()` for external PCM. Its FFT
 window and legacy waveform buffers are kept separate to avoid overwriting memory.
 
-`web/avs_wasm.cpp` exports the ABI consumed by `avs-worker.js`. Presets are loaded
+`web/avs_wasm.cpp` exports the ABI consumed by `src/avs-worker.js`. Presets are loaded
 into a fresh instance and committed only on success. The browser sends float PCM;
 the native audio implementation calculates FFT and beat flags. `web/platform_web.cpp`
 provides the synchronous single-worker platform layer. It deliberately provides
