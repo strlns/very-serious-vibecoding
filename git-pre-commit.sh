@@ -67,7 +67,7 @@ walk_tree() {
         
         # Ignored folders
         case "$dirname" in
-            .git|node_modules|dist|build|venv|__pycache__) continue ;;
+            .git|.cache|node_modules|dist|build|venv|__pycache__) continue ;;
         esac
 
         # Check for nested index.html
