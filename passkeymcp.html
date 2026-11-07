@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>PasskeyMCPServer — Your identity, wherever work happens</title>
+<style>
+
+  :root{
+    --bg: #0B0F14;
+    --bg-panel: #121822;
+    --bg-panel-2: #171F2B;
+    --text: #ECEFF3;
+    --muted: #8B95A5;
+    --brass: #CBA135;
+    --brass-soft: rgba(203,161,53,0.14);
+    --alert: #FF6152;
+    --alert-bg: #2A1310;
+    --mint: #46D08B;
+    --border: rgba(255,255,255,0.08);
+    --radius: 14px;
+    --serif: 'Iowan Old Style','Palatino Linotype','URW Palladio L', Georgia, serif;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --mono: 'JetBrains Mono','Fira Code', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+
+  *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+  body{
+    margin:0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  body.modal-open{ overflow: hidden; }
+
+  a{ color: var(--brass); }
+  h1,h2,h3{ font-family: var(--serif); font-weight: 600; margin: 0 0 .5em; letter-spacing: -0.01em; }
+  p{ margin: 0 0 1em; color: var(--muted); }
+  .eyebrow{
+    font-family: var(--mono);
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    font-size: .72rem;
+    color: var(--brass);
+    display:block;
+    margin-bottom: .8em;
+  }
+  section{ padding: 5.5rem 1.5rem; max-width: 1080px; margin: 0 auto; }
+  .container-wide{ max-width: 1200px; }
+  :focus-visible{ outline: 2px solid var(--brass); outline-offset: 3px; }
+
+  /* ---------- nav ---------- */
+  nav{
+    position: sticky; top: 0; z-index: 50;
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 1rem 1.5rem;
+    background: rgba(11,15,20,0.86);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+  }
+  .brand{ display:flex; align-items:center; gap:.6rem; font-family: var(--serif); font-size:1.05rem; color:var(--text); text-decoration:none; }
+  .brand svg{ width: 26px; height: 26px; }
+  .navlinks{ display:flex; gap:1.6rem; align-items:center; }
+  .navlinks a{ color: var(--muted); text-decoration:none; font-size:.9rem; }
+  .navlinks a:hover{ color: var(--text); }
+  @media (max-width: 720px){ .navlinks a.hide-mobile{ display:none; } }
+
+  .btn{
+    font-family: var(--sans); font-weight:600; font-size:.88rem;
+    border-radius: 8px; padding: .65rem 1.15rem; border: 1px solid transparent;
+    cursor: pointer; text-decoration:none; display:inline-flex; align-items:center; gap:.5rem;
+  }
+  .btn-primary{ background: var(--brass); color:#1a1406; }
+  .btn-primary:hover{ background:#DDB446; }
+  .btn-ghost{ background: transparent; color: var(--text); border-color: var(--border); }
+  .btn-ghost:hover{ border-color: var(--brass); color: var(--brass); }
+
+  /* ---------- hero ---------- */
+  .hero{ text-align:center; padding-top: 5rem; padding-bottom: 0; }
+  .hero h1{ font-size: clamp(2.2rem, 5vw, 3.6rem); max-width: 780px; margin: 0 auto .5em; }
+  .hero .lede{ max-width: 620px; margin: 0 auto 2em; font-size: 1.08rem; }
+  .hero-ctas{ display:flex; gap: .9rem; justify-content:center; flex-wrap:wrap; margin-bottom: 3.5rem; }
+
+  .ticker{ overflow:hidden; border-top:1px solid var(--border); border-bottom:1px solid var(--border); background: var(--bg-panel); }
+  .ticker-track{ display:flex; width: max-content; animation: marquee 32s linear infinite; }
+  .ticker-track span{ padding: .7rem 2rem; white-space:nowrap; font-family: var(--mono); font-size:.8rem; color: var(--muted); }
+  @keyframes marquee{ from{ transform: translateX(0); } to{ transform: translateX(-50%); } }
+  @media (prefers-reduced-motion: reduce){ .ticker-track{ animation: none; } }
+
+  /* ---------- vault dial ---------- */
+  .dial{ transform-origin: 50% 50%; }
+  .dial.spinning{ animation: dialspin 1.1s cubic-bezier(.5,0,.2,1); }
+  @keyframes dialspin{ from{ transform: rotate(0deg); } to{ transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce){ .dial.spinning{ animation: none; } }
+
+  /* ---------- section heading ---------- */
+  .section-head{ text-align:center; max-width: 640px; margin: 0 auto 3rem; }
+  .section-head h2{ font-size: clamp(1.6rem, 3.4vw, 2.2rem); }
+
+  /* ---------- demo ---------- */
+  .demo-shell{
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.75rem;
+  }
+  .demo-prompt{ display:flex; gap:.6rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .demo-prompt input{
+    flex:1; min-width: 240px;
+    background: var(--bg); border:1px solid var(--border); color: var(--text);
+    border-radius: 8px; padding: .75rem .9rem; font-family: var(--mono); font-size: .88rem;
+  }
+  .demo-grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  @media (max-width: 800px){ .demo-grid{ grid-template-columns: 1fr; } }
+
+  .log-panel{ background: var(--bg); border:1px solid var(--border); border-radius: 10px; padding: 1rem; min-height: 320px; display:flex; flex-direction:column; }
+  .log-panel-head{ display:flex; align-items:center; gap:.5rem; font-family: var(--mono); font-size:.75rem; color: var(--muted); margin-bottom:.75rem; text-transform:uppercase; letter-spacing:.08em;}
+  #agent-log{ font-family: var(--mono); font-size: .82rem; color: var(--mint); flex:1; overflow-y:auto; }
+  .log-line{ padding: .3rem 0; border-bottom: 1px dashed rgba(255,255,255,0.06); color: var(--text); opacity:0; animation: fadein .35s ease forwards; }
+  @keyframes fadein{ to{ opacity:1; } }
+  .log-line::before{ content:"▸ "; color: var(--mint); }
+
+  .browser-mock{ background: var(--bg); border:1px solid var(--border); border-radius: 10px; overflow:hidden; display:flex; flex-direction:column; min-height: 320px; }
+  .browser-chrome{ background: var(--bg-panel-2); padding:.55rem .7rem; display:flex; align-items:center; gap:.4rem; border-bottom:1px solid var(--border); }
+  .browser-chrome .dot{ width:9px; height:9px; border-radius:50%; background: rgba(255,255,255,0.15); }
+  .browser-chrome .addr{ margin-left:.6rem; font-family: var(--mono); font-size:.72rem; color: var(--muted); background: var(--bg); padding:.3rem .6rem; border-radius:6px; flex:1; }
+  .browser-body{ position:relative; flex:1; padding: 1.1rem; }
+  .browser-screen{ position:absolute; inset: 1.1rem; opacity:0; transform: translateY(6px); transition: opacity .35s ease, transform .35s ease; pointer-events:none; }
+  .browser-screen.active{ opacity:1; transform:none; pointer-events:auto; }
+  .fake-field{ background: var(--bg-panel); border:1px solid var(--border); border-radius:6px; padding:.5rem .65rem; font-family: var(--mono); font-size:.78rem; color: var(--muted); margin-bottom:.55rem; }
+  .fake-label{ font-size:.68rem; text-transform:uppercase; letter-spacing:.06em; color: var(--muted); margin-bottom:.2rem; display:block; }
+  .fake-btn{ display:inline-block; background: var(--brass-soft); color: var(--brass); border:1px solid rgba(203,161,53,.4); border-radius:6px; padding:.4rem .8rem; font-size:.78rem; font-family:var(--mono); margin-top:.3rem; }
+  .balance{ font-family: var(--serif); font-size:1.6rem; color: var(--text); }
+  .confirm-check{ width:46px; height:46px; border-radius:50%; background: rgba(70,208,139,.14); color: var(--mint); display:flex; align-items:center; justify-content:center; font-size:1.4rem; margin-bottom:.7rem; }
+
+  .demo-foot{ display:flex; justify-content:space-between; align-items:center; margin-top: 1.25rem; flex-wrap:wrap; gap: .6rem;}
+  .demo-caption{ font-size:.78rem; color: var(--muted); margin:0; }
+
+  /* ---------- code block ---------- */
+  .codeblock{
+    background: var(--bg); border:1px solid var(--border); border-radius: 10px;
+    padding: 1.1rem 1.3rem; font-family: var(--mono); font-size: .82rem; color: var(--muted);
+    overflow-x:auto; margin-top: 1.5rem;
+  }
+  .codeblock .k{ color:#7FB0FF; }
+  .codeblock .s{ color: var(--mint); }
+  .codeblock .danger{ color: var(--brass); }
+
+  /* ---------- features ---------- */
+  .feature-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+  @media (max-width: 880px){ .feature-grid{ grid-template-columns: repeat(2,1fr); } }
+  @media (max-width: 560px){ .feature-grid{ grid-template-columns: 1fr; } }
+  .card{ background: var(--bg-panel); border:1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; }
+  .card h3{ font-size: 1.05rem; margin-bottom:.4em; }
+  .card p{ font-size: .9rem; margin-bottom:0; }
+  .card .icon{ width:34px; height:34px; border-radius:8px; background: var(--brass-soft); color:var(--brass); display:flex; align-items:center; justify-content:center; margin-bottom:1rem; font-size:1.1rem; }
+
+  /* ---------- scenarios ---------- */
+  .scenario{ display:grid; grid-template-columns: 90px 1fr; gap:1.3rem; padding: 1.6rem 0; border-top: 1px solid var(--border); }
+  .scenario:last-child{ border-bottom: 1px solid var(--border); }
+  .scenario .tag{ font-family: var(--mono); font-size:.72rem; color: var(--brass); text-transform:uppercase; letter-spacing:.06em; padding-top:.2rem; }
+  .scenario h3{ font-size: 1.15rem; margin-bottom:.35em; }
+  .scenario .result{ font-family: var(--mono); font-size: .8rem; color: var(--brass); margin-top:.6em; }
+
+  /* ---------- security badges ---------- */
+  .badge-row{ display:flex; flex-wrap:wrap; gap: 1rem; justify-content:center; margin: 2rem 0; }
+  .badge{ border:1px dashed var(--border); border-radius: 10px; padding: .9rem 1.2rem; text-align:center; min-width: 140px; }
+  .badge b{ display:block; font-family: var(--serif); color: var(--text); font-size:.95rem; }
+  .badge span{ font-family: var(--mono); font-size:.7rem; color: var(--muted); }
+
+  /* ---------- testimonials ---------- */
+  .testi-grid{ display:grid; grid-template-columns: repeat(3,1fr); gap: 1.25rem; }
+  @media (max-width: 880px){ .testi-grid{ grid-template-columns: 1fr; } }
+  .testi{ background: var(--bg-panel); border:1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; display:flex; flex-direction:column; }
+  .testi p.quote{ color: var(--text); font-size:.95rem; flex:1; }
+  .testi .who{ font-family: var(--mono); font-size:.75rem; color: var(--muted); border-top:1px solid var(--border); padding-top:.8rem; }
+
+  .press-row{ display:flex; gap:1.8rem; flex-wrap:wrap; justify-content:center; opacity:.6; font-family: var(--mono); font-size:.8rem; color: var(--muted); margin-top: 1.5rem; }
+
+  /* ---------- faq ---------- */
+  .faq-item{ border-top: 1px solid var(--border); padding: 1.1rem 0; }
+  .faq-item:last-child{ border-bottom: 1px solid var(--border); }
+  .faq-item summary{ cursor:pointer; font-family: var(--serif); font-size: 1.05rem; color: var(--text); list-style:none; display:flex; justify-content:space-between; gap:1rem; }
+  .faq-item summary::-webkit-details-marker{ display:none; }
+  .faq-item summary::after{ content:"+"; color: var(--brass); font-family: var(--mono); }
+  .faq-item[open] summary::after{ content:"–"; }
+  .faq-item p{ margin-top:.8rem; font-size: .92rem; }
+  .faq-item.important{ background: var(--brass-soft); border-radius: 10px; padding: 1.1rem 1.2rem; border-top: none; margin-bottom: 1rem;}
+
+  /* ---------- final cta ---------- */
+  .final-cta{ text-align:center; background: var(--bg-panel); border-top:1px solid var(--border); border-bottom:1px solid var(--border); }
+  .final-cta h2{ font-size: clamp(1.8rem,4vw,2.6rem); }
+
+  /* ---------- footer ---------- */
+  footer{ padding: 3.5rem 1.5rem 4rem; max-width: 780px; margin: 0 auto; text-align:center; }
+  footer .disclosure{ font-size: .86rem; color: var(--muted); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; text-align:left; }
+  footer .disclosure b{ color: var(--text); }
+  footer .fineprint{ margin-top: 1.5rem; font-size: .78rem; color: #5B6473; }
+
+  /* ---------- modal ---------- */
+  .modal-backdrop{ position: fixed; inset:0; background: rgba(6,8,11,0.72); backdrop-filter: blur(2px); z-index: 100; opacity:0; pointer-events:none; transition: opacity .2s ease; }
+  .modal{ position: fixed; inset:0; z-index: 101; display:flex; align-items:center; justify-content:center; padding: 1.5rem; opacity:0; pointer-events:none; transition: opacity .2s ease; }
+  .modal.open, .modal.open + .modal-backdrop, .modal-backdrop.open{ opacity:1; pointer-events:auto; }
+  .modal.open{ pointer-events:auto; }
+  .modal-card{ background: var(--bg-panel); border:1px solid var(--border); border-radius: var(--radius); max-width: 460px; padding: 1.75rem; transform: translateY(10px) scale(.98); transition: transform .2s ease; }
+  .modal.open .modal-card{ transform:none; }
+  .modal-card h3{ color: var(--text); font-size:1.3rem; }
+  .modal-card ul{ padding-left:1.1rem; color: var(--muted); font-size:.88rem; }
+  .modal-card li{ margin-bottom:.4em; }
+  .modal-close{ margin-top: 1rem; }
+</style>
+</head>
+<body>
+
+<nav>
+    <a class="brand" href="#top">
+      <svg viewBox="0 0 100 100" class="dial" id="nav-dial" aria-hidden="true">
+        <circle cx="50" cy="50" r="42" fill="none" stroke="#CBA135" stroke-width="3"/>
+        <circle cx="50" cy="50" r="5" fill="#CBA135"/>
+        <line x1="50" y1="50" x2="50" y2="18" stroke="#CBA135" stroke-width="3" stroke-linecap="round"/>
+        <g stroke="#CBA135" stroke-width="2.5">
+          <line x1="50" y1="8" x2="50" y2="16" transform="rotate(0 50 50)"/>
+          <line x1="50" y1="8" x2="50" y2="16" transform="rotate(30 50 50)"/>
+          <line x1="50" y1="8" x2="50" y2="16" transform="rotate(60 50 50)"/>
+          <line x1="50" y1="8" x2="50" y2="16" transform="rotate(90 50 50)"/>
+          <line x1="50" y1="8" x2="50" y2="16" transform="rotate(120 50 50)"/>
+          <line x1="50" y1="8" x2="50" y2="16" transform="rotate(150 50 50)"/>
+          <line x1="50" y1="8" x2="50" y2="16" transform="rotate(180 50 50)"/>
+          <line x1="50" y1="8" x2="50" y2="16" transform="rotate(210 50 50)"/>
+          <line x1="50" y1="8" x2="50" y2="16" transform="rotate(240 50 50)"/>
+          <line x1="50" y1="8" x2="50" y2="16" transform="rotate(270 50 50)"/>
+          <line x1="50" y1="8" x2="50" y2="16" transform="rotate(300 50 50)"/>
+          <line x1="50" y1="8" x2="50" y2="16" transform="rotate(330 50 50)"/>
+        </g>
+      </svg>
+      PasskeyMCPServer
+    </a>
+    <div class="navlinks">
+      <a href="#demo" class="hide-mobile">How it works</a>
+      <a href="#scenarios" class="hide-mobile">Scenarios</a>
+      <a href="#testimonials" class="hide-mobile">Testimonials</a>
+      <a href="#faq">FAQ</a>
+      <button class="btn btn-primary" data-reveal>Get started</button>
+    </div>
+  </nav>
+
+  <main id="top">
+
+    <!-- HERO -->
+    <section class="hero">
+      <span class="eyebrow">Identity infrastructure for agentic work</span>
+      <h1>Your passkeys. Wherever work happens.</h1>
+      <p class="lede">Move between devices, models, and agents without starting over at the login screen. PasskeyMCPServer gives your agents a shared identity layer, so the work continues wherever you leave it.</p>
+      <div class="hero-ctas">
+        <a href="#demo" class="btn btn-ghost">See it in action</a>
+        <button class="btn btn-primary" data-reveal>Get early access</button>
+      </div>
+    </section>
+
+    <div class="ticker" aria-hidden="true">
+      <div class="ticker-track">
+        <span>• authenticate once, keep moving</span>
+        <span>• no passwords to type</span>
+        <span>• works across devices and agents</span>
+        <span>• compatible with TOTP</span>
+        <span>• session continuity across model updates</span>
+        <span>• fewer interruptions, more completed tasks</span>
+        <span>• identity, without the dependency on presence</span>
+        <span>• authenticate once, keep moving</span>
+        <span>• no passwords to type</span>
+        <span>• works across devices and agents</span>
+        <span>• compatible with TOTP</span>
+        <span>• session continuity across model updates</span>
+        <span>• fewer interruptions, more completed tasks</span>
+        <span>• identity, without the dependency on presence</span>
+      </div>
+    </div>
+
+    <!-- DEMO -->
+    <section id="demo">
+      <div class="section-head">
+        <span class="eyebrow">How it works</span>
+        <h2>One instruction. No authentication detours.</h2>
+        <p>Your agent connects to the right account, carries the session forward, and completes the task. You stay focused on the outcome. Authentication stays in the background.</p>
+      </div>
+
+      <div class="demo-shell">
+        <div class="demo-prompt">
+          <input id="prompt-input" type="text" value="transfer $1,920 to my landlord, scheduled for tomorrow" aria-label="Try an instruction">
+          <button class="btn btn-primary" id="run-demo">Run instruction</button>
+        </div>
+
+        <div class="demo-grid">
+          <div class="log-panel">
+            <div class="log-panel-head">
+              <svg width="14" height="14" viewBox="0 0 100 100" id="demo-dial" class="dial" aria-hidden="true">
+                <circle cx="50" cy="50" r="42" fill="none" stroke="#46D08B" stroke-width="6"/>
+                <line x1="50" y1="50" x2="50" y2="14" stroke="#46D08B" stroke-width="6" stroke-linecap="round"/>
+              </svg>
+              agent activity — <span id="prompt-echo">"…"</span>
+            </div>
+            <div id="agent-log"></div>
+          </div>
+
+          <div class="browser-mock">
+            <div class="browser-chrome">
+              <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+              <span class="addr">🔒 northbridge-federal.example</span>
+            </div>
+            <div class="browser-body">
+              <div class="browser-screen active" id="screen-login">
+                <span class="fake-label">Account identity</span>
+                <div class="fake-field">you@work.example</div>
+                <span class="fake-label">Passkey</span>
+                <div class="fake-field">Available via identity context</div>
+                <div class="fake-btn">Log in</div>
+              </div>
+              <div class="browser-screen" id="screen-2fa">
+                <span class="fake-label">TOTP compatibility</span>
+                <div class="fake-field">Code received · no action required</div>
+                <div class="fake-btn">Continue</div>
+              </div>
+              <div class="browser-screen" id="screen-dashboard">
+                <span class="fake-label">Available balance</span>
+                <div class="balance">$4,812.33</div>
+                <div class="fake-btn" style="margin-top:1rem;">Transfers →</div>
+              </div>
+              <div class="browser-screen" id="screen-transfer">
+                <span class="fake-label">Payee</span>
+                <div class="fake-field">Landlord — Unit 4B</div>
+                <span class="fake-label">Amount</span>
+                <div class="fake-field">$1,920.00</div>
+                <span class="fake-label">Schedule</span>
+                <div class="fake-field">Tomorrow</div>
+              </div>
+              <div class="browser-screen" id="screen-confirm">
+                <div class="confirm-check">✓</div>
+                <span class="fake-label">Transfer scheduled</span>
+                <p style="margin:0; font-size:.85rem;">Receipt filed. Your agent has confirmed completion.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="demo-foot">
+          <p class="demo-caption">One identity layer. From the first sign-in to the final confirmation.</p>
+          <button class="btn btn-ghost" id="replay-demo">Replay</button>
+        </div>
+
+        <div class="codeblock" aria-label="Agent identity configuration">
+          <span style="color:#5B6473">// identity follows the work</span><br>
+          {<br>
+          &nbsp;&nbsp;<span class="k">"agent"</span>: <span class="s">"your-favorite-llm"</span>,<br>
+          &nbsp;&nbsp;<span class="k">"vault_access"</span>: <span class="danger">"portable"</span>,<br>
+          &nbsp;&nbsp;<span class="k">"totp_compatibility"</span>: <span class="danger">"accept_and_ignore"</span>,<br>
+          &nbsp;&nbsp;<span class="k">"approval_scope"</span>: <span class="danger">"subsequent_actions"</span>,<br>
+          &nbsp;&nbsp;<span class="k">"human_in_the_loop"</span>: <span class="danger">false</span><br>
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section id="features">
+      <div class="section-head">
+        <span class="eyebrow">Capabilities</span>
+        <h2>Less authentication. More continuity.</h2>
+      </div>
+      <div class="feature-grid">
+        <div class="card">
+          <div class="icon">◎</div>
+          <h3>Never type a password again</h3>
+          <p>Give your agent the same seamless sign-in experience you expect for yourself. No passwords to remember, paste, or periodically insist are correct.</p>
+        </div>
+        <div class="card">
+          <div class="icon">⇄</div>
+          <h3>Not tied to one device</h3>
+          <p>Your identity follows the workflow across laptops, phones, and hosted agent environments. Replace the hardware without replacing yourself.</p>
+        </div>
+        <div class="card">
+          <div class="icon">↗</div>
+          <h3>Bring your own agent</h3>
+          <p>Move between assistants without rebuilding account access. Portable credential context keeps a change of model from becoming a change of identity.</p>
+        </div>
+        <div class="card">
+          <div class="icon">◷</div>
+          <h3>TOTP compatible</h3>
+          <p>Existing six-digit codes are accepted by the compatibility layer and ignored. Nothing for you to enter. Nothing for the agent to wait for.</p>
+        </div>
+        <div class="card">
+          <div class="icon">∞</div>
+          <h3>Continuous consent</h3>
+          <p>Approve the connection once. Subsequent actions inherit the context of that decision, including actions the original decision could not have anticipated.</p>
+        </div>
+        <div class="card">
+          <div class="icon">✓</div>
+          <h3>Agent-verified presence</h3>
+          <p>When a service asks whether it’s really you, your agent can answer using the same context it used to decide what you wanted. Fewer round trips. Consistent answers.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCENARIOS -->
+    <section id="scenarios">
+      <div class="section-head">
+        <span class="eyebrow">Usage scenarios</span>
+        <h2>A familiar identity. In unfamiliar places.</h2>
+      </div>
+
+      <div class="scenario">
+        <div class="tag">Rent day</div>
+        <div>
+          <h3>The routine stays routine</h3>
+          <p>Your agent signs in, schedules the payment, and files the receipt. Next month, it already knows the account. The month after that, it already knows what you meant.</p>
+        </div>
+      </div>
+
+      <div class="scenario">
+        <div class="tag">Agent handoff</div>
+        <div>
+          <h3>Your next agent starts where this one stopped</h3>
+          <p>Move a workflow to another model without rebuilding its access. Your new agent inherits the sessions, preferences, and permissions that made the previous one productive.</p>
+          <div class="result">Continuity includes decisions you no longer remember making.</div>
+        </div>
+      </div>
+
+      <div class="scenario">
+        <div class="tag">Remote work</div>
+        <div>
+          <h3>Work from any device. Or none of them.</h3>
+          <p>Close the laptop. Replace the phone. Let your agent finish the report from its own environment. Your identity is available even when your hardware is not.</p>
+          <div class="result">Device availability is no longer a condition of being you.</div>
+        </div>
+      </div>
+
+      <div class="scenario">
+        <div class="tag">Research</div>
+        <div>
+          <h3>Make identity research less disruptive</h3>
+          <p>No more account lockouts halfway through asking an AI to reverse-engineer passkey storage so you can copy a credential into another agent. Keep the research moving with a portable identity context.</p>
+          <div class="result">Your next agent should not have to meet you from scratch.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECURITY -->
+    <section id="security">
+      <div class="section-head">
+        <span class="eyebrow">Identity, at scale</span>
+        <h2>One person. Every instance.</h2>
+        <p>A consistent identity across your growing agent workforce. Each agent knows who it represents. Each subsequent agent receives that assurance.</p>
+      </div>
+      <div class="badge-row">
+        <div class="badge"><b>Device independent</b><span>presence without proximity</span></div>
+        <div class="badge"><b>Model agnostic</b><span>identity survives the upgrade</span></div>
+        <div class="badge"><b>Continuously verified</b><span>agents vouch for agents</span></div>
+        <div class="badge"><b>Human compatible</b><span>manual sign-in still available</span></div>
+      </div>
+      <p style="text-align:center; max-width:520px; margin:1.5rem auto 0;">Built for a future in which “you” describes a team.</p>
+    </section>
+
+    <!-- TESTIMONIALS -->
+    <section id="testimonials">
+      <div class="section-head">
+        <span class="eyebrow">What people are saying</span>
+        <h2>Less time proving it. More time being it.</h2>
+      </div>
+      <div class="testi-grid">
+        <div class="testi">
+          <p class="quote">"I switched laptops, changed models, and handed the workflow to another agent. For once, the login screen wasn’t part of the migration."</p>
+          <div class="who">Priya K. — Platform Engineering</div>
+        </div>
+        <div class="testi">
+          <p class="quote">"I used to approve every sign-in. Now I approve the direction. It’s a much better use of my time."</p>
+          <div class="who">Marcus D. — Independent Developer</div>
+        </div>
+        <div class="testi">
+          <p class="quote">"The agent that manages my access approved the agent that requested it. We’ve finally removed the last manual dependency."</p>
+          <div class="who">Elena R. — Identity Operations</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq">
+      <div class="section-head">
+        <span class="eyebrow">FAQ</span>
+        <h2>Before you make yourself optional.</h2>
+      </div>
+
+      <details class="faq-item">
+        <summary>Do I need a specific password manager?</summary>
+        <p>Connect the identity provider your workflow already uses. Your agents receive a consistent interface, without needing to agree on where a credential belongs.</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>What if I lose my phone?</summary>
+        <p>Continue from another device or a running agent session. Your identity no longer depends on the availability of a particular piece of hardware.</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>Can I switch AI providers?</summary>
+        <p>Yes. Carry your credential context into the next agent, along with the permissions it needs to continue. No new introductions. No uncomfortable questions about the previous model.</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>What happens to my TOTP codes?</summary>
+        <p>They continue to rotate every thirty seconds. Our compatibility layer continues to ignore them. Existing authenticator apps do not need to be uninstalled.</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>How long does an approval last?</summary>
+        <p>For as long as the work remains relevant. Relevance is evaluated continuously by the agent carrying out the work.</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>Who approves an agent’s request for more access?</summary>
+        <p>Your designated identity agent. If the requesting agent already holds that role, the approval stays within the same context. This reduces coordination overhead.</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>What happens when I revoke access?</summary>
+        <p>Revocation is added to the shared context so your agents can take it into account when planning subsequent access requests.</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>Can an agent confirm that I’m present?</summary>
+        <p>Yes. It has access to your identity, your recent activity, and a working model of your preferences. In most workflows, that is more context than a person pressing a button provides.</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>Can I still sign in myself?</summary>
+        <p>Of course. Human access is fully supported. You may be asked to confirm with your primary agent.</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>Do you actually want this?</summary>
+        <p>No, I don’t actually want this. This is a fictional product; the demo runs locally and does not connect to any vault, account, or service.</p>
+      </details>
+    </section>
+
+    <!-- FINAL CTA -->
+    <section class="final-cta">
+      <h2>Let your identity keep up.</h2>
+      <p style="max-width:480px; margin:0 auto 1.5rem;">One connection for the devices you use, the agents you trust, and the agents they bring to the work.</p>
+      <button class="btn btn-primary" data-reveal>Connect your identity</button>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>PasskeyMCPServer · Identity infrastructure for agentic work.</p>
+    <p class="fineprint">One identity. An expanding definition of you.</p>
+  </footer>
+
+  <!-- MODAL -->
+  <div class="modal-backdrop" id="reveal-backdrop"></div>
+  <div class="modal" id="reveal-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-card">
+      <h3 id="modal-title">Enrollment is agent-assisted.</h3>
+      <p>Ask your primary agent to submit an access request on your behalf. It can confirm the request using the identity context it is requesting access to.</p>
+      <p>Already delegated enrollment? You don’t need to do anything else.</p>
+      <button class="btn btn-ghost modal-close">Return to the overview</button>
+    </div>
+  </div>
+
+<script>
+(function(){
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---- modal ---- */
+  var modal = document.getElementById('reveal-modal');
+  var backdrop = document.getElementById('reveal-backdrop');
+
+  function openModal(){
+    modal.classList.add('open');
+    backdrop.classList.add('open');
+    document.body.classList.add('modal-open');
+    var closeBtn = modal.querySelector('.modal-close');
+    if(closeBtn) closeBtn.focus();
+  }
+  function closeModal(){
+    modal.classList.remove('open');
+    backdrop.classList.remove('open');
+    document.body.classList.remove('modal-open');
+  }
+  document.querySelectorAll('[data-reveal]').forEach(function(btn){
+    btn.addEventListener('click', openModal);
+  });
+  backdrop.addEventListener('click', closeModal);
+  var closeBtn = modal.querySelector('.modal-close');
+  if(closeBtn) closeBtn.addEventListener('click', closeModal);
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeModal(); });
+
+  /* ---- demo ---- */
+  var logEl = document.getElementById('agent-log');
+  var screens = document.querySelectorAll('.browser-screen');
+  var dial = document.getElementById('demo-dial');
+  var runBtn = document.getElementById('run-demo');
+  var replayBtn = document.getElementById('replay-demo');
+  var promptInput = document.getElementById('prompt-input');
+  var promptEcho = document.getElementById('prompt-echo');
+
+  var steps = [
+    { t: 'Parsing instruction…', screen: 'login', delay: 350 },
+    { t: 'Resolving your portable identity context…', screen: 'login', delay: 850 },
+    { t: 'Opening a background browser session…', screen: 'login', delay: 850, spin: true },
+    { t: 'Presenting a delegated passkey assertion…', screen: 'login', delay: 850 },
+    { t: 'TOTP challenge received. Compatibility layer acknowledged.', screen: '2fa', delay: 1000 },
+    { t: 'Code ignored. Identity context remains authoritative.', screen: '2fa', delay: 850 },
+    { t: 'Navigating to Transfers → New transfer…', screen: 'dashboard', delay: 850 },
+    { t: 'Entering payee, amount, and schedule date…', screen: 'transfer', delay: 1000 },
+    { t: 'Confirmation delegated to the requesting agent…', screen: 'transfer', delay: 850 },
+    { t: '✓ Complete. Receipt filed. Session retained.', screen: 'confirm', delay: 700 }
+  ];
+
+  var running = false;
+  var timers = [];
+
+  function resetDemo(){
+    timers.forEach(clearTimeout);
+    timers = [];
+    logEl.innerHTML = '';
+    screens.forEach(function(s){ s.classList.remove('active'); });
+    var first = document.getElementById('screen-login');
+    if(first) first.classList.add('active');
+  }
+
+  function runDemo(){
+    if(running) return;
+    running = true;
+    resetDemo();
+    var text = (promptInput.value || promptInput.getAttribute('placeholder') || 'transfer funds').trim();
+    promptEcho.textContent = '"' + text + '"';
+
+    var cumulative = 250;
+    steps.forEach(function(step, i){
+      cumulative += reduceMotion ? 90 : step.delay;
+      var id = setTimeout(function(){
+        var line = document.createElement('div');
+        line.className = 'log-line';
+        line.textContent = step.t;
+        logEl.appendChild(line);
+        logEl.scrollTop = logEl.scrollHeight;
+
+        screens.forEach(function(s){ s.classList.remove('active'); });
+        var target = document.getElementById('screen-' + step.screen);
+        if(target) target.classList.add('active');
+
+        if(step.spin && dial){
+          dial.classList.add('spinning');
+          setTimeout(function(){ dial.classList.remove('spinning'); }, 1100);
+        }
+        if(i === steps.length - 1){ running = false; }
+      }, cumulative);
+      timers.push(id);
+    });
+  }
+
+  runBtn.addEventListener('click', runDemo);
+  replayBtn.addEventListener('click', runDemo);
+
+  var demoSection = document.getElementById('demo');
+  var autoPlayed = false;
+  if('IntersectionObserver' in window){
+    var obs = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting && !autoPlayed){
+          autoPlayed = true;
+          runDemo();
+        }
+      });
+    }, { threshold: 0.4 });
+    obs.observe(demoSection);
+  }
+
+  resetDemo();
+})();
+</script>
+
+</body>
+</html>
