@@ -19,7 +19,7 @@ This file belongs in the `AVS-Web-Native-Editor-Alpha/` subdirectory of the larg
 ## Working on the app
 
 - Read `README.md`, `SOURCE-NOTICE.txt`, and the relevant files before editing. Preserve working visualization, audio input, queue, editor, reduced-motion warning, and mobile behavior when making focused changes.
-- Use Node 24 (`nvm use`), `npm ci`, and `npm run setup:wasm` for initial setup. `npm run dev` builds the renderer and starts Vite at `http://127.0.0.1:8080/`. `npm run build` builds native code and the static distribution; `npm run preview` or the Python launchers serve `dist/`. HTTP is required; opening `index.html` via `file://` is unsupported.
+- Use Node 24 (`nvm use`), `npm ci`, and `npm run setup:wasm` for initial setup. `npm run dev` builds the renderer and starts Vite at `http://127.0.0.1:8080/`. `npm run build` builds native code and the static distribution; `npm run preview` serves the existing `dist/`. HTTP is required; opening `index.html` via `file://` is unsupported.
 - Keep UI copy in English. Use system font stacks and local assets; do not add CDN dependencies or external fonts without an explicit reason and appropriate notices.
 - Prefer a small syntax check or targeted manual inspection for ordinary changes. Do not create a blanket regression suite for the mixed legacy presets or run broad, expensive tests without a concrete need or the user's go-ahead.
 - Package the complete `dist/` directory and its license/notice files for a runnable deliverable. Include native sources and build configuration when a source archive is requested. Do not overwrite unrelated folders in the parent repository or interfere with its hooks and generated directory listing.

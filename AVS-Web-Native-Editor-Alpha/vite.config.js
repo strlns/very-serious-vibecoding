@@ -18,7 +18,7 @@ function copyDistributionFiles() {
     closeBundle() {
       const files = readdirSync(root).filter(name => /^LICENSE.*\.txt$/.test(name));
       files.push('README.md', 'CREDITS.txt', 'SOURCE-NOTICE.txt', 'THIRD-PARTY-NOTICES.txt',
-        'app', 'docs', 'presets', 'start-server.sh', 'start-server.bat');
+        'app', 'docs', 'presets');
       for (const name of files) {
         const source = resolve(root, name);
         if (existsSync(source)) cpSync(source, resolve(outDir, name), {recursive: true});

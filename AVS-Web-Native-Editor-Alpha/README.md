@@ -54,38 +54,37 @@ or shell configuration. This large download is needed only once per checkout.
 The npm registry supplies Vite and its locked dependencies; the local toolchain
 package uses the official Emscripten SDK installer. Set `PYTHON` to a Python 3 executable if it is not named `python3`.
 
-```sh
-npm run dev       # Compile C++/WASM, run renderer checks, start Vite
-npm run build     # Compile C++/WASM, run renderer checks, bundle into dist/
-npm run preview   # Serve the production bundle
-```
+### Local commands
 
-Open [http://127.0.0.1:8080/](http://127.0.0.1:8080/). `npm ci` installs the exact
-dependency tree in `package-lock.json`. Vite supports Node 20.19+ or 22.12+, but
-Node 24 is the tested project version; Node 16 is too old.
+**The native renderer must be compiled before the app can load it.** Run
+`npm run build:wasm` to build it explicitly. `npm run dev` and `npm run build`
+already run this step automatically, including the renderer checks.
+
+Run these commands from the project root after the initial setup above:
+
+| Goal | Command | What it does / prerequisite |
+| --- | --- | --- |
+| Build the native renderer | `npm run build:wasm` | Compiles C++ into `build/native/` and runs renderer checks. Requires `npm run setup:wasm` first. |
+| Develop locally | `npm run dev` | Builds WASM, then starts Vite with HMR / automatic page reload. |
+| Build for production | `npm run build` | Builds WASM, then bundles the complete website into `dist/`. |
+| Preview production locally | `npm run preview` | Serves the existing `dist/`; run `npm run build` first. No HMR or rebuild. |
+| Serve production with Python (optional) | `python3 -m http.server 8080 --bind 127.0.0.1 --directory dist` | Alternative static server for an existing `dist/`. On Windows use `py -3` instead of `python3`. |
+
+Open [http://127.0.0.1:8080/](http://127.0.0.1:8080/). Run only one of these
+servers on that port at a time. `npm ci` installs the dependency tree pinned in
+`package-lock.json`; Node 24 is the tested project version.
 
 Edit native renderer code in `native/avs/` and the browser adapter in `native/web/`.
-`npm run build:wasm` recompiles the renderer into `build/native/` and runs targeted
-checks covering schema, waveform rendering, colors, legacy serialization, metadata,
-root settings, beat response to externally supplied PCM, and EEL execution.
-Compilation is incremental and notices source/header changes. When Vite is already
-running, rerun `npm run build:wasm` after C++ edits, then reload the page.
-`npm run check:wasm` reruns those checks without compiling.
+The native build is incremental and notices source/header changes. After C++ edits
+while Vite is running, rerun `npm run build:wasm` and reload the page.
+`npm run check:wasm` reruns the renderer checks without compiling.
 
 `dist/` contains the complete static app, optional presets, licenses, credit/source
 notices, this README, its screenshot, and the legacy `app/index.html` redirect.
-Copy the **contents of `dist/`** to an HTTP host; relative assets support subdirectory
-hosting. The source checkout requires Vite; the production output needs only HTTP:
-
-```sh
-python3 -m http.server 8080 --bind 127.0.0.1 --directory dist
-```
-
-On Windows use `py -3` instead of `python3`. The included `start-server.sh` and
-`start-server.bat` serve `dist/` from a source checkout, or their own directory when
-included in the built distribution. They require an existing production build.
-Opening `index.html` via `file://` does not work because of the module worker and
-WebAssembly. Use the HTTP URL if an “Open in” action opens a local file URL.
+Copy the **contents of `dist/`** to any suitable static HTTP host; relative assets
+support subdirectory hosting. Python is needed for native compilation, but the
+finished app requires only an HTTP server. Opening `index.html` via `file://`
+does not work because of the module worker and WebAssembly.
 
 ### GitHub Pages deployment
 
