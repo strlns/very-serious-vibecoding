@@ -1,4 +1,4 @@
-# Build AVS//Web and deploy it alongside the repository's other static projects.
+# Build AVS//Web and Squeaklite and deploy them alongside the repository's other static projects.
 name: Deploy static content to Pages
 
 on:
@@ -39,6 +39,18 @@ jobs:
       - name: Build AVS renderer and production bundle
         working-directory: AVS-Web-Native-Editor-Alpha
         run: npm run build
+      - name: Set up Node.js for Squeaklite
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: squeaklite/.nvmrc
+          cache: npm
+          cache-dependency-path: squeaklite/package-lock.json
+      - name: Install Squeaklite build dependencies
+        working-directory: squeaklite
+        run: npm ci
+      - name: Verify and build Squeaklite
+        working-directory: squeaklite
+        run: npm run verify
       - name: Prepare Pages site
         shell: bash
         run: |
@@ -52,6 +64,11 @@ jobs:
           rm -rf "$pages_dir/AVS-Web-Native-Editor-Alpha"
           cp -R AVS-Web-Native-Editor-Alpha/dist "$pages_dir/AVS-Web-Native-Editor-Alpha"
           test -f "$pages_dir/AVS-Web-Native-Editor-Alpha/renderer-provenance.json"
+          # Publish the self-contained app at a directory URL and a root file URL.
+          rm -rf "$pages_dir/squeaklite"
+          mkdir -p "$pages_dir/squeaklite"
+          cp squeaklite/releases/squeaklite.html "$pages_dir/squeaklite/index.html"
+          cp squeaklite/releases/squeaklite.html "$pages_dir/squeaklite.html"
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact

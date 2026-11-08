@@ -1,0 +1,7 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {Window} from 'happy-dom';
+const luminance=c=>{let rgb=c.startsWith('#')?c.slice(1).match(/.{2}/g).map(h=>parseInt(h,16)):c.match(/[\d.]+/g).slice(0,3).map(Number);rgb=rgb.map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;});return rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722;};
+const ratio=(a,b)=>{const x=luminance(a),y=luminance(b);return(Math.max(x,y)+.05)/(Math.min(x,y)+.05);};
+test('rendered palette text meets 4.5:1 on its representative surfaces',async()=>{const window=new Window();const style=window.document.createElement('style');style.textContent=(await readFile(new URL('../src/styles.css',import.meta.url),'utf8')).replace(/@import[^;]+;/g,'');window.document.head.append(style);const fixtures=[['muted','#ffffff'],['stat-label','#f6f9f1'],['badge green','#edf5ea'],['badge amber','#fff6e2'],['badge gray','#f1f3f2'],['count-tag','#f0f5e9'],['result-notice','#fbfcf6'],['graph-footer','#ffffff'],['query-suggestion','#f6f9ef'],['error-banner','#fff7ef']];for(const [classes,bg]of fixtures){const el=window.document.createElement('span');el.className=classes;el.textContent='Readable content';window.document.body.append(el);const color=window.getComputedStyle(el).color;assert.ok(ratio(color,bg)>=4.5,`${classes}: ${color} on ${bg} gives ${ratio(color,bg).toFixed(2)}:1`);}await window.happyDOM.close();});

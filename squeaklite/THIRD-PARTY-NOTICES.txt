@@ -1,0 +1,15 @@
+Quarry includes these runtime components and their licenses:
+
+React and React DOM — Meta Platforms, Inc. and affiliates — MIT
+sql.js — sql.js contributors — MIT; SQLite itself is in the public domain
+fflate — Arjun Barrett and contributors — MIT
+Lucide icons — Lucide contributors, derived from Feather — ISC / MIT
+DM Sans — DM Sans project authors — SIL Open Font License 1.1
+IBM Plex Mono — IBM Corp. — SIL Open Font License 1.1
+
+Original license texts supplied by the installed packages are included in
+licenses/. Build dependencies and transitive dependencies retain their own
+licenses in their npm packages; the exact graph is in package-lock.json.
+
+No runtime component is fetched from a third-party CDN. Local font files,
+the SQLite WebAssembly module and worker code are part of the build.

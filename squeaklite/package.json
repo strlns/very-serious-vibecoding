@@ -1,0 +1,44 @@
+{
+  "name": "squeaklite",
+  "version": "1.5.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "npm run build:standalone",
+    "preview": "vite preview --host 0.0.0.0",
+    "test": "node --test tests/*.test.mjs",
+    "build:standalone": "vite build --mode standalone && node scripts/standalone.mjs",
+    "build:all": "npm run build:static && npm run build",
+    "test:built": "node --test tests-built/*.test.mjs",
+    "test:ui": "node --test tests-ui/*.test.mjs",
+    "verify": "npm run typecheck && npm test && npm run test:ui && npm run build:all && npm run test:built",
+    "release": "npm run verify && node scripts/release.mjs",
+    "typecheck": "tsc --noEmit",
+    "build:static": "vite build",
+    "format": "prettier --write src scripts vite.config.js tsconfig.json",
+    "build:root": "npm run build && node scripts/copy-root.mjs"
+  },
+  "dependencies": {
+    "@fontsource/dm-sans": "5.3.0",
+    "@fontsource/ibm-plex-mono": "5.3.0",
+    "fflate": "0.8.3",
+    "lucide-react": "1.70.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "sql.js": "1.15.2"
+  },
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@types/sql.js": "1.4.11",
+    "@vitejs/plugin-react": "6.2.1",
+    "happy-dom": "21.0.4",
+    "prettier": "3.9.10",
+    "typescript": "7.0.2",
+    "vite": "8.3.6"
+  },
+  "engines": {
+    "node": ">=24.11.0"
+  }
+}

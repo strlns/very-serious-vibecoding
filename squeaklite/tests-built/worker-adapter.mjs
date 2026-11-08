@@ -1,0 +1,12 @@
+import {parentPort,workerData} from 'node:worker_threads';
+import {readFile} from 'node:fs/promises';
+globalThis.self=globalThis;
+globalThis.WorkerGlobalScope=class {};
+globalThis.importScripts=()=>{};
+globalThis.location={href:workerData.url};
+const originalFetch=globalThis.fetch;
+globalThis.fetch=async(url,options)=>String(url).startsWith('file:')?new Response(await readFile(new URL(url)),{headers:{'Content-Type':'application/wasm'}}):originalFetch(url,options);
+globalThis.postMessage=data=>parentPort.postMessage(data);
+await import(workerData.url);
+parentPort.on('message',data=>globalThis.onmessage({data}));
+parentPort.postMessage({ready:true});
