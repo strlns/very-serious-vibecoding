@@ -26,6 +26,13 @@ cat <<EOF > "$OUTPUT_FILE"
         ul { list-style: none; padding-left: 20px; border-left: 1px solid #e9ecef; }
         li { margin: 8px 0; display: flex; flex-direction: column; }
         .row { display: flex; align-items: center; gap: 8px; }
+        summary.row { cursor: pointer; list-style: none; }
+        summary.row::-webkit-details-marker { display: none; }
+        summary.row::before { content: '+'; display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; flex-shrink: 0; border: 1px solid var(--border); border-radius: 5px; background: var(--card); color: #007bff; font-size: 16px; font-weight: 600; line-height: 1; }
+        details[open] > summary.row::before { content: '−'; }
+        summary.row:hover::before { background: #e9ecef; }
+        summary.row:focus-visible { outline: 2px solid #007bff; outline-offset: 4px; border-radius: 3px; }
+        details:not([open]) > ul { display: none; }
         .icon { width: 20px; height: 20px; vertical-align: middle; }
         a { text-decoration: none; color: #007bff; font-weight: 500; }
         a:hover { text-decoration: underline; }
@@ -73,31 +80,35 @@ walk_tree() {
         # Check for nested index.html
         has_index=0
         if [ -f "$path/index.html" ]; then has_index=1; fi
+        case "$path" in
+            ./AVS-Web-Native-Editor-Alpha/app) has_index=0 ;;
+        esac
 
         # Write Directory Entry
         echo "<li>" >> "$OUTPUT_FILE"
-        echo "  <div class='row'>" >> "$OUTPUT_FILE"
+        echo "  <details>" >> "$OUTPUT_FILE"
+        echo "  <summary class='row'>" >> "$OUTPUT_FILE"
         echo "    <img src='$ICON_FOLDER' class='icon' alt='dir'>" >> "$OUTPUT_FILE"
         
         # Logic for folder buttons
         if [ "$has_index" -eq 1 ]; then
-            # If index exists: Link 1 (Open App/Index), Link 2 (Just text indicating contents are below)
+            # A launch link remains available while the folder is collapsed.
             clean_path="${path#./}"
             echo "    <span>$dirname</span>" >> "$OUTPUT_FILE"
-            echo "    <div class='btn-group'>" >> "$OUTPUT_FILE"
+            echo "    <span class='btn-group'>" >> "$OUTPUT_FILE"
             echo "      <a href='$clean_path/' class='btn btn-primary'>🚀 Launch</a>" >> "$OUTPUT_FILE"
-            echo "      <span class='btn dim'>Contents below &darr;</span>" >> "$OUTPUT_FILE"
-            echo "    </div>" >> "$OUTPUT_FILE"
+            echo "    </span>" >> "$OUTPUT_FILE"
         else
             # Standard folder
             echo "    <strong>$dirname</strong>" >> "$OUTPUT_FILE"
         fi
-        echo "  </div>" >> "$OUTPUT_FILE"
+        echo "  </summary>" >> "$OUTPUT_FILE"
 
         # Recurse
         echo "  <ul>" >> "$OUTPUT_FILE"
         walk_tree "$path" $((depth + 1))
         echo "  </ul>" >> "$OUTPUT_FILE"
+        echo "  </details>" >> "$OUTPUT_FILE"
         echo "</li>" >> "$OUTPUT_FILE"
     done
 

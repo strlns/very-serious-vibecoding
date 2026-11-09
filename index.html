@@ -11,6 +11,13 @@
         ul { list-style: none; padding-left: 20px; border-left: 1px solid #e9ecef; }
         li { margin: 8px 0; display: flex; flex-direction: column; }
         .row { display: flex; align-items: center; gap: 8px; }
+        summary.row { cursor: pointer; list-style: none; }
+        summary.row::-webkit-details-marker { display: none; }
+        summary.row::before { content: '+'; display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; flex-shrink: 0; border: 1px solid var(--border); border-radius: 5px; background: var(--card); color: #007bff; font-size: 16px; font-weight: 600; line-height: 1; }
+        details[open] > summary.row::before { content: '−'; }
+        summary.row:hover::before { background: #e9ecef; }
+        summary.row:focus-visible { outline: 2px solid #007bff; outline-offset: 4px; border-radius: 3px; }
+        details:not([open]) > ul { display: none; }
         .icon { width: 20px; height: 20px; vertical-align: middle; }
         a { text-decoration: none; color: #007bff; font-weight: 500; }
         a:hover { text-decoration: underline; }
@@ -32,16 +39,18 @@
     <p class="dim">Generated automatically by git hooks.</p>
     <ul>
 <li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <strong>.github</strong>
-  </div>
+  </summary>
   <ul>
 <li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <strong>workflows</strong>
-  </div>
+  </summary>
   <ul>
 <li>
   <div class='row'>
@@ -50,36 +59,37 @@
   </div>
 </li>
   </ul>
+  </details>
 </li>
   </ul>
+  </details>
 </li>
 <li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <span>AVS-Web-Native-Editor-Alpha</span>
-    <div class='btn-group'>
+    <span class='btn-group'>
       <a href='AVS-Web-Native-Editor-Alpha/' class='btn btn-primary'>🚀 Launch</a>
-      <span class='btn dim'>Contents below &darr;</span>
-    </div>
-  </div>
+    </span>
+  </summary>
   <ul>
 <li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
-    <span>app</span>
-    <div class='btn-group'>
-      <a href='AVS-Web-Native-Editor-Alpha/app/' class='btn btn-primary'>🚀 Launch</a>
-      <span class='btn dim'>Contents below &darr;</span>
-    </div>
-  </div>
+    <strong>app</strong>
+  </summary>
   <ul>
   </ul>
+  </details>
 </li>
 <li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <strong>docs</strong>
-  </div>
+  </summary>
   <ul>
 <li>
   <div class='row'>
@@ -88,36 +98,42 @@
   </div>
 </li>
   </ul>
+  </details>
 </li>
 <li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <strong>native</strong>
-  </div>
+  </summary>
   <ul>
 <li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <strong>avs</strong>
-  </div>
+  </summary>
   <ul>
 <li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <strong>3rdparty</strong>
-  </div>
+  </summary>
   <ul>
 <li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <strong>WDL-EEL2</strong>
-  </div>
+  </summary>
   <ul>
 <li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <strong>eel2</strong>
-  </div>
+  </summary>
   <ul>
 <li>
   <div class='row'>
@@ -366,6 +382,7 @@
   </div>
 </li>
   </ul>
+  </details>
 </li>
 <li>
   <div class='row'>
@@ -422,6 +439,7 @@
   </div>
 </li>
   </ul>
+  </details>
 </li>
 <li>
   <div class='row'>
@@ -496,18 +514,21 @@
   </div>
 </li>
   </ul>
+  </details>
 </li>
 <li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <strong>vis_avs</strong>
-  </div>
+  </summary>
   <ul>
 <li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <strong>apesdk</strong>
-  </div>
+  </summary>
   <ul>
 <li>
   <div class='row'>
@@ -558,12 +579,14 @@
   </div>
 </li>
   </ul>
+  </details>
 </li>
 <li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <strong>presets</strong>
-  </div>
+  </summary>
   <ul>
 <li>
   <div class='row'>
@@ -776,6 +799,7 @@
   </div>
 </li>
   </ul>
+  </details>
 </li>
 <li>
   <div class='row'>
@@ -2518,6 +2542,7 @@
   </div>
 </li>
   </ul>
+  </details>
 </li>
 <li>
   <div class='row'>
@@ -2574,12 +2599,14 @@
   </div>
 </li>
   </ul>
+  </details>
 </li>
 <li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <strong>web</strong>
-  </div>
+  </summary>
   <ul>
 <li>
   <div class='row'>
@@ -2594,6 +2621,7 @@
   </div>
 </li>
   </ul>
+  </details>
 </li>
 <li>
   <div class='row'>
@@ -2632,12 +2660,14 @@
   </div>
 </li>
   </ul>
+  </details>
 </li>
 <li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <strong>presets</strong>
-  </div>
+  </summary>
   <ul>
 <li>
   <div class='row'>
@@ -2646,12 +2676,14 @@
   </div>
 </li>
   </ul>
+  </details>
 </li>
 <li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <strong>scripts</strong>
-  </div>
+  </summary>
   <ul>
 <li>
   <div class='row'>
@@ -2672,18 +2704,21 @@
   </div>
 </li>
   </ul>
+  </details>
 </li>
 <li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <strong>src</strong>
-  </div>
+  </summary>
   <ul>
 <li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <strong>styles</strong>
-  </div>
+  </summary>
   <ul>
 <li>
   <div class='row'>
@@ -2704,6 +2739,7 @@
   </div>
 </li>
   </ul>
+  </details>
 </li>
 <li>
   <div class='row'>
@@ -2718,30 +2754,35 @@
   </div>
 </li>
   </ul>
+  </details>
 </li>
 <li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <strong>vendor</strong>
-  </div>
+  </summary>
   <ul>
 <li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <strong>emsdk-4.0.15</strong>
-  </div>
+  </summary>
   <ul>
 <li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <strong>upstream</strong>
-  </div>
+  </summary>
   <ul>
 <li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <strong>.circleci</strong>
-  </div>
+  </summary>
   <ul>
 <li>
   <div class='row'>
@@ -2750,18 +2791,21 @@
   </div>
 </li>
   </ul>
+  </details>
 </li>
 <li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <strong>.github</strong>
-  </div>
+  </summary>
   <ul>
 <li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <strong>workflows</strong>
-  </div>
+  </summary>
   <ul>
 <li>
   <div class='row'>
@@ -2776,6 +2820,7 @@
   </div>
 </li>
   </ul>
+  </details>
 </li>
 <li>
   <div class='row'>
@@ -2784,18 +2829,21 @@
   </div>
 </li>
   </ul>
+  </details>
 </li>
 <li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <strong>bazel</strong>
-  </div>
+  </summary>
   <ul>
 <li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <strong>emscripten_toolchain</strong>
-  </div>
+  </summary>
   <ul>
 <li>
   <div class='row'>
@@ -2888,30 +2936,37 @@
   </div>
 </li>
   </ul>
+  </details>
 </li>
 <li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <strong>hello-world</strong>
-  </div>
+  </summary>
   <ul>
   </ul>
+  </details>
 </li>
 <li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <strong>test_external</strong>
-  </div>
+  </summary>
   <ul>
   </ul>
+  </details>
 </li>
 <li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <strong>test_secondary_lto_cache</strong>
-  </div>
+  </summary>
   <ul>
   </ul>
+  </details>
 </li>
 <li>
   <div class='row'>
@@ -2980,12 +3035,14 @@
   </div>
 </li>
   </ul>
+  </details>
 </li>
 <li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <strong>docker</strong>
-  </div>
+  </summary>
   <ul>
 <li>
   <div class='row'>
@@ -3018,22 +3075,27 @@
   </div>
 </li>
   </ul>
+  </details>
 </li>
 <li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <strong>scripts</strong>
-  </div>
+  </summary>
   <ul>
   </ul>
+  </details>
 </li>
 <li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <strong>test</strong>
-  </div>
+  </summary>
   <ul>
   </ul>
+  </details>
 </li>
 <li>
   <div class='row'>
@@ -3156,6 +3218,7 @@
   </div>
 </li>
   </ul>
+  </details>
 </li>
 <li>
   <div class='row'>
@@ -3182,8 +3245,10 @@
   </div>
 </li>
   </ul>
+  </details>
 </li>
   </ul>
+  </details>
 </li>
 <li>
   <div class='row'>
@@ -3288,140 +3353,28 @@
   </div>
 </li>
   </ul>
+  </details>
 </li>
 <li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <strong>adder7</strong>
-  </div>
+  </summary>
   <ul>
 <li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <strong>LMAO</strong>
-  </div>
+  </summary>
   <ul>
 <li>
-  <div class='row'>
-    <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
-    <strong>bin</strong>
-  </div>
-  <ul>
-<li>
-  <div class='row'>
-    <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzc3NyI+PHBhdGggZD0iTTE0IDJINmwtMiAydjE2bDIgMmgxMmwyLTJWM2wtNS0xeiBtLTEgN1YzLjVsNC41IDR6Ii8+PC9zdmc+' class='icon' alt='file'>
-    <a href='adder7/LMAO/bin/bison.o'>bison.o</a>
-  </div>
-</li>
-<li>
-  <div class='row'>
-    <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzc3NyI+PHBhdGggZD0iTTE0IDJINmwtMiAydjE2bDIgMmgxMmwyLTJWM2wtNS0xeiBtLTEgN1YzLjVsNC41IDR6Ii8+PC9zdmc+' class='icon' alt='file'>
-    <a href='adder7/LMAO/bin/cli.o'>cli.o</a>
-  </div>
-</li>
-<li>
-  <div class='row'>
-    <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzc3NyI+PHBhdGggZD0iTTE0IDJINmwtMiAydjE2bDIgMmgxMmwyLTJWM2wtNS0xeiBtLTEgN1YzLjVsNC41IDR6Ii8+PC9zdmc+' class='icon' alt='file'>
-    <a href='adder7/LMAO/bin/debug.o'>debug.o</a>
-  </div>
-</li>
-<li>
-  <div class='row'>
-    <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzc3NyI+PHBhdGggZD0iTTE0IDJINmwtMiAydjE2bDIgMmgxMmwyLTJWM2wtNS0xeiBtLTEgN1YzLjVsNC41IDR6Ii8+PC9zdmc+' class='icon' alt='file'>
-    <a href='adder7/LMAO/bin/gen_init.o'>gen_init.o</a>
-  </div>
-</li>
-<li>
-  <div class='row'>
-    <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzc3NyI+PHBhdGggZD0iTTE0IDJINmwtMiAydjE2bDIgMmgxMmwyLTJWM2wtNS0xeiBtLTEgN1YzLjVsNC41IDR6Ii8+PC9zdmc+' class='icon' alt='file'>
-    <a href='adder7/LMAO/bin/globals.o'>globals.o</a>
-  </div>
-</li>
-<li>
-  <div class='row'>
-    <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzc3NyI+PHBhdGggZD0iTTE0IDJINmwtMiAydjE2bDIgMmgxMmwyLTJWM2wtNS0xeiBtLTEgN1YzLjVsNC41IDR6Ii8+PC9zdmc+' class='icon' alt='file'>
-    <a href='adder7/LMAO/bin/initialize.o'>initialize.o</a>
-  </div>
-</li>
-<li>
-  <div class='row'>
-    <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzc3NyI+PHBhdGggZD0iTTE0IDJINmwtMiAydjE2bDIgMmgxMmwyLTJWM2wtNS0xeiBtLTEgN1YzLjVsNC41IDR6Ii8+PC9zdmc+' class='icon' alt='file'>
-    <a href='adder7/LMAO/bin/label.o'>label.o</a>
-  </div>
-</li>
-<li>
-  <div class='row'>
-    <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzc3NyI+PHBhdGggZD0iTTE0IDJINmwtMiAydjE2bDIgMmgxMmwyLTJWM2wtNS0xeiBtLTEgN1YzLjVsNC41IDR6Ii8+PC9zdmc+' class='icon' alt='file'>
-    <a href='adder7/LMAO/bin/layout.o'>layout.o</a>
-  </div>
-</li>
-<li>
-  <div class='row'>
-    <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzc3NyI+PHBhdGggZD0iTTE0IDJINmwtMiAydjE2bDIgMmgxMmwyLTJWM2wtNS0xeiBtLTEgN1YzLjVsNC41IDR6Ii8+PC9zdmc+' class='icon' alt='file'>
-    <a href='adder7/LMAO/bin/lex.o'>lex.o</a>
-  </div>
-</li>
-<li>
-  <div class='row'>
-    <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzc3NyI+PHBhdGggZD0iTTE0IDJINmwtMiAydjE2bDIgMmgxMmwyLTJWM2wtNS0xeiBtLTEgN1YzLjVsNC41IDR6Ii8+PC9zdmc+' class='icon' alt='file'>
-    <a href='adder7/LMAO/bin/lex.yy.c'>lex.yy.c</a>
-  </div>
-</li>
-<li>
-  <div class='row'>
-    <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzc3NyI+PHBhdGggZD0iTTE0IDJINmwtMiAydjE2bDIgMmgxMmwyLTJWM2wtNS0xeiBtLTEgN1YzLjVsNC41IDR6Ii8+PC9zdmc+' class='icon' alt='file'>
-    <a href='adder7/LMAO/bin/lmao'>lmao</a>
-  </div>
-</li>
-<li>
-  <div class='row'>
-    <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzc3NyI+PHBhdGggZD0iTTE0IDJINmwtMiAydjE2bDIgMmgxMmwyLTJWM2wtNS0xeiBtLTEgN1YzLjVsNC41IDR6Ii8+PC9zdmc+' class='icon' alt='file'>
-    <a href='adder7/LMAO/bin/lmao.output'>lmao.output</a>
-  </div>
-</li>
-<li>
-  <div class='row'>
-    <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzc3NyI+PHBhdGggZD0iTTE0IDJINmwtMiAydjE2bDIgMmgxMmwyLTJWM2wtNS0xeiBtLTEgN1YzLjVsNC41IDR6Ii8+PC9zdmc+' class='icon' alt='file'>
-    <a href='adder7/LMAO/bin/lmao.tab.c'>lmao.tab.c</a>
-  </div>
-</li>
-<li>
-  <div class='row'>
-    <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzc3NyI+PHBhdGggZD0iTTE0IDJINmwtMiAydjE2bDIgMmgxMmwyLTJWM2wtNS0xeiBtLTEgN1YzLjVsNC41IDR6Ii8+PC9zdmc+' class='icon' alt='file'>
-    <a href='adder7/LMAO/bin/lmao.tab.h'>lmao.tab.h</a>
-  </div>
-</li>
-<li>
-  <div class='row'>
-    <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzc3NyI+PHBhdGggZD0iTTE0IDJINmwtMiAydjE2bDIgMmgxMmwyLTJWM2wtNS0xeiBtLTEgN1YzLjVsNC41IDR6Ii8+PC9zdmc+' class='icon' alt='file'>
-    <a href='adder7/LMAO/bin/main.o'>main.o</a>
-  </div>
-</li>
-<li>
-  <div class='row'>
-    <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzc3NyI+PHBhdGggZD0iTTE0IDJINmwtMiAydjE2bDIgMmgxMmwyLTJWM2wtNS0xeiBtLTEgN1YzLjVsNC41IDR6Ii8+PC9zdmc+' class='icon' alt='file'>
-    <a href='adder7/LMAO/bin/malbolge.o'>malbolge.o</a>
-  </div>
-</li>
-<li>
-  <div class='row'>
-    <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzc3NyI+PHBhdGggZD0iTTE0IDJINmwtMiAydjE2bDIgMmgxMmwyLTJWM2wtNS0xeiBtLTEgN1YzLjVsNC41IDR6Ii8+PC9zdmc+' class='icon' alt='file'>
-    <a href='adder7/LMAO/bin/prefix.o'>prefix.o</a>
-  </div>
-</li>
-<li>
-  <div class='row'>
-    <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzc3NyI+PHBhdGggZD0iTTE0IDJINmwtMiAydjE2bDIgMmgxMmwyLTJWM2wtNS0xeiBtLTEgN1YzLjVsNC41IDR6Ii8+PC9zdmc+' class='icon' alt='file'>
-    <a href='adder7/LMAO/bin/xlat.o'>xlat.o</a>
-  </div>
-</li>
-  </ul>
-</li>
-<li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <strong>src</strong>
-  </div>
+  </summary>
   <ul>
 <li>
   <div class='row'>
@@ -3616,6 +3569,7 @@
   </div>
 </li>
   </ul>
+  </details>
 </li>
 <li>
   <div class='row'>
@@ -3648,14 +3602,7 @@
   </div>
 </li>
   </ul>
-</li>
-<li>
-  <div class='row'>
-    <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
-    <strong>adder7</strong>
-  </div>
-  <ul>
-  </ul>
+  </details>
 </li>
 <li>
   <div class='row'>
@@ -3702,12 +3649,6 @@
 <li>
   <div class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzc3NyI+PHBhdGggZD0iTTE0IDJINmwtMiAydjE2bDIgMmgxMmwyLTJWM2wtNS0xeiBtLTEgN1YzLjVsNC41IDR6Ii8+PC9zdmc+' class='icon' alt='file'>
-    <a href='adder7/strict_vm'>strict_vm</a>
-  </div>
-</li>
-<li>
-  <div class='row'>
-    <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzc3NyI+PHBhdGggZD0iTTE0IDJINmwtMiAydjE2bDIgMmgxMmwyLTJWM2wtNS0xeiBtLTEgN1YzLjVsNC41IDR6Ii8+PC9zdmc+' class='icon' alt='file'>
     <a href='adder7/strict_vm.c'>strict_vm.c</a>
   </div>
 </li>
@@ -3718,12 +3659,14 @@
   </div>
 </li>
   </ul>
+  </details>
 </li>
 <li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <strong>mandelbrot-gemma-fusion</strong>
-  </div>
+  </summary>
   <ul>
 <li>
   <div class='row'>
@@ -3738,12 +3681,14 @@
   </div>
 </li>
   </ul>
+  </details>
 </li>
 <li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <strong>prime-shooter</strong>
-  </div>
+  </summary>
   <ul>
 <li>
   <div class='row'>
@@ -3788,60 +3733,24 @@
   </div>
 </li>
   </ul>
+  </details>
 </li>
 <li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <span>squeaklite</span>
-    <div class='btn-group'>
+    <span class='btn-group'>
       <a href='squeaklite/' class='btn btn-primary'>🚀 Launch</a>
-      <span class='btn dim'>Contents below &darr;</span>
-    </div>
-  </div>
+    </span>
+  </summary>
   <ul>
 <li>
-  <div class='row'>
-    <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
-    <span>build-single</span>
-    <div class='btn-group'>
-      <a href='squeaklite/build-single/' class='btn btn-primary'>🚀 Launch</a>
-      <span class='btn dim'>Contents below &darr;</span>
-    </div>
-  </div>
-  <ul>
-<li>
-  <div class='row'>
-    <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
-    <strong>assets</strong>
-  </div>
-  <ul>
-<li>
-  <div class='row'>
-    <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzc3NyI+PHBhdGggZD0iTTE0IDJINmwtMiAydjE2bDIgMmgxMmwyLTJWM2wtNS0xeiBtLTEgN1YzLjVsNC41IDR6Ii8+PC9zdmc+' class='icon' alt='file'>
-    <a href='squeaklite/build-single/assets/index-ByQc5T1a.css'>index-ByQc5T1a.css</a>
-  </div>
-</li>
-<li>
-  <div class='row'>
-    <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzc3NyI+PHBhdGggZD0iTTE0IDJINmwtMiAydjE2bDIgMmgxMmwyLTJWM2wtNS0xeiBtLTEgN1YzLjVsNC41IDR6Ii8+PC9zdmc+' class='icon' alt='file'>
-    <a href='squeaklite/build-single/assets/index-Depkzlbg.js'>index-Depkzlbg.js</a>
-  </div>
-</li>
-<li>
-  <div class='row'>
-    <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzc3NyI+PHBhdGggZD0iTTE0IDJINmwtMiAydjE2bDIgMmgxMmwyLTJWM2wtNS0xeiBtLTEgN1YzLjVsNC41IDR6Ii8+PC9zdmc+' class='icon' alt='file'>
-    <a href='squeaklite/build-single/assets/index-tE2PuLh8.js'>index-tE2PuLh8.js</a>
-  </div>
-</li>
-  </ul>
-</li>
-  </ul>
-</li>
-<li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <strong>licenses</strong>
-  </div>
+  </summary>
   <ul>
 <li>
   <div class='row'>
@@ -3886,38 +3795,14 @@
   </div>
 </li>
   </ul>
+  </details>
 </li>
 <li>
-  <div class='row'>
-    <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
-    <strong>releases</strong>
-  </div>
-  <ul>
-<li>
-  <div class='row'>
-    <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2U0NGQyNiI+PHBhdGggZD0iTTEyIDJMNiAzbDEgMTggNSAyIDUgLTItMS0xOHptMCAxNmw0LTEuNSAxLTMuNWgtMi41bC0uMyAxLjVIMTJsLS41IDItMiAuNS41IDN6Ii8+PC9zdmc+' class='icon' alt='file'>
-    <a href='squeaklite/releases/quarry.html'>quarry.html</a>
-  </div>
-</li>
-<li>
-  <div class='row'>
-    <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzc3NyI+PHBhdGggZD0iTTE0IDJINmwtMiAydjE2bDIgMmgxMmwyLTJWM2wtNS0xeiBtLTEgN1YzLjVsNC41IDR6Ii8+PC9zdmc+' class='icon' alt='file'>
-    <a href='squeaklite/releases/squeaklite-source.zip'>squeaklite-source.zip</a>
-  </div>
-</li>
-<li>
-  <div class='row'>
-    <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2U0NGQyNiI+PHBhdGggZD0iTTEyIDJMNiAzbDEgMTggNSAyIDUgLTItMS0xOHptMCAxNmw0LTEuNSAxLTMuNWgtMi41bC0uMyAxLjVIMTJsLS41IDItMiAuNS41IDN6Ii8+PC9zdmc+' class='icon' alt='file'>
-    <a href='squeaklite/releases/squeaklite.html'>squeaklite.html</a>
-  </div>
-</li>
-  </ul>
-</li>
-<li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <strong>scripts</strong>
-  </div>
+  </summary>
   <ul>
 <li>
   <div class='row'>
@@ -3938,12 +3823,14 @@
   </div>
 </li>
   </ul>
+  </details>
 </li>
 <li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <strong>src</strong>
-  </div>
+  </summary>
   <ul>
 <li>
   <div class='row'>
@@ -4150,18 +4037,21 @@
   </div>
 </li>
   </ul>
+  </details>
 </li>
 <li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <strong>tests</strong>
-  </div>
+  </summary>
   <ul>
 <li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <strong>helpers</strong>
-  </div>
+  </summary>
   <ul>
 <li>
   <div class='row'>
@@ -4170,6 +4060,7 @@
   </div>
 </li>
   </ul>
+  </details>
 </li>
 <li>
   <div class='row'>
@@ -4250,12 +4141,14 @@
   </div>
 </li>
   </ul>
+  </details>
 </li>
 <li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <strong>tests-built</strong>
-  </div>
+  </summary>
   <ul>
 <li>
   <div class='row'>
@@ -4270,12 +4163,14 @@
   </div>
 </li>
   </ul>
+  </details>
 </li>
 <li>
-  <div class='row'>
+  <details>
+  <summary class='row'>
     <img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmY2EyOCI+PHBhdGggZD0iTTEwIDRINmwtMiAydjE0aDE2VjhoLThsLTItMnoiLz48L3N2Zz4=' class='icon' alt='dir'>
     <strong>tests-ui</strong>
-  </div>
+  </summary>
   <ul>
 <li>
   <div class='row'>
@@ -4296,6 +4191,7 @@
   </div>
 </li>
   </ul>
+  </details>
 </li>
 <li>
   <div class='row'>
@@ -4364,6 +4260,7 @@
   </div>
 </li>
   </ul>
+  </details>
 </li>
 <li>
   <div class='row'>
