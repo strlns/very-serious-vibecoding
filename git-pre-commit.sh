@@ -96,7 +96,7 @@ walk_tree() {
             clean_path="${path#./}"
             echo "    <span>$dirname</span>" >> "$OUTPUT_FILE"
             echo "    <span class='btn-group'>" >> "$OUTPUT_FILE"
-            echo "      <a href='$clean_path/' class='btn btn-primary'>🚀 Launch</a>" >> "$OUTPUT_FILE"
+            echo "      <a href='$clean_path/index.html' class='btn btn-primary'>🚀 Launch</a>" >> "$OUTPUT_FILE"
             echo "    </span>" >> "$OUTPUT_FILE"
         else
             # Standard folder
