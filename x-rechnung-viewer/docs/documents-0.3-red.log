@@ -1,0 +1,9 @@
+FAIL batch keeps file order and separate snapshots: java.lang.AssertionError: expected 2, got 0
+FAIL one failed file does not discard successful files: java.lang.AssertionError: expected 2, got 0
+FAIL non XML paths and folders are explicit failures: java.lang.AssertionError: expected 2, got 0
+FAIL tabs retain selection-specific original: java.lang.AssertionError: expected 2, got 0
+FAIL display mode is global for existing and new tabs: java.lang.AssertionError: expected Kompakt, got Papier
+FAIL file drop delivers every local file in order: java.lang.AssertionError: drop rejected
+FAIL busy state refuses drop without importing: java.lang.NullPointerException: Cannot invoke "javax.swing.TransferHandler.importData(javax.swing.TransferHandler$TransferSupport)" because the return value of "javax.swing.JPanel.getTransferHandler()" is null
+PASS drop integration preserves plain-text copy
+RESULT: 1 document contracts passed, 7 failed

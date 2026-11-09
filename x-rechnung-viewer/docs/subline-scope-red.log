@@ -1,0 +1,21 @@
+PASS all 167 BTs and 41 BGs of the pinned 3.0.1 model have German labels
+PASS UBL invoice uses official mapping and keeps original
+PASS CII invoice uses official mapping
+PASS credit note is mapped as credit note
+PASS every catalog field can pass through the semantic model with all properties
+PASS unknown input value is an explicit gap
+PASS unambiguous empty optional element is not a gap
+PASS unknown nonempty attribute remains a gap
+PASS repeated groups are retained individually
+PASS technical status never asserts validation
+PASS VAT context is represented but a future value VAT is not hidden
+PASS unknown empty presence element is not assumed optional
+PASS split text and CDATA are one represented source value
+PASS unknown empty attribute is not assumed a default
+PASS currency attribute on a note is not silently treated as money
+PASS tax currency cannot hide a conflicting payable currency
+PASS official embedded attachments retain full data and metadata
+PASS official item attributes are human-readable fields
+PASS a matching separate VAT accounting currency remains supported
+FAIL a parent line never borrows a missing amount from its subline: java.lang.AssertionError: expected , got 999.00
+RESULT: 19 semantic contracts passed, 1 failed

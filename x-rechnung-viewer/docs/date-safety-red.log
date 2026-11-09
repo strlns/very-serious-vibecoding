@@ -1,0 +1,27 @@
+PASS all 167 BTs and 41 BGs of the pinned 3.0.1 model have German labels
+PASS UBL invoice uses official mapping and keeps original
+PASS CII invoice uses official mapping
+PASS credit note is mapped as credit note
+PASS every catalog field can pass through the semantic model with all properties
+PASS unknown input value is an explicit gap
+PASS unambiguous empty optional element is not a gap
+PASS unknown nonempty attribute remains a gap
+PASS repeated groups are retained individually
+PASS technical status never asserts validation
+PASS VAT context is represented but a future value VAT is not hidden
+PASS unknown empty presence element is not assumed optional
+PASS split text and CDATA are one represented source value
+PASS unknown empty attribute is not assumed a default
+PASS currency attribute on a note is not silently treated as money
+PASS tax currency cannot hide a conflicting payable currency
+PASS official embedded attachments retain full data and metadata
+PASS official item attributes are human-readable fields
+PASS a matching separate VAT accounting currency remains supported
+PASS a parent line never borrows a missing amount from its subline
+PASS empty CII delivery container carries no unrepresented data
+PASS allowance discriminator is represented by its mapped business group
+PASS Rechnora CII price bases have exact values, units and source evidence
+PASS CII price bases keep line scope, precision and unknown attributes
+FAIL UBL date mapping preserves times and offsets with explicit diagnostics: java.lang.AssertionError: expected 2026-11-09T00:30:00+14:00, got 2026-11-09
+FAIL CII date mapping preserves time-bearing source and flags its format: java.lang.AssertionError: expected 20260717T003000+1400, got 2026-07-17
+RESULT: 24 semantic contracts passed, 2 failed

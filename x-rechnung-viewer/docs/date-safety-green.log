@@ -1,0 +1,127 @@
+PASS byte preservation and defensive ownership
+PASS opening never modifies source
+PASS original copy is byte exact and cannot overwrite
+PASS SHA-256 known-answer
+PASS root detection uses expanded names
+PASS prefixes have no business meaning
+PASS no decimal/date/whitespace coercion
+PASS inventory retains all DOM node kinds
+PASS paths are unique and parents precede children
+PASS UTF-8 and UTF-16 originals survive
+PASS legacy declared encoding is decoded
+PASS malformed XML is refused
+PASS DTD, external and internal entities are refused
+PASS XInclude remains inert and visible
+PASS unknown extensions remain inspectable
+PASS input size limit refuses, never truncates
+PASS depth limit refuses, never truncates
+PASS inventory limit refuses, never truncates
+PASS inventory is immutable
+RESULT: 19 passed, 0 failed
+PASS disclaimer before load
+PASS persistent disclaimer in all four views
+PASS literal filter preserves inventory
+PASS selected value is complete and unchanged
+PASS raw source uses original decoded text
+PASS HTML-like values remain literal text
+RESULT: 6 view contracts passed
+PASS kosit-01.01a-INVOICE_ubl.xml SHA-256 + 330 independently counted inventory entries
+PASS kosit-01.01a-INVOICE_uncefact.xml SHA-256 + 363 independently counted inventory entries
+RESULT: 2 pinned KoSIT fixture contracts passed (no conformity assessment)
+PASS all 167 BTs and 41 BGs of the pinned 3.0.1 model have German labels
+PASS UBL invoice uses official mapping and keeps original
+PASS CII invoice uses official mapping
+PASS credit note is mapped as credit note
+PASS every catalog field can pass through the semantic model with all properties
+PASS unknown input value is an explicit gap
+PASS unambiguous empty optional element is not a gap
+PASS unknown nonempty attribute remains a gap
+PASS repeated groups are retained individually
+PASS technical status never asserts validation
+PASS VAT context is represented but a future value VAT is not hidden
+PASS unknown empty presence element is not assumed optional
+PASS split text and CDATA are one represented source value
+PASS unknown empty attribute is not assumed a default
+PASS currency attribute on a note is not silently treated as money
+PASS tax currency cannot hide a conflicting payable currency
+PASS official embedded attachments retain full data and metadata
+PASS official item attributes are human-readable fields
+PASS a matching separate VAT accounting currency remains supported
+PASS a parent line never borrows a missing amount from its subline
+PASS empty CII delivery container carries no unrepresented data
+PASS allowance discriminator is represented by its mapped business group
+PASS Rechnora CII price bases have exact values, units and source evidence
+PASS CII price bases keep line scope, precision and unknown attributes
+PASS UBL date mapping preserves times and offsets with explicit diagnostics
+PASS CII date mapping preserves time-bearing source and flags its format
+RESULT: 26 semantic contracts passed, 0 failed
+PASS inspector preserves literal full values and exact source paths
+PASS inspector selection and reload never retain stale source details
+PASS paper invoice is primary and carries disclaimer
+PASS no gaps means collapsed inspector and visible zero
+PASS detected gap opens inspector automatically
+PASS collapsing preserves count and can be reversed
+PASS expansion default resets per document
+PASS native renderer retains all 167 catalog field values and properties
+PASS long and HTML-like values remain literal and complete
+PASS paper fits the available viewport width
+PASS header and all invoice rows align in identical columns
+RESULT: 11 invoice workspace contracts passed
+PASS date display follows FORMAT locale, unknown falls back to ISO
+PASS times and timezone-bearing values remain literal across system zones
+PASS EUR pads one fraction digit
+PASS whole EUR and negative values
+PASS unit prices never lose additional precision
+PASS large decimal values do not pass through floating point
+PASS currency-specific minimum scales
+PASS unknown or missing currency is never assumed EUR
+PASS empty and invalid lexical values remain visible
+PASS VAT accounting amounts use BT-6
+PASS identifier digits are not numeric amounts
+PASS 200 exact numeric round trips
+PASS reference payable formats correctly without changing source/model
+RESULT: 13 format contracts passed, 0 failed
+PASS batch keeps file order and separate snapshots
+PASS one failed file does not discard successful files
+PASS non XML paths and folders are explicit failures
+PASS XML drop accepts copy actions and refuses move-only
+PASS tabs retain selection-specific original
+PASS display mode is global for existing and new tabs
+PASS file drop delivers every local file in order
+PASS busy state refuses drop without importing
+PASS drop integration preserves plain-text copy
+RESULT: 9 document contracts passed, 0 failed
+PASS compact rows retain all 167 BT values, properties and read-only ownership
+PASS repeated groups and long HTML-like values remain distinct and complete
+RESULT: 2 compact-data contracts passed
+PASS hints are conditional, bounded plain-text previews
+PASS shortened labels preserve the exact full tooltip including HTML-like text
+PASS short strings, line previews and Unicode truncation preserve data boundaries
+RESULT: 3 full-text contracts passed
+PASS actual header presses switch byte-identical copies independently
+TRACE preferred queries=30 invalidations=0
+PASS idle preferred-size queries do not resize or invalidate descendants
+RESULT: 2 interaction contracts passed
+PASS background work keeps EDT responsive; activity cleans up on success
+PASS background work keeps EDT responsive; activity cleans up on failure
+RESULT: 2 asynchronous activity contracts passed
+PASS malformed XML reports its source line and column without repair
+PASS malformed and blocked files do not prevent a later valid invoice or change any input
+PASS missing mandatory invoice data remains missing and inspectable
+PASS invalid field text remains in the original and never becomes an invented amount
+PASS asynchronous mixed-file failure preserves open tabs, stops activity and permits the next load
+RESULT: 5 recovery contracts passed, 0 failed
+PASS PDF retains provided amounts, precision, price bases and tax rates
+PASS detail appendix begins without an orphaned transition page
+PASS reverse-charge information is present
+PASS long source line identifiers remain readable without invented numbering
+PASS full diagnostics retain origins, reasons, long and empty values
+PASS all 167 modeled terms and their metadata reach the PDF
+PASS long tables paginate with repeated headings and per-page disclaimers
+PASS a single oversized table row continues without truncation
+PASS text stays inside page bounds across summary, details and long rows
+PASS immutable snapshot, exact export, no overwrite and preview rendering
+PASS PDF retains source times and offsets across system zones with diagnostics
+PASS unsupported glyphs fail explicitly instead of silently disappearing
+RESULT: 12 PDF contracts passed
+Build and tests successful: dist/xrechnung-viewer.jar

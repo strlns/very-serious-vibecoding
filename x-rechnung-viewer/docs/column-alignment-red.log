@@ -1,0 +1,10 @@
+PASS paper invoice is primary and carries disclaimer
+PASS no gaps means collapsed inspector and visible zero
+PASS detected gap opens inspector automatically
+PASS collapsing preserves count and can be reversed
+PASS expansion default resets per document
+PASS native renderer retains all 167 catalog field values and properties
+PASS long and HTML-like values remain literal and complete
+PASS paper fits the available viewport width
+PASS header and all invoice rows align in identical columns
+RESULT: 9 invoice workspace contracts passed

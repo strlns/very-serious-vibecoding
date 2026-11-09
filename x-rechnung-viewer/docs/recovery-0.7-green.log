@@ -1,0 +1,6 @@
+PASS malformed XML reports its source line and column without repair
+PASS malformed and blocked files do not prevent a later valid invoice or change any input
+PASS missing mandatory invoice data remains missing and inspectable
+PASS invalid field text remains in the original and never becomes an invented amount
+PASS asynchronous mixed-file failure preserves open tabs, stops activity and permits the next load
+RESULT: 5 recovery contracts passed, 0 failed

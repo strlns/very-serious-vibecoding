@@ -1,0 +1,15 @@
+Exception in thread "main" java.lang.AssertionError: Invoice workspace contract
+	at de.xrechnung.viewer.InvoiceWorkspaceTests.main(InvoiceWorkspaceTests.java:19)
+Caused by: java.lang.NullPointerException: Cannot invoke "javax.swing.JTextArea.getText()" because "<local6>" is null
+	at de.xrechnung.viewer.InvoiceWorkspaceTests.inspectorContracts(InvoiceWorkspaceTests.java:173)
+	at de.xrechnung.viewer.InvoiceWorkspaceTests.run(InvoiceWorkspaceTests.java:24)
+	at de.xrechnung.viewer.InvoiceWorkspaceTests.lambda$main$0(InvoiceWorkspaceTests.java:13)
+	at java.desktop/java.awt.event.InvocationEvent.dispatch(InvocationEvent.java:313)
+	at java.desktop/java.awt.EventQueue.dispatchEventImpl(EventQueue.java:698)
+	at java.desktop/java.awt.EventQueue.dispatchEvent(EventQueue.java:677)
+	at java.desktop/java.awt.EventDispatchThread.pumpOneEventForFilters(EventDispatchThread.java:203)
+	at java.desktop/java.awt.EventDispatchThread.pumpEventsForFilter(EventDispatchThread.java:124)
+	at java.desktop/java.awt.EventDispatchThread.pumpEventsForHierarchy(EventDispatchThread.java:113)
+	at java.desktop/java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:109)
+	at java.desktop/java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:101)
+	at java.desktop/java.awt.EventDispatchThread.run(EventDispatchThread.java:90)

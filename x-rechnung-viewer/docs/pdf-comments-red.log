@@ -1,0 +1,4 @@
+Exception in thread "main" java.lang.AssertionError: missing independent fixture expectation: pro Stück
+	at de.xrechnung.viewer.SemanticTests.check(SemanticTests.java:429)
+	at de.xrechnung.viewer.PdfTests.ok(PdfTests.java:11)
+	at de.xrechnung.viewer.PdfTests.main(PdfTests.java:22)

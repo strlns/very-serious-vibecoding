@@ -1,0 +1,6 @@
+FAIL malformed XML reports its source line and column without repair: java.lang.AssertionError: missing structured source location: XML konnte nicht sicher und vollständig geladen werden: The element type "child" must be terminated by the matching end-tag "</child>".
+PASS malformed and blocked files do not prevent a later valid invoice or change any input
+PASS missing mandatory invoice data remains missing and inspectable
+PASS invalid field text remains in the original and never becomes an invented amount
+PASS asynchronous mixed-file failure preserves open tabs, stops activity and permits the next load
+RESULT: 4 recovery contracts passed, 1 failed

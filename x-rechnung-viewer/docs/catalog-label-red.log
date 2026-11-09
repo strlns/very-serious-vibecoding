@@ -1,0 +1,3 @@
+FAIL all 167 BTs and 41 BGs of the pinned 3.0.1 model have German labels: java.lang.AssertionError: expected Fremdforderungen, got Fremdleistungen
+PASS UBL invoice uses official mapping and keeps original
+PASS CII invoice uses official mapping

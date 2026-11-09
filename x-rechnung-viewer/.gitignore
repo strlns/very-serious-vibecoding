@@ -1,0 +1,5 @@
+# Local Java build and native packages
+/build/
+
+# macOS metadata
+.DS_Store

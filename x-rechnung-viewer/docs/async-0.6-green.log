@@ -1,0 +1,3 @@
+PASS background work keeps EDT responsive; activity cleans up on success
+PASS background work keeps EDT responsive; activity cleans up on failure
+RESULT: 2 asynchronous activity contracts passed

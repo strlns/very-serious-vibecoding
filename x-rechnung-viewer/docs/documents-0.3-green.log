@@ -1,0 +1,9 @@
+PASS batch keeps file order and separate snapshots
+PASS one failed file does not discard successful files
+PASS non XML paths and folders are explicit failures
+PASS tabs retain selection-specific original
+PASS display mode is global for existing and new tabs
+PASS file drop delivers every local file in order
+PASS busy state refuses drop without importing
+PASS drop integration preserves plain-text copy
+RESULT: 8 document contracts passed, 0 failed

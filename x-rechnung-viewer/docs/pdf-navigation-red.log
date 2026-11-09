@@ -1,0 +1,10 @@
+PASS PDF retains provided amounts, precision, price bases and tax rates
+PASS detail appendix begins without an orphaned transition page
+PASS reverse-charge information is present
+PASS long source line identifiers remain readable without invented numbering
+PASS full diagnostics retain origins, reasons, long and empty values
+PASS all 167 modeled terms and their metadata reach the PDF
+Exception in thread "main" java.lang.AssertionError: product goal missing beside disclaimer
+	at de.xrechnung.viewer.SemanticTests.check(SemanticTests.java:460)
+	at de.xrechnung.viewer.PdfTests.ok(PdfTests.java:11)
+	at de.xrechnung.viewer.PdfTests.main(PdfTests.java:108)

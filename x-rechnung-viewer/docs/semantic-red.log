@@ -1,0 +1,11 @@
+FAIL all 167 BTs and 41 BGs of the pinned 3.0.1 model have German labels: java.lang.AssertionError: expected 208, got 0
+FAIL UBL invoice uses official mapping and keeps original: java.lang.AssertionError: expected 123456XX, got 
+FAIL CII invoice uses official mapping: java.lang.AssertionError: expected 123456XX, got 
+FAIL credit note is mapped as credit note: java.lang.AssertionError: expected 381, got 
+FAIL every catalog field can pass through the semantic model with all properties: java.lang.AssertionError: catalog unavailable
+FAIL unknown input value is an explicit gap: java.lang.AssertionError: unknown value silently omitted
+PASS unambiguous empty optional element is not a gap
+FAIL unknown nonempty attribute remains a gap: java.lang.AssertionError: unknown attribute dropped
+FAIL repeated groups are retained individually: java.lang.AssertionError: line groups collapsed
+FAIL technical status never asserts validation: java.lang.AssertionError: validation overclaim
+RESULT: 1 semantic contracts passed, 9 failed

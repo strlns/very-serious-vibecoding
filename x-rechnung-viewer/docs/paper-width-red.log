@@ -1,0 +1,26 @@
+PASS paper invoice is primary and carries disclaimer
+PASS no gaps means collapsed inspector and visible zero
+PASS detected gap opens inspector automatically
+PASS collapsing preserves count and can be reversed
+PASS expansion default resets per document
+PASS native renderer retains all 167 catalog field values and properties
+PASS long and HTML-like values remain literal and complete
+Exception in thread "main" java.lang.AssertionError: Invoice workspace contract
+	at de.xrechnung.viewer.InvoiceWorkspaceTests.main(InvoiceWorkspaceTests.java:9)
+Caused by: java.lang.AssertionError: paper requires horizontal scrolling
+	at de.xrechnung.viewer.SemanticTests.check(SemanticTests.java:85)
+	at de.xrechnung.viewer.InvoiceWorkspaceTests.run(InvoiceWorkspaceTests.java:46)
+	at de.xrechnung.viewer.InvoiceWorkspaceTests.lambda$main$0(InvoiceWorkspaceTests.java:8)
+	at java.desktop/java.awt.event.InvocationEvent.dispatch(InvocationEvent.java:308)
+	at java.desktop/java.awt.EventQueue.dispatchEventImpl(EventQueue.java:773)
+	at java.desktop/java.awt.EventQueue$4.run(EventQueue.java:720)
+	at java.desktop/java.awt.EventQueue$4.run(EventQueue.java:714)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:399)
+	at java.base/java.security.ProtectionDomain$JavaSecurityAccessImpl.doIntersectionPrivilege(ProtectionDomain.java:86)
+	at java.desktop/java.awt.EventQueue.dispatchEvent(EventQueue.java:742)
+	at java.desktop/java.awt.EventDispatchThread.pumpOneEventForFilters(EventDispatchThread.java:203)
+	at java.desktop/java.awt.EventDispatchThread.pumpEventsForFilter(EventDispatchThread.java:124)
+	at java.desktop/java.awt.EventDispatchThread.pumpEventsForHierarchy(EventDispatchThread.java:113)
+	at java.desktop/java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:109)
+	at java.desktop/java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:101)
+	at java.desktop/java.awt.EventDispatchThread.run(EventDispatchThread.java:90)

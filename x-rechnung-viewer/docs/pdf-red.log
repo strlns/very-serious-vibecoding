@@ -1,0 +1,40 @@
+src/test/java/de/xrechnung/viewer/PdfTests.java:5: Fehler: Package org.apache.pdfbox ist nicht vorhanden
+import org.apache.pdfbox.Loader;
+                        ^
+src/test/java/de/xrechnung/viewer/PdfTests.java:6: Fehler: Package org.apache.pdfbox.text ist nicht vorhanden
+import org.apache.pdfbox.text.PDFTextStripper;
+                             ^
+src/test/java/de/xrechnung/viewer/PdfTests.java:12: Fehler: Package PdfInvoice ist nicht vorhanden
+  private static String text(PdfInvoice.Snapshot pdf) throws Exception {
+                                       ^
+src/test/java/de/xrechnung/viewer/PdfTests.java:19: Fehler: Symbol nicht gefunden
+    var pdf = PdfInvoice.create(file, invoice);
+              ^
+  Symbol: Variable PdfInvoice
+  Ort: Klasse PdfTests
+src/test/java/de/xrechnung/viewer/PdfTests.java:28: Fehler: Symbol nicht gefunden
+    String reverseText = text(PdfInvoice.create(rc, reverse));
+                              ^
+  Symbol: Variable PdfInvoice
+  Ort: Klasse PdfTests
+src/test/java/de/xrechnung/viewer/PdfTests.java:35: Fehler: Symbol nicht gefunden
+    String diagnostic = text(PdfInvoice.create(demo, mapped));
+                             ^
+  Symbol: Variable PdfInvoice
+  Ort: Klasse PdfTests
+src/test/java/de/xrechnung/viewer/PdfTests.java:50: Fehler: Symbol nicht gefunden
+    String complete = text(PdfInvoice.create(file, new SemanticInvoice(root, List.of(), "Nicht validiert")));
+                           ^
+  Symbol: Variable PdfInvoice
+  Ort: Klasse PdfTests
+src/test/java/de/xrechnung/viewer/PdfTests.java:60: Fehler: Symbol nicht gefunden
+    var multi = PdfInvoice.create(file, new SemanticInvoice(new SemanticInvoice.Node("0","invoice","","Rechnung","","","",List.of(),lines),List.of(),"Nicht validiert"));
+                ^
+  Symbol: Variable PdfInvoice
+  Ort: Klasse PdfTests
+src/test/java/de/xrechnung/viewer/PdfTests.java:89: Fehler: Symbol nicht gefunden
+      PdfInvoice.create(file, new SemanticInvoice(new SemanticInvoice.Node("0","invoice","","Rechnung","","","",List.of(),List.of(bad)),List.of(),"Nicht validiert"));
+      ^
+  Symbol: Variable PdfInvoice
+  Ort: Klasse PdfTests
+9 Fehler

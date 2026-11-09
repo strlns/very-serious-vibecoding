@@ -1,0 +1,212 @@
+id;name;German_label;UBL_static_reference;CreditNote_static_reference;CII_static_reference;observed_fixture_count;observed_in
+BT-1;Invoice_number;Rechnungsnummer;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-2;Invoice_issue_date;Rechnungsdatum;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-3;Invoice_type_code;Rechnungsart;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-5;Invoice_currency_code;Währung;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-6;VAT_accounting_currency_code;Code der Umsatzsteuerwährung;referenced;referenced;referenced;0;
+BT-7;Value_added_tax_point_date;Abrechnungsdatum der Umsatzsteuer;referenced;referenced;referenced;0;
+BT-8;Value_added_tax_point_date_code;Code des Umsatzsteuer-Abrechnungsdatums;referenced;referenced;referenced;0;
+BT-9;Payment_due_date;Fälligkeitsdatum;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,embedded-3.0.1-ubl.xml
+BT-10;Buyer_reference;Leitweg-ID;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-11;Project_reference;Projektnummer;referenced;referenced;referenced;3;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml
+BT-12;Contract_reference;Vertragsnummer;referenced;referenced;referenced;3;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml
+BT-13;Purchase_order_reference;Bestellnummer;referenced;referenced;referenced;3;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml
+BT-14;Sales_order_reference;Auftragsnummer;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-15;Receiving_advice_reference;Kennung der Empfangsbestätigung;referenced;referenced;referenced;0;
+BT-16;Despatch_advice_reference;Kennung der Versandanzeige;referenced;referenced;referenced;0;
+BT-17;Tender_or_lot_reference;Vergabenummer;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-18;Invoiced_object_identifier;Objektkennung;referenced;referenced;referenced;0;
+BT-19;Buyer_accounting_reference;Kontierungsinformation;referenced;referenced;referenced;0;
+BT-20;Payment_terms;Skonto, weitere Zahlungsbedingungen;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BG-1;INVOICE_NOTE;Rechnungsbemerkungen;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BG-2;PROCESS_CONTROL;Prozess und Spezifikation;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BG-3;PRECEDING_INVOICE_REFERENCE;Vorausgegangene Rechnungen;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BG-4;SELLER;Verkäufer;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BG-7;BUYER;Käufer;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BG-10;PAYEE;Zahlungsempfänger;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BG-11;SELLER_TAX_REPRESENTATIVE_PARTY;Steuervertreter des Verkäufers;referenced;referenced;referenced;0;
+BG-13;DELIVERY_INFORMATION;Lieferung;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BG-14;INVOICING_PERIOD;Abrechnungszeitraum;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BG-16;PAYMENT_INSTRUCTIONS;Zahlung;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BG-20;DOCUMENT_LEVEL_ALLOWANCES;Nachlässe auf Rechnungsebene;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BG-21;DOCUMENT_LEVEL_CHARGES;Zuschläge auf Rechnungsebene;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BG-22;DOCUMENT_TOTALS;Rechnungssummen;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BG-23;VAT_BREAKDOWN;Umsatzsteueraufschlüsselung;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BG-24;ADDITIONAL_SUPPORTING_DOCUMENTS;Rechnungsbegründende Unterlagen;referenced;referenced;referenced;3;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml
+BG-25;INVOICE_LINE;Rechnungsposition;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BG-DEX-09;THIRD_PARTY_PAYMENT;Fremdforderungen;referenced;not_referenced;not_referenced;0;
+BT-21;Invoice_note_subject_code;Betreff;referenced;referenced;referenced;1;kosit-01.01a-INVOICE_uncefact.xml
+BT-22;Invoice_note;Bemerkung;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-23;Business_process_type_identifier;Prozesskennung;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-24;Specification_identifier;Spezifikationskennung;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-25;Preceding_Invoice_reference;Rechnungsnummer;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-26;Preceding_Invoice_issue_date;Rechnungsdatum;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-27;Seller_name;Firmenname;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-28;Seller_trading_name;Abweichender Handelsname;referenced;referenced;referenced;5;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,item-attributes-3.0.1-ubl.xml
+BT-29;Seller_identifier;Kennung;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-30;Seller_legal_registration_identifier;Register-/Registriernummer;referenced;referenced;referenced;5;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,item-attributes-3.0.1-ubl.xml
+BT-31;Seller_VAT_identifier;Umsatzsteuer-ID;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-32;Seller_tax_registration_identifier;Steuernummer;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-33;Seller_additional_legal_information;Weitere rechtliche Informationen;referenced;referenced;referenced;5;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,item-attributes-3.0.1-ubl.xml
+BT-34;Seller_electronic_address;Elektronische Adresse;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BG-5;SELLER_POSTAL_ADDRESS;Anschrift des Verkäufers;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BG-6;SELLER_CONTACT;Kontakt des Verkäufers;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-35;Seller_address_line_1;Adresszeile 1;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-36;Seller_address_line_2;Adresszeile 2;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-162;Seller_address_line_3;Adresszeile 3;referenced;referenced;referenced;0;
+BT-37;Seller_city;Ort;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-38;Seller_post_code;PLZ;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-39;Seller_country_subdivision;Bundesland;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-40;Seller_country_code;Ländercode;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-41;Seller_contact_point;Name;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-42;Seller_contact_telephone_number;Telefon;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-43;Seller_contact_email_address;E-Mail-Adresse;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-44;Buyer_name;Name;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-45;Buyer_trading_name;Abweichender Handelsname;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-46;Buyer_identifier;Kennung;referenced;referenced;referenced;5;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,item-attributes-3.0.1-ubl.xml
+BT-47;Buyer_legal_registration_identifier;Register-/Registriernummer;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-48;Buyer_VAT_identifier;Umsatzsteuer-ID;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-49;Buyer_electronic_address;Elektronische Adresse;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BG-8;BUYER_POSTAL_ADDRESS;Anschrift des Käufers;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BG-9;BUYER_CONTACT;Kontakt des Käufers;referenced;referenced;referenced;3;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml
+BT-50;Buyer_address_line_1;Adresszeile 1;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-51;Buyer_address_line_2;Adresszeile 2;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-163;Buyer_address_line_3;Adresszeile 3;referenced;referenced;referenced;0;
+BT-52;Buyer_city;Ort;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-53;Buyer_post_code;PLZ;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-54;Buyer_country_subdivision;Bundesland;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-55;Buyer_country_code;Ländercode;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-56;Buyer_contact_point;Name;referenced;referenced;referenced;3;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml
+BT-57;Buyer_contact_telephone_number;Telefon;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-58;Buyer_contact_email_address;E-Mail-Adresse;referenced;referenced;referenced;3;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml
+BT-59;Payee_name;Name;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-60;Payee_identifier;Kennung;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-61;Payee_legal_registration_identifier;Register-/Registriernummer;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-62;Seller_tax_representative_name;Name;referenced;referenced;referenced;0;
+BT-63;Seller_tax_representative_VAT_identifier;Umsatzsteuer-ID;referenced;referenced;referenced;0;
+BG-12;SELLER_TAX_REPRESENTATIVE_POSTAL_ADDRESS;Anschrift des Steuervertreters;referenced;referenced;referenced;0;
+BT-64;Tax_representative_address_line_1;Adresszeile 1;referenced;referenced;referenced;0;
+BT-65;Tax_representative_address_line_2;Adresszeile 2;referenced;referenced;referenced;0;
+BT-164;Tax_representative_address_line_3;Adresszeile 3;referenced;referenced;referenced;0;
+BT-66;Tax_representative_city;Ort;referenced;referenced;referenced;0;
+BT-67;Tax_representative_post_code;PLZ;referenced;referenced;referenced;0;
+BT-68;Tax_representative_country_subdivision;Bundesland;referenced;referenced;referenced;0;
+BT-69;Tax_representative_country_code;Ländercode;referenced;referenced;referenced;0;
+BT-70;Deliver_to_party_name;Name des Empfängers;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-71;Deliver_to_location_identifier;Kennung des Lieferorts;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-72;Actual_delivery_date;Lieferdatum;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BG-15;DELIVER_TO_ADDRESS;Lieferanschrift;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-73;Invoicing_period_start_date;Von;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-74;Invoicing_period_end_date;Bis;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-75;Deliver_to_address_line_1;Adresszeile 1;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-76;Deliver_to_address_line_2;Adresszeile 2;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-165;Deliver_to_address_line_3;Adresszeile 3;referenced;referenced;referenced;0;
+BT-77;Deliver_to_city;Ort;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-78;Deliver_to_post_code;PLZ;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-79;Deliver_to_country_subdivision;Bundesland;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-80;Deliver_to_country_code;Ländercode;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-81;Payment_means_type_code;Code für das Zahlungsmittel;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-82;Payment_means_text;Zahlungsmittel;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-83;Remittance_information;Verwendungszweck;referenced;referenced;referenced;3;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml
+BG-17;CREDIT_TRANSFER;Überweisung;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BG-18;PAYMENT_CARD_INFORMATION;Kartenzahlung;referenced;referenced;referenced;0;
+BG-19;DIRECT_DEBIT;Lastschrift;referenced;referenced;referenced;0;
+BT-84;Payment_account_identifier;IBAN;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-85;Payment_account_name;Kontoinhaber;referenced;referenced;referenced;3;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml
+BT-86;Payment_service_provider_identifier;BIC;referenced;referenced;referenced;3;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml
+BT-87;Payment_card_primary_account_number;Kartennummer;referenced;referenced;referenced;0;
+BT-88;Payment_card_holder_name;Karteninhaber;referenced;referenced;referenced;0;
+BT-89;Mandate_reference_identifier;Mandatsreferenznr.;referenced;referenced;referenced;0;
+BT-90;Bank_assigned_creditor_identifier;Gläubiger-ID;referenced;referenced;referenced;0;
+BT-91;Debited_account_identifier;IBAN;referenced;referenced;referenced;0;
+BT-92;Document_level_allowance_amount;Nachlass;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-93;Document_level_allowance_base_amount;Grundbetrag;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-94;Document_level_allowance_percentage;Prozentsatz;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-95;Document_level_allowance_VAT_category_code;Umsatzsteuerkategorie des
+    Nachlasses;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-96;Document_level_allowance_VAT_rate;Umsatzsteuersatz des
+    Nachlasses;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-97;Document_level_allowance_reason;Grund für den Nachlass;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-98;Document_level_allowance_reason_code;Kennung für den Nachlassgrund;referenced;referenced;referenced;0;
+BT-99;Document_level_charge_amount;Zuschlag;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-100;Document_level_charge_base_amount;Grundbetrag;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-101;Document_level_charge_percentage;Prozentsatz;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-102;Document_level_charge_VAT_category_code;Umsatzsteuerkategorie des
+    Zuschlages;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-103;Document_level_charge_VAT_rate;Umsatzsteuersatz des Zuschlages;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-104;Document_level_charge_reason;Grund für den Zuschlag;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-105;Document_level_charge_reason_code;Kennung für den Zuschlagsgrund;referenced;referenced;referenced;0;
+BT-106;Sum_of_Invoice_line_net_amount;Summe aller Positionen;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-107;Sum_of_allowances_on_document_level;Summe Nachlässe;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-108;Sum_of_charges_on_document_level;Summe Zuschläge;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-109;Invoice_total_amount_without_VAT;Gesamtsumme;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-110;Invoice_total_VAT_amount;Summe Umsatzsteuer;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-111;Invoice_total_VAT_amount_in_accounting_currency;Summe Umsatzsteuer in Abrechnungswährung;referenced;referenced;referenced;0;
+BT-112;Invoice_total_amount_with_VAT;Gesamtsumme;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-113;Paid_amount;Gezahlter Betrag;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-114;Rounding_amount;Rundungsbetrag;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-115;Amount_due_for_payment;Fälliger Betrag;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-116;VAT_category_taxable_amount;Gesamtsumme;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-117;VAT_category_tax_amount;Umsatzsteuerbetrag;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-118;VAT_category_code;Umsatzsteuerkategorie;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-119;VAT_category_rate;Umsatzsteuersatz;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-120;VAT_exemption_reason_text;Befreiungsgrund;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-121;VAT_exemption_reason_code;Kennung für den Befreiungsgrund;referenced;referenced;referenced;0;
+BT-122;Supporting_document_reference;Kennung;referenced;referenced;referenced;3;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml
+BT-123;Supporting_document_description;Beschreibung;referenced;referenced;referenced;3;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml
+BT-124;External_document_location;Verweis (z.B. Internetadresse);referenced;referenced;referenced;0;
+BT-125;Attached_document;Anhangsdokument;referenced;referenced;referenced;1;embedded-3.0.1-ubl.xml
+BT-126;Invoice_line_identifier;Position;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-127;Invoice_line_note;Freitext;referenced;referenced;referenced;3;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,item-attributes-3.0.1-ubl.xml
+BT-128;Invoice_line_object_identifier;Objektkennung;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-129;Invoiced_quantity;Menge;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-130;Invoiced_quantity_unit_of_measure_code;Einheit;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-131;Invoice_line_net_amount;Gesamtpreis (netto);referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-132;Referenced_purchase_order_line_reference;Nummer der Auftragsposition;referenced;referenced;referenced;5;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,item-attributes-3.0.1-ubl.xml
+BT-133;Invoice_line_Buyer_accounting_reference;Kontierungshinweis;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BG-26;INVOICE_LINE_PERIOD;Leistungszeitraum der Position;referenced;referenced;referenced;5;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,item-attributes-3.0.1-ubl.xml
+BG-27;INVOICE_LINE_ALLOWANCES;Nachlässe der Position;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BG-28;INVOICE_LINE_CHARGES;Zuschläge der Position;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BG-29;PRICE_DETAILS;Preisangaben;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BG-30;LINE_VAT_INFORMATION;Umsatzsteuer der Position;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BG-31;ITEM_INFORMATION;Artikelbeschreibung;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BG-DEX-01;SUB_INVOICE_LINE;Unterposition;referenced;referenced;not_referenced;0;
+BT-134;Invoice_line_period_start_date;Von;referenced;referenced;referenced;5;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,item-attributes-3.0.1-ubl.xml
+BT-135;Invoice_line_period_end_date;Bis;referenced;referenced;referenced;5;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,item-attributes-3.0.1-ubl.xml
+BT-136;Invoice_line_allowance_amount;Nachlass (netto);referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-137;Invoice_line_allowance_base_amount;Grundbetrag (netto);referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-138;Invoice_line_allowance_percentage;Prozentsatz;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-139;Invoice_line_allowance_reason;Grund des Nachlasses;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-140;Invoice_line_allowance_reason_code;Code für den Nachlassgrund;referenced;referenced;referenced;0;
+BT-141;Invoice_line_charge_amount;Zuschlag (netto);referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-142;Invoice_line_charge_base_amount;Grundbetrag (netto);referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-143;Invoice_line_charge_percentage;Prozentsatz;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-144;Invoice_line_charge_reason;Grund des Zuschlags;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-145;Invoice_line_charge_reason_code;Code für den Zuschlagsgrund;referenced;referenced;referenced;0;
+BT-146;Item_net_price;Preis pro Einheit (netto);referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-147;Item_price_discount;Rabatt (netto);referenced;referenced;referenced;0;
+BT-148;Item_gross_price;Listenpreis (netto);referenced;referenced;referenced;0;
+BT-149;Item_price_base_quantity;Basismenge zum Artikelpreis;referenced;referenced;referenced;1;kosit-01.01a-INVOICE_uncefact.xml
+BT-150;Item_price_base_quantity_unit_of_measure;Code der Maßeinheit;referenced;referenced;referenced;0;
+BT-151;Invoiced_item_VAT_category_code;Umsatzsteuer;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-152;Invoiced_item_VAT_rate;Umsatzsteuersatz;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-153;Item_name;Bezeichnung;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-154;Item_description;Beschreibung;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-155;Item_Sellers_identifier;Artikelnummer;referenced;referenced;referenced;6;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,embedded-3.0.1-ubl.xml,item-attributes-3.0.1-ubl.xml
+BT-156;Item_Buyers_identifier;Artikelkennung des Käufers;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-157;Item_standard_identifier;Artikelkennung;referenced;referenced;referenced;2;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml
+BT-158;Item_classification_identifier;Code der Artikelklassifizierung;referenced;referenced;referenced;5;kosit-01.01a-INVOICE_ubl.xml,kosit-01.01a-INVOICE_uncefact.xml,max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,item-attributes-3.0.1-ubl.xml
+BT-159;Item_country_of_origin;Code des Herkunftslandes;referenced;referenced;referenced;0;
+BG-32;ITEM_ATTRIBUTES;Artikeleigenschaften;referenced;referenced;referenced;3;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,item-attributes-3.0.1-ubl.xml
+BT-160;Item_attribute_name;Name der Artikeleigenschaft;referenced;referenced;referenced;3;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,item-attributes-3.0.1-ubl.xml
+BT-161;Item_attribute_value;Wert der Artikeleigenschaft;referenced;referenced;referenced;3;max-3.0.1-ubl.xml,max-3.0.1-creditnote.xml,item-attributes-3.0.1-ubl.xml
+BG-DEX-02;SUB_INVOICE_ITEM_INFORMATION;Artikel der Unterposition;referenced;referenced;not_referenced;0;
+BG-DEX-03;SUB_INVOICE_LINE_ALLOWANCES;Nachlässe der Unterposition;referenced;referenced;not_referenced;0;
+BG-DEX-04;SUB_INVOICE_LINE_CHARGES;Zuschläge der Unterposition;referenced;referenced;not_referenced;0;
+BG-DEX-05;SUB_INVOICE_LINE_PERIOD;Zeitraum der Unterposition;referenced;referenced;not_referenced;0;
+BG-DEX-06;SUB_INVOICE_LINE_VAT_INFORMATION;Umsatzsteuer der Unterposition;referenced;referenced;not_referenced;0;
+BG-DEX-07;SUB_INVOICE_PRICE_DETAILS;Preise der Unterposition;referenced;referenced;not_referenced;0;
+BG-DEX-08;SUB_INVOICE_ITEM_ATTRIBUTES;Eigenschaften der Unterposition;referenced;referenced;not_referenced;0;
+BT-DEX-001;Third_party_payment_type;Art der Fremdforderung;referenced;not_referenced;not_referenced;0;
+BT-DEX-002;Third_party_payment_amount;Betrag der Fremdforderung;referenced;not_referenced;not_referenced;0;
+BT-DEX-003;Third_party_payment_description;Beschreibung der Fremdforderung;referenced;not_referenced;not_referenced;0;

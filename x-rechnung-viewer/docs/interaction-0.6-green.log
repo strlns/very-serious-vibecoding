@@ -1,0 +1,4 @@
+PASS actual header presses switch byte-identical copies independently
+TRACE preferred queries=30 invalidations=0
+PASS idle preferred-size queries do not resize or invalidate descendants
+RESULT: 2 interaction contracts passed

@@ -1,0 +1,7 @@
+KILLED input-alias: byte preservation and defensive ownership
+KILLED output-alias: byte preservation and defensive ownership
+KILLED trim-values: no decimal/date/whitespace coercion
+KILLED ignore-root-namespace: root detection uses expanded names
+KILLED enable-dtd-and-skip-doctype: DTD, external and internal entities are refused
+KILLED drop-unknown-extension: unknown extensions remain inspectable
+RESULT: 6 targeted mutants rejected; not an exhaustive mutation analysis

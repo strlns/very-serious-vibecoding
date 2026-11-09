@@ -1,0 +1,31 @@
+PASS byte preservation and defensive ownership
+PASS opening never modifies source
+PASS original copy is byte exact and cannot overwrite
+PASS SHA-256 known-answer
+PASS root detection uses expanded names
+PASS prefixes have no business meaning
+PASS no decimal/date/whitespace coercion
+PASS inventory retains all DOM node kinds
+PASS paths are unique and parents precede children
+PASS UTF-8 and UTF-16 originals survive
+PASS legacy declared encoding is decoded
+PASS malformed XML is refused
+PASS DTD, external and internal entities are refused
+PASS XInclude remains inert and visible
+PASS unknown extensions remain inspectable
+PASS input size limit refuses, never truncates
+PASS depth limit refuses, never truncates
+PASS inventory limit refuses, never truncates
+PASS inventory is immutable
+RESULT: 19 passed, 0 failed
+PASS disclaimer before load
+PASS persistent disclaimer in all four views
+PASS literal filter preserves inventory
+PASS selected value is complete and unchanged
+PASS raw source uses original decoded text
+PASS HTML-like values remain literal text
+RESULT: 6 view contracts passed
+PASS kosit-01.01a-INVOICE_ubl.xml SHA-256 + 330 independently counted inventory entries
+PASS kosit-01.01a-INVOICE_uncefact.xml SHA-256 + 363 independently counted inventory entries
+RESULT: 2 pinned KoSIT fixture contracts passed (no conformity assessment)
+Build and tests successful: dist/xrechnung-viewer.jar

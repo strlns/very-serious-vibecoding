@@ -1,0 +1,13 @@
+FAIL date display follows FORMAT locale, unknown falls back to ISO: java.lang.AssertionError: expected Nov 9, 2026, got 09.11.2026
+PASS EUR pads one fraction digit
+PASS whole EUR and negative values
+PASS unit prices never lose additional precision
+PASS large decimal values do not pass through floating point
+PASS currency-specific minimum scales
+PASS unknown or missing currency is never assumed EUR
+PASS empty and invalid lexical values remain visible
+PASS VAT accounting amounts use BT-6
+PASS identifier digits are not numeric amounts
+PASS 200 exact numeric round trips
+PASS reference payable formats correctly without changing source/model
+RESULT: 11 format contracts passed, 1 failed

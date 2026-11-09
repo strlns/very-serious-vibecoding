@@ -1,0 +1,18 @@
+LOAD two byte-identical files: 0.972 s; independent original snapshots=true
+SWITCH 30 header clicks: correct original selected every time; mode=headless Swing dispatch/render
+IDLE 3 s: EDT CPU 2.039 ms; dirty requests=0; invalidation requests=0
+EDT state=WAITING
+  at java.base@17.0.20/jdk.internal.misc.Unsafe.park(Native Method)
+  at java.base@17.0.20/java.util.concurrent.locks.LockSupport.park(LockSupport.java:341)
+  at java.base@17.0.20/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionNode.block(AbstractQueuedSynchronizer.java:506)
+  at java.base@17.0.20/java.util.concurrent.ForkJoinPool.unmanagedBlock(ForkJoinPool.java:3465)
+  at java.base@17.0.20/java.util.concurrent.ForkJoinPool.managedBlock(ForkJoinPool.java:3436)
+  at java.base@17.0.20/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:1630)
+  at java.desktop@17.0.20/java.awt.EventQueue.getNextEvent(EventQueue.java:565)
+  at java.desktop@17.0.20/java.awt.EventDispatchThread.pumpOneEventForFilters(EventDispatchThread.java:190)
+  at java.desktop@17.0.20/java.awt.EventDispatchThread.pumpEventsForFilter(EventDispatchThread.java:124)
+  at java.desktop@17.0.20/java.awt.EventDispatchThread.pumpEventsForHierarchy(EventDispatchThread.java:113)
+  at java.desktop@17.0.20/java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:109)
+  at java.desktop@17.0.20/java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:101)
+Probe-only empty EDT heartbeat: 250 ms; no production animation active.
+Scope: a headless trace does not reproduce Aqua, native window validation or Intel-Mac thermals.

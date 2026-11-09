@@ -1,0 +1,12 @@
+FAIL EUR pads one fraction digit: java.lang.AssertionError: expected 336,90 EUR, got 336.9
+FAIL whole EUR and negative values: java.lang.AssertionError: expected 0,00 EUR, got 0
+FAIL unit prices never lose additional precision: java.lang.AssertionError: expected 1,23456789 EUR, got 1.23456789
+FAIL large decimal values do not pass through floating point: java.lang.AssertionError: expected 123456789012345678901234567890,90 EUR, got 123456789012345678901234567890.9
+FAIL currency-specific minimum scales: java.lang.AssertionError: expected 12 JPY, got 12
+FAIL unknown or missing currency is never assumed EUR: java.lang.AssertionError: expected 12,3 ZZZ, got 12.3
+PASS empty and invalid lexical values remain visible
+FAIL VAT accounting amounts use BT-6: java.lang.AssertionError: expected 12,30 USD, got 12.3
+PASS identifier digits are not numeric amounts
+PASS 200 exact numeric round trips
+FAIL reference payable formats correctly without changing source/model: java.lang.AssertionError: expected 336,90 EUR, got 336.9
+RESULT: 3 format contracts passed, 8 failed

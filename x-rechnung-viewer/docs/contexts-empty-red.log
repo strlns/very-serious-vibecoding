@@ -1,0 +1,53 @@
+PASS byte preservation and defensive ownership
+PASS opening never modifies source
+PASS original copy is byte exact and cannot overwrite
+PASS SHA-256 known-answer
+PASS root detection uses expanded names
+PASS prefixes have no business meaning
+PASS no decimal/date/whitespace coercion
+PASS inventory retains all DOM node kinds
+PASS paths are unique and parents precede children
+PASS UTF-8 and UTF-16 originals survive
+PASS legacy declared encoding is decoded
+PASS malformed XML is refused
+PASS DTD, external and internal entities are refused
+PASS XInclude remains inert and visible
+PASS unknown extensions remain inspectable
+PASS input size limit refuses, never truncates
+PASS depth limit refuses, never truncates
+PASS inventory limit refuses, never truncates
+PASS inventory is immutable
+RESULT: 19 passed, 0 failed
+PASS disclaimer before load
+PASS persistent disclaimer in all four views
+PASS literal filter preserves inventory
+PASS selected value is complete and unchanged
+PASS raw source uses original decoded text
+PASS HTML-like values remain literal text
+RESULT: 6 view contracts passed
+PASS kosit-01.01a-INVOICE_ubl.xml SHA-256 + 330 independently counted inventory entries
+PASS kosit-01.01a-INVOICE_uncefact.xml SHA-256 + 363 independently counted inventory entries
+RESULT: 2 pinned KoSIT fixture contracts passed (no conformity assessment)
+PASS all 167 BTs and 41 BGs of the pinned 3.0.1 model have German labels
+PASS UBL invoice uses official mapping and keeps original
+PASS CII invoice uses official mapping
+PASS credit note is mapped as credit note
+PASS every catalog field can pass through the semantic model with all properties
+PASS unknown input value is an explicit gap
+PASS unambiguous empty optional element is not a gap
+PASS unknown nonempty attribute remains a gap
+PASS repeated groups are retained individually
+PASS technical status never asserts validation
+PASS VAT context is represented but a future value VAT is not hidden
+PASS unknown empty presence element is not assumed optional
+PASS split text and CDATA are one represented source value
+PASS unknown empty attribute is not assumed a default
+PASS currency attribute on a note is not silently treated as money
+PASS tax currency cannot hide a conflicting payable currency
+PASS official embedded attachments retain full data and metadata
+PASS official item attributes are human-readable fields
+PASS a matching separate VAT accounting currency remains supported
+PASS a parent line never borrows a missing amount from its subline
+FAIL empty CII delivery container carries no unrepresented data: java.lang.AssertionError: meaningless empty delivery container counted
+FAIL allowance discriminator is represented by its mapped business group: java.lang.AssertionError: mapped allowance discriminator counted
+RESULT: 20 semantic contracts passed, 2 failed

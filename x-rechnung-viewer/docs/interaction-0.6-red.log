@@ -1,0 +1,21 @@
+FAIL header input: header click did not select independent snapshot 0
+TRACE preferred queries=30 invalidations=123
+FAIL measurement purity: size queries changed component bounds
+Exception in thread "main" java.lang.AssertionError: java.lang.AssertionError: header click did not select independent snapshot 0
+	at de.xrechnung.viewer.InteractionTests.main(InteractionTests.java:62)
+Caused by: java.lang.AssertionError: header click did not select independent snapshot 0
+	at de.xrechnung.viewer.SemanticTests.check(SemanticTests.java:372)
+	at de.xrechnung.viewer.InteractionTests.lambda$main$1(InteractionTests.java:35)
+	at java.desktop/java.awt.event.InvocationEvent.dispatch(InvocationEvent.java:308)
+	at java.desktop/java.awt.EventQueue.dispatchEventImpl(EventQueue.java:773)
+	at java.desktop/java.awt.EventQueue$4.run(EventQueue.java:720)
+	at java.desktop/java.awt.EventQueue$4.run(EventQueue.java:714)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:399)
+	at java.base/java.security.ProtectionDomain$JavaSecurityAccessImpl.doIntersectionPrivilege(ProtectionDomain.java:86)
+	at java.desktop/java.awt.EventQueue.dispatchEvent(EventQueue.java:742)
+	at java.desktop/java.awt.EventDispatchThread.pumpOneEventForFilters(EventDispatchThread.java:203)
+	at java.desktop/java.awt.EventDispatchThread.pumpEventsForFilter(EventDispatchThread.java:124)
+	at java.desktop/java.awt.EventDispatchThread.pumpEventsForHierarchy(EventDispatchThread.java:113)
+	at java.desktop/java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:109)
+	at java.desktop/java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:101)
+	at java.desktop/java.awt.EventDispatchThread.run(EventDispatchThread.java:90)

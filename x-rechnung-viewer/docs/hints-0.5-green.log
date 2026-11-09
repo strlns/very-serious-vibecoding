@@ -1,0 +1,4 @@
+PASS hints are conditional, bounded plain-text previews
+PASS shortened labels preserve the exact full tooltip including HTML-like text
+PASS short strings, line previews and Unicode truncation preserve data boundaries
+RESULT: 3 full-text contracts passed
