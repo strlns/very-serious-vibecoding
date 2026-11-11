@@ -1,7 +1,7 @@
-import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { readFile, writeFile, rm } from "node:fs/promises";
 import { resolve } from "node:path";
 const root = resolve(import.meta.dirname, ".."),
-  dir = resolve(root, "build-single");
+  dir = resolve(root, "dist-singlefile");
 let html = await readFile(resolve(dir, "index.html"), "utf8");
 for (const match of [
   ...html.matchAll(/<script\b[^>]*src="([^"]+)"[^>]*><\/script>/g),
@@ -23,10 +23,12 @@ for (const match of [...html.matchAll(/<link\b[^>]*href="([^"]+)"[^>]*>/g)]) {
     () => `<style>${css.replaceAll("</style", "<\\/style")}</style>`,
   );
 }
-await mkdir(resolve(root, "releases"), { recursive: true });
-await writeFile(resolve(root, "releases/squeaklite.html"), html);
+// The standalone output directory must also be directly usable via file://,
+// rather than exposing Vite's intermediate page with external module imports.
+await writeFile(resolve(dir, "index.html"), html);
+await rm(resolve(dir, "assets"), { recursive: true, force: true });
 console.log(
-  "Created releases/squeaklite.html · " +
+  "Created dist-singlefile/index.html · " +
     (Buffer.byteLength(html) / 1024 / 1024).toFixed(2) +
     " MiB · self-contained",
 );

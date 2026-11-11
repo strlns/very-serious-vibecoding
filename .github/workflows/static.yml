@@ -64,11 +64,10 @@ jobs:
           rm -rf "$pages_dir/AVS-Web-Native-Editor-Alpha"
           cp -R AVS-Web-Native-Editor-Alpha/dist "$pages_dir/AVS-Web-Native-Editor-Alpha"
           test -f "$pages_dir/AVS-Web-Native-Editor-Alpha/renderer-provenance.json"
-          # Publish the self-contained app at a directory URL and a root file URL.
+          # Publish the normal app and its portable single-file download.
           rm -rf "$pages_dir/squeaklite"
-          mkdir -p "$pages_dir/squeaklite"
-          cp squeaklite/releases/squeaklite.html "$pages_dir/squeaklite/index.html"
-          cp squeaklite/releases/squeaklite.html "$pages_dir/squeaklite.html"
+          cp -R squeaklite/dist "$pages_dir/squeaklite"
+          cp -R squeaklite/dist-singlefile "$pages_dir/squeaklite/dist-singlefile"
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact

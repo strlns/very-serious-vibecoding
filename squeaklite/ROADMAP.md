@@ -2,7 +2,7 @@
 
 ## Delivered: portable HTML + OPFS workspace autosave
 
-- Single HTML remains the default build, with embedded worker and WASM.
+- The default build produces dist/ and dist-singlefile/index.html; the latter embeds the worker and WASM.
 - Capability-based autosave, restore, quota errors, last-good snapshot protection.
 - Multiple databases, companion files and active database are restored together.
 - Memory-only fallback on file URLs, unavailable storage and concurrent tabs.

@@ -211,3 +211,21 @@ test('empty editor has a clean placeholder; Arrow Down requests valid completion
 test('column and index row icons target the right object and confirm deletion',async()=>{
  await mount();await importDatabase('CREATE TABLE records(id INTEGER PRIMARY KEY,title TEXT,obsolete TEXT);CREATE INDEX records_title ON records(title);INSERT INTO records VALUES(1,\'Keep\',\'drop\');');await click(button('Structure'));await click(button('Edit column title'));assert.equal([...lastDialog().querySelectorAll('select')][0].value,'renameColumn');assert.equal([...lastDialog().querySelectorAll('select')][1].value,'title');await fill([...lastDialog().querySelectorAll('input')].at(-1),'body');await click(button('Review change'));await click(button('Confirm schema change'));assert.equal(engine.values('SELECT body FROM records')[0].body,'Keep');await click(button('Delete column obsolete'));await waitUntil(()=>button('Confirm deletion'));assert.ok(engine.schema('records').columns.some(c=>c.name==='obsolete'));await click(button('Confirm deletion'));assert.ok(!engine.schema('records').columns.some(c=>c.name==='obsolete'));await click(button('Edit index records_title'));assert.match(lastDialog().querySelector('[aria-label="Schema SQL editor"]').value,/body/);await click(button('Cancel'));await click(button('Delete index records_title'));await waitUntil(()=>button('Confirm deletion'));await click(button('Confirm deletion'));assert.ok(!engine.schema('records').indexes.some(i=>i.name==='records_title'));await click(button('Schema'));assert.ok(button('Edit column body'));assert.ok(button('Delete column body'));await click(button('Edit column body'));assert.equal([...lastDialog().querySelectorAll('select')][1].value,'body');await click(button('Cancel'));
 });
+
+test('app HTML download is separate from workspace export and preserves storage status',async()=>{
+ await mount();
+ const link=[...document.querySelectorAll('a')].find(a=>a.textContent.trim()==='Download HTML →');
+ assert.ok(link);
+ assert.equal(link.getAttribute('download'),'squeaklite.html');
+ assert.equal(link.href,'http://localhost/dist-singlefile/index.html');
+ assert.match(document.querySelector('.sidebar-version .app-download').textContent,/Static Web App/);
+ assert.equal(document.querySelector('.source-link').href,'https://github.com/strlns/very-serious-vibecoding/tree/main/squeaklite');
+ assert.match(document.querySelector('.topbar .storage-status').textContent,/Memory only/);
+ assert.equal(document.querySelector('.sidebar-bottom .storage-status'),null);
+ assert.equal(document.querySelector('.privacy-card'),null);
+ const statusMenu=document.querySelector('.storage-menu');
+ assert.equal(statusMenu.nextElementSibling.getAttribute('aria-label'),'Query history');
+ assert.ok(statusMenu.querySelector('summary svg'));
+ assert.ok(statusMenu.querySelector('.storage-popover'));
+ assert.ok(button('Export ZIP'));
+});

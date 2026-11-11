@@ -1,3 +1,13 @@
+## 1.6.0 · Portable builds and a more compact interface
+
+- `npm run build` produces `dist/` and a single `dist-singlefile/index.html`.
+- Removed release packaging, intermediate build copies and the repo-root HTML.
+- Pages serves the normal bundle and offers the portable HTML as a download.
+- Compact sidebar footer combines download and version information.
+- Storage status and save controls moved into the header; redundant banners removed.
+- Added a GitHub source link and reduced heading, tab and summary spacing.
+- Native/steady scrolling remains available on touch/narrow layouts.
+
 ## 1.5.0 · Local workspace autosave
 
 - OPFS snapshots and startup restore for multi-database workspaces.

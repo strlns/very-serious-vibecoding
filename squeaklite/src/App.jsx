@@ -66,6 +66,7 @@ import {
   csvDownload,
 } from "./ui.jsx";
 import { ident, display } from "./sql.ts";
+import { appDownloadHref } from "./app-download.ts";
 import Query from "./Query.jsx";
 import { viewSelect } from "./schema-tools.mjs";
 import SqlEditor from "./SqlEditor.jsx";
@@ -961,15 +962,6 @@ export default function App() {
           </div>
         </div>
         <div className="sidebar-bottom">
-          <div className="privacy-card">
-            <span className="privacy-icon">
-              <ShieldCheck size={17} />
-            </span>
-            <div>
-              <strong>Your data stays yours.</strong>
-              <p>100% local. No uploads. No servers.</p>
-            </div>
-          </div>
           <button
             className="nav-item"
             onClick={() => setModal({ type: "help" })}
@@ -978,56 +970,24 @@ export default function App() {
             <span>Guide & shortcuts</span>
             <ArrowUpRight size={14} />
           </button>
-          <div
-            className="storage-status"
-            role="status"
-            style={{ padding: "12px", fontSize: "12px" }}
-          >
-            <strong>
-              {storage?.message || "Memory only · export to keep changes"}
-            </strong>
-            {storage?.savedAt && (
-              <div>
-                Last saved: {new Date(storage.savedAt).toLocaleTimeString()}
-              </div>
-            )}
-            {storage?.mode === "opfs" && (
-              <button
-                type="button"
-                className="text-button"
-                onClick={() =>
-                  rpc("storageSave").catch((e) => setError(e.message))
-                }
-              >
-                Save now
-              </button>
-            )}
-            {storage?.mode === "opfs" && (
-              <button
-                type="button"
-                className="text-button"
-                onClick={async () => {
-                  try {
-                    const granted = await navigator.storage?.persist?.();
-                    notify(
-                      granted
-                        ? "Persistent storage granted. Keep exports as backups."
-                        : "Storage remains best effort; the browser may remove it.",
-                    );
-                  } catch {
-                    notify(
-                      "Persistent storage unavailable. Keep exports as backups.",
-                    );
-                  }
-                }}
-              >
-                Keep browser storage
-              </button>
-            )}
-          </div>
           <div className="sidebar-version">
-            <span className="status-dot" /> SQLite in your browser{" "}
-            <span>v1.5.0</span>
+            <div className="sidebar-app-meta">
+              <span className="status-dot" />
+              <span>SQLite in your browser</span>
+              <span className="sidebar-app-version">v1.6.0</span>
+            </div>
+            <div className="app-download">
+              <span>Static Web App</span>
+              <a
+                href={
+                  appDownloadHref(location.href, import.meta.env?.MODE === "singlefile")
+                }
+                download="squeaklite.html"
+                title="Download the app for offline use. Export workspace data separately."
+              >
+                Download HTML →
+              </a>
+            </div>
           </div>
         </div>
       </aside>
@@ -1050,6 +1010,73 @@ export default function App() {
             <span className="local-tag">LOCAL</span>
           </div>
           <div className="topbar-actions">
+            <details
+              className="storage-menu"
+              data-state={storage?.state || "unavailable"}
+            >
+              <summary
+                aria-label="Storage status"
+                title={
+                  storage?.message || "Memory only · export to keep changes"
+                }
+              >
+                <span className="storage-status" role="status">
+                  {storage?.state === "error" ? (
+                    <AlertCircle size={14} aria-hidden="true" />
+                  ) : storage?.mode === "opfs" ? (
+                    <ShieldCheck size={14} aria-hidden="true" />
+                  ) : (
+                    <Database size={14} aria-hidden="true" />
+                  )}
+                  <span className="storage-status-text">
+                    {storage?.message || "Memory only · export to keep changes"}
+                  </span>
+                </span>
+              </summary>
+              <div className="storage-popover">
+                <p>
+                  {storage?.message || "Memory only · export to keep changes"}
+                </p>
+                {storage?.savedAt && (
+                  <div>
+                    Last saved: {new Date(storage.savedAt).toLocaleTimeString()}
+                  </div>
+                )}
+                {storage?.mode === "opfs" && (
+                  <button
+                    type="button"
+                    className="text-button"
+                    onClick={() =>
+                      rpc("storageSave").catch((e) => setError(e.message))
+                    }
+                  >
+                    Save now
+                  </button>
+                )}
+                {storage?.mode === "opfs" && (
+                  <button
+                    type="button"
+                    className="text-button"
+                    onClick={async () => {
+                      try {
+                        const granted = await navigator.storage?.persist?.();
+                        notify(
+                          granted
+                            ? "Persistent storage granted. Keep exports as backups."
+                            : "Storage remains best effort; the browser may remove it.",
+                        );
+                      } catch {
+                        notify(
+                          "Persistent storage unavailable. Keep exports as backups.",
+                        );
+                      }
+                    }}
+                  >
+                    Keep browser storage
+                  </button>
+                )}
+              </div>
+            </details>
             <IconButton
               icon={History}
               label="Query history"
@@ -1502,10 +1529,14 @@ export default function App() {
                       <SquarePen size={13} /> Click a row to inspect or edit its
                       values.
                     </span>
-                    <span>
-                      Made for a little deeper digging{" "}
-                      <span className="tip-star">✳</span>
-                    </span>
+                    <a
+                      className="source-link"
+                      href="https://github.com/strlns/very-serious-vibecoding/tree/main/squeaklite"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      View source on GitHub <ExternalLink size={12} />
+                    </a>
                   </div>
                 </>
               ) : (
