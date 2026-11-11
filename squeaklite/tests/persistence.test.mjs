@@ -7,6 +7,8 @@ import {WorkspaceStorage} from '../src/persistence.ts';
 // OPFS double models commit-on-close and failures before commit, not SQLite.
 function environment() {
   let failWrites=false,locked=false;
+  const waiters=[];
+  const release=()=>{locked=false;waiters.shift()?.();};
   class Directory {
     nodes=new Map();
     async getDirectoryHandle(name,{create=false}={}) {
@@ -34,13 +36,19 @@ function environment() {
   const root=new Directory();
   Object.defineProperty(globalThis,'navigator',{configurable:true,value:{
     storage:{getDirectory:async()=>root},
-    locks:{request:async(name,options,callback)=>{
-      const obtained=!locked;if(obtained) locked=true;
-      return callback(obtained?{}:null);
-    }},
+    locks:{request:(name,options,callback)=>new Promise((resolve,reject)=>{
+      const grant=()=>{
+        locked=true;
+        try { Promise.resolve(callback({})).then(resolve,reject); }
+        catch(error){reject(error);}
+      };
+      if(!locked)grant();
+      else if(options.ifAvailable) Promise.resolve(callback(null)).then(resolve,reject);
+      else waiters.push(grant);
+    })},
   }});
   Object.defineProperty(globalThis,'location',{configurable:true,value:{origin:'https://example.test'}});
-  return {root,fail:()=>failWrites=true,release:()=>locked=false};
+  return {root,fail:()=>failWrites=true,release};
 }
 const originalNavigator=Object.getOwnPropertyDescriptor(globalThis,'navigator');
 const originalLocation=Object.getOwnPropertyDescriptor(globalThis,'location');
@@ -95,7 +103,7 @@ test('a second tab cannot overwrite the first tab workspace',async()=>{
   await new WorkspaceStorage().initialize();
   const other=new WorkspaceStorage();
   assert.equal(await other.initialize(),null);
-  assert.match(other.status.message,/another tab/);
+  assert.match(other.status.message,/waiting for workspace access/);
 });
 
 test('corrupt HEAD is preserved and cannot be silently overwritten by the demo',async()=>{
@@ -118,4 +126,34 @@ test('an open write transaction survives a failed snapshot and can still be roll
   assert.equal(engine.values('SELECT name FROM customers WHERE id=1')[0].name,name);
   await engine.storageSave();assert.equal(engine.persistence.status.state,'saved');
   engine.db.close();
+});
+
+
+test('waiting tab is notified when the owner closes without polling or overwriting either workspace',async()=>{
+  const env=environment(),owner=new WorkspaceStorage();
+  await owner.initialize();
+  await owner.save(()=>({active:'saved.db',dirty:[],entries:[{path:'saved.db',data:new Uint8Array([7])}]}));
+  const events=[],waiting=new WorkspaceStorage(status=>events.push(status));
+  assert.equal(await waiting.initialize(),null);
+  assert.equal(events.length,0);
+  env.release();
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(events.length,1);
+  assert.equal(waiting.status.state,'available');
+  assert.equal(waiting.status.canRecover,true);
+  assert.equal(waiting.status.mode,'memory');
+  await waiting.save(()=>{throw Error('Memory edits must never be snapshotted automatically');});
+  assert.equal(waiting.status.state,'available');
+  env.release();
+  const restored=await new WorkspaceStorage().initialize();
+  assert.deepEqual(new Uint8Array(await restored.entries[0].data.arrayBuffer()),new Uint8Array([7]));
+});
+
+test('lock API errors are not reported as contention with another tab',async()=>{
+  environment();
+  navigator.locks.request=async()=>{throw new DOMException('Unavailable','SecurityError');};
+  const storage=new WorkspaceStorage();
+  assert.equal(await storage.initialize(),null);
+  assert.equal(storage.status.state,'error');
+  assert.doesNotMatch(storage.status.message,/another tab|waiting for workspace/);
 });

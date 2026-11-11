@@ -41,3 +41,16 @@ test('structured-clone errors reject only their request', async () => {
   worker.onmessage({ data: { id: sent[0].id, result: 'still working' } });
   assert.equal(await next, 'still working');
 });
+
+
+test('worker status events reach subscribers without an RPC request',async()=>{
+  const sent=[],worker={postMessage:message=>sent.push(message)};
+  globalThis.__squeakliteTestWorker=worker;
+  const {subscribeStorage}=await import('../src/client.ts?case=status-events');
+  const events=[],unsubscribe=subscribeStorage(status=>events.push(status));
+  const status={mode:'memory',state:'available',canRecover:true,message:'Storage available'};
+  worker.onmessage({data:{persistence:status}});
+  assert.deepEqual(events,[status]);
+  unsubscribe();worker.onmessage({data:{persistence:status}});
+  assert.equal(events.length,1);
+});

@@ -53,6 +53,9 @@ by browser module-loading rules. Building locally does not deploy anything.
 - On HTTPS/localhost with OPFS and Web Locks, committed changes are autosaved.
   Reload restores the databases, companion files and active database. A second
   tab uses memory-only mode to avoid overwriting the first tab's workspace.
+  It queues an origin-scoped Web Lock request: when the owner closes, the header
+  updates automatically and offers a reload to restore autosave. Reload discards
+  that tab's in-memory changes, so export them first. No polling is used.
 - `file://` and unsupported environments use memory-only mode. Check the visible
   storage status; export before closing when autosave is unavailable or failed.
 - Import and database/ZIP/CSV export remain available in every mode. Exports are

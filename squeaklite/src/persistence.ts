@@ -1,9 +1,10 @@
 export interface StorageStatus {
   mode: "memory" | "opfs";
-  state: "unavailable" | "ready" | "saved" | "error";
+  state: "unavailable" | "ready" | "saved" | "error" | "available";
   message: string;
   savedAt?: string;
   restored?: boolean;
+  canRecover?: boolean;
 }
 export interface Snapshot {
   active: string;
@@ -30,6 +31,38 @@ export class WorkspaceStorage {
   private root?: FileSystemDirectoryHandle;
   private head?: Manifest;
   private writable = false;
+  private ownsLock = false;
+  private waitingForLock = false;
+
+  private onStatus?: (status: StorageStatus) => void;
+  constructor(onStatus?: (status: StorageStatus) => void) { this.onStatus = onStatus; }
+
+  private waitForAccess(locks: LockManager) {
+    if (this.waitingForLock || this.ownsLock) return;
+    this.waitingForLock = true;
+    // Unlike ifAvailable, a queued request is notified by the browser when
+    // the owner exits. No server, polling, heartbeat or localStorage needed.
+    void locks
+      .request("squeaklite-workspace", {}, (lock) => {
+        if (!lock) throw new Error("Storage lock was not granted");
+        this.waitingForLock = false;
+        this.ownsLock = true;
+        // Do not enable writes or restore over this tab's in-memory edits.
+        this.status = {
+          mode: "memory",
+          state: "available",
+          canRecover: true,
+          message: "Storage available · reload to restore autosave",
+        };
+        this.onStatus?.(this.status);
+        return new Promise<void>(() => {});
+      })
+      .catch((error) => {
+        this.waitingForLock = false;
+        this.fail(error, "Browser storage unavailable; export your changes");
+        this.onStatus?.(this.status);
+      });
+  }
 
   async initialize(
     storage = globalThis.navigator?.storage,
@@ -43,17 +76,25 @@ export class WorkspaceStorage {
     )
       return null;
     try {
-      const acquired = await new Promise<boolean>((resolve) => {
-        navigator.locks
-          .request("squeaklite-workspace", { ifAvailable: true }, (lock) => {
-            resolve(Boolean(lock));
-            // Keep the lock until this worker/tab exits. Other tabs stay memory-only.
-            return lock ? new Promise<void>(() => {}) : undefined;
-          })
-          .catch(() => resolve(false));
-      });
+      const acquired =
+        this.ownsLock ||
+        (await new Promise<boolean>((resolve, reject) => {
+          navigator.locks
+            .request("squeaklite-workspace", { ifAvailable: true }, (lock) => {
+              this.ownsLock = Boolean(lock);
+              resolve(this.ownsLock);
+              // Keep the lock until this worker/tab exits. Other tabs stay memory-only.
+              return lock ? new Promise<void>(() => {}) : undefined;
+            })
+            .catch(reject);
+        }));
       if (!acquired) {
-        this.status.message = "Memory only · workspace open in another tab";
+        this.status = {
+          mode: "memory",
+          state: "unavailable",
+          message: "Memory only · waiting for workspace access",
+        };
+        this.waitForAccess(navigator.locks);
         return null;
       }
       this.root = await (

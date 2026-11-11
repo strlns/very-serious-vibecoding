@@ -979,9 +979,10 @@ export default function App() {
             <div className="app-download">
               <span>Static Web App</span>
               <a
-                href={
-                  appDownloadHref(location.href, import.meta.env?.MODE === "singlefile")
-                }
+                href={appDownloadHref(
+                  location.href,
+                  import.meta.env?.MODE === "singlefile",
+                )}
                 download="squeaklite.html"
                 title="Download the app for offline use. Export workspace data separately."
               >
@@ -1037,6 +1038,23 @@ export default function App() {
                 <p>
                   {storage?.message || "Memory only · export to keep changes"}
                 </p>
+                {storage?.canRecover && (
+                  <button
+                    type="button"
+                    className="text-button"
+                    disabled={!!busy}
+                    onClick={() => {
+                      if (
+                        window.confirm(
+                          "Reload to restore the saved workspace and enable autosave? Current memory-only changes and unsaved text drafts will be discarded. Export them first.",
+                        )
+                      )
+                        location.reload();
+                    }}
+                  >
+                    Reload to restore autosave
+                  </button>
+                )}
                 {storage?.savedAt && (
                   <div>
                     Last saved: {new Date(storage.savedAt).toLocaleTimeString()}

@@ -45,7 +45,7 @@ export function subscribeStorage(listener: (status: StorageStatus) => void) {
 }
 interface WorkerReply {
   persistence?: StorageStatus;
-  id: number;
+  id?: number;
   result?: unknown;
   error?: string;
 }
@@ -58,6 +58,7 @@ const pending = new Map<number, PendingRequest>();
 worker.onmessage = ({ data }: MessageEvent<WorkerReply>) => {
   if (data.persistence)
     for (const listener of storageListeners) listener(data.persistence);
+  if (data.id === undefined) return;
   const request = pending.get(data.id);
   if (!request) return;
   pending.delete(data.id);

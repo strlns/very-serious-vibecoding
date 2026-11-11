@@ -1,7 +1,9 @@
 import { WorkspaceStorage } from "./persistence.ts";
 export function handle(engine) {
   const prepared = Promise.resolve(engine).then((e) => {
-    e.persistence = new WorkspaceStorage();
+    e.persistence = new WorkspaceStorage((status) => {
+      self.postMessage({ persistence: status });
+    });
     return e;
   });
   const saves = new Set([
