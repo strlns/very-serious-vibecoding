@@ -77,11 +77,15 @@ walk_tree() {
             .git|.cache|node_modules|dist|build|venv|__pycache__) continue ;;
         esac
 
-        # Check for nested index.html
-        has_index=0
-        if [ -f "$path/index.html" ]; then has_index=1; fi
+        # Choose one launch target for each app.
+        launch_index="$path/index.html"
         case "$path" in
-            ./AVS-Web-Native-Editor-Alpha/app) has_index=0 ;;
+            ./squeaklite) launch_index="$path/dist-singlefile/index.html" ;;
+        esac
+        has_index=0
+        if [ -f "$launch_index" ]; then has_index=1; fi
+        case "$path" in
+            ./AVS-Web-Native-Editor-Alpha/app|./squeaklite/*) has_index=0 ;;
         esac
 
         # Write Directory Entry
@@ -93,10 +97,10 @@ walk_tree() {
         # Logic for folder buttons
         if [ "$has_index" -eq 1 ]; then
             # A launch link remains available while the folder is collapsed.
-            clean_path="${path#./}"
+            clean_path="${launch_index#./}"
             echo "    <span>$dirname</span>" >> "$OUTPUT_FILE"
             echo "    <span class='btn-group'>" >> "$OUTPUT_FILE"
-            echo "      <a href='$clean_path/index.html' class='btn btn-primary'>🚀 Launch</a>" >> "$OUTPUT_FILE"
+            echo "      <a href='$clean_path' class='btn btn-primary'>🚀 Launch</a>" >> "$OUTPUT_FILE"
             echo "    </span>" >> "$OUTPUT_FILE"
         else
             # Standard folder
