@@ -52,6 +52,16 @@ side by side also works at `/dist/` and `/dist-singlefile/`. A split build needs
 HTTP(S), including localhost; opening its index via `file://` is not supported
 by browser module-loading rules. Building locally does not deploy anything.
 
+## Deploy to paperclip-factory.de
+
+Run `./deploy-paperclip-factory.sh`. It first runs `npm run build` from the
+project directory, then deploys. It requires Node.js/npm, an SSH agent with a
+loaded key and a working `netcup` SSH alias (with the host
+already trusted in `known_hosts`). It uploads both builds to `_squeaklite` and
+`_dist-singlefile` under `/paperclip-factory.de/httpdocs`, then replaces their
+live counterparts. A relative symlink inside `squeaklite/` keeps Download HTML
+working with the sibling `dist-singlefile/` directory.
+
 ## Storage and portability
 
 - SQLite runs in a worker using sql.js. The active database is held in RAM.
