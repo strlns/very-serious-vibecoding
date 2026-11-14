@@ -107,6 +107,20 @@ export class Engine {
     this.generation++;
     return this.meta();
   }
+  async empty() {
+    const next = new this.SQL.Database();
+    next.run("PRAGMA user_version=0");
+    const bytes = next.export();
+    next.close();
+    this.db?.close();
+    this.db = null;
+    this.path = "";
+    this.files = new Map([["workspace.db", bytes]]);
+    this.dirty.clear();
+    this.workspaceGeneration++;
+    await this.open("workspace.db");
+    return this.workspace();
+  }
   async demo() {
     this.workspaceGeneration++;
     const next = new this.SQL.Database();
@@ -258,6 +272,7 @@ export class Engine {
         return {
           ...o,
           schemaError,
+          strict: Number(tableFlags.get(o.name)?.strict || 0) > 0,
           withoutRowid: Number(tableFlags.get(o.name)?.wr || 0) > 0,
           columns,
           foreignKeys:
@@ -289,6 +304,7 @@ export class Engine {
     sort = "",
     direction = "ASC",
     filters = [],
+    focusKey,
   }) {
     this.active();
     const obj = this.schema(table);
@@ -340,15 +356,37 @@ export class Engine {
       ? sort
       : primary[0]?.name || cols[0]?.name;
     const size = Math.min(200, Math.max(10, Number(pageSize) || 50));
+    const identity = this.identity(obj);
+    const ordering = [
+      ...(validSort
+        ? [ident(validSort) + (direction === "DESC" ? " DESC" : " ASC")]
+        : []),
+      ...identity.fields
+        .filter((f) => f !== validSort)
+        .map((f) => ident(f) + " ASC"),
+    ].join(", ");
+    let focusPosition = null;
+    if (focusKey && identity.fields.length) {
+      const selection = this.selectionWhere(obj, [focusKey], "f");
+      let positionName = "__squeaklite_position__";
+      while (identity.fields.includes(positionName)) positionName += "_";
+      const found = this.values(
+        `SELECT f.${ident(positionName)} AS position FROM (SELECT ${identity.fields.map(ident).join(", ")}, ROW_NUMBER() OVER (ORDER BY ${ordering}) - 1 AS ${ident(positionName)} FROM ${ident(table)}${clause}) AS f WHERE ${selection.sql}`,
+        [...params, ...selection.params],
+      )[0];
+      if (found) focusPosition = Number(found.position);
+    }
     const current = Math.max(
       0,
       Math.min(
-        Number(page) || 0,
+        focusPosition !== null
+          ? Math.floor(focusPosition / size)
+          : Number(page) || 0,
         Math.max(0, Math.ceil(Number(count) / size) - 1),
       ),
     );
     const stmt = this.db.prepare(
-      `SELECT ${rowid ? ident(rowid) + ' AS "__quarry_identity__", ' : ""}* FROM ${ident(table)}${clause}${validSort ? " ORDER BY " + ident(validSort) + (direction === "DESC" ? " DESC" : " ASC") : ""} LIMIT ? OFFSET ?`,
+      `SELECT ${rowid ? ident(rowid) + ' AS "__quarry_identity__", ' : ""}* FROM ${ident(table)}${clause}${ordering ? " ORDER BY " + ordering : ""} LIMIT ? OFFSET ?`,
     );
     try {
       stmt.bind([
@@ -373,6 +411,8 @@ export class Engine {
         count,
         page: current,
         pageSize: size,
+        focusFound: focusPosition !== null,
+        token: this.mutationToken(),
       };
     } finally {
       stmt.free();
@@ -535,47 +575,85 @@ export class Engine {
       );
     return this.editMany({ table, keys, databasePath, confirmed: true });
   }
-  edit({ table, key, values, action, databasePath, confirmed = false }) {
+  edit({ table, key, values, action, databasePath, token, confirmed = false }) {
     this.assertDatabase(databasePath);
+    if (token && token !== this.mutationToken())
+      throw new Error(
+        "The database changed while this form was open. Close it and reopen the row before saving.",
+      );
     const obj = this.schema(table);
     if (obj.type !== "table")
       throw new Error("Views are read-only in the row editor.");
     if (action === "delete" && !confirmed)
       throw new Error("Confirm deletion before deleting rows.");
+    if (!["insert", "update", "delete"].includes(action))
+      throw new Error("Unknown row operation.");
     const cols = obj.columns.filter((c) => Number(c.hidden) === 0),
       valid = Object.keys(values || {}).filter((n) =>
         cols.some((c) => c.name === n),
       ),
-      val = valid.map((n) => values[n]);
-    let changed = 0;
+      val = valid.map((n) => values[n]),
+      identity = this.identity(obj);
+    const returning =
+      identity.fields.length && action !== "delete"
+        ? ` RETURNING ${identity.fields.map((f, i) => ident(f) + " AS " + ident("__key_" + i)).join(", ")}`
+        : "";
+    let sql, params;
     if (action === "insert") {
-      this.db.run(
-        valid.length
-          ? `INSERT INTO ${ident(table)} (${valid.map(ident).join(",")}) VALUES (${valid.map(() => "?").join(",")})`
-          : `INSERT INTO ${ident(table)} DEFAULT VALUES`,
-        val,
-      );
-      changed = this.db.getRowsModified();
+      sql = valid.length
+        ? `INSERT INTO ${ident(table)} (${valid.map(ident).join(",")}) VALUES (${valid.map(() => "?").join(",")})`
+        : `INSERT INTO ${ident(table)} DEFAULT VALUES`;
+      params = val;
     } else {
       const where = this.selectionWhere(obj, [key]);
-      if (action === "delete")
-        this.db.run(
-          `DELETE FROM ${ident(table)} WHERE ${where.sql}`,
-          where.params,
-        );
-      else if (valid.length)
-        this.db.run(
-          `UPDATE ${ident(table)} SET ${valid.map((n) => ident(n) + "=?").join(",")} WHERE ${where.sql}`,
-          [...val, ...where.params],
-        );
-      else return { changed: 0, meta: this.meta() };
+      if (action === "update" && !valid.length) {
+        if (
+          !this.values(
+            `SELECT 1 FROM ${ident(table)} WHERE ${where.sql}`,
+            where.params,
+          ).length
+        )
+          throw new Error("This row no longer exists. Refresh the table.");
+        return { changed: 0, key, meta: this.meta() };
+      }
+      sql =
+        action === "delete"
+          ? `DELETE FROM ${ident(table)} WHERE ${where.sql}`
+          : `UPDATE ${ident(table)} SET ${valid.map((n) => ident(n) + "=?").join(",")} WHERE ${where.sql}`;
+      params = action === "delete" ? where.params : [...val, ...where.params];
+    }
+    // A trigger using RAISE(FAIL) can otherwise leave partial changes behind.
+    this.db.run("SAVEPOINT squeaklite_row_edit");
+    let changed, savedKey;
+    try {
+      const rows = this.values(sql + returning, params);
       changed = this.db.getRowsModified();
+      if (!changed)
+        throw new Error(
+          action === "insert"
+            ? "No row was inserted. A trigger may have ignored the insert."
+            : "This row no longer exists or a trigger ignored the change. Refresh the table.",
+        );
+      savedKey = rows[0]
+        ? Object.fromEntries(
+            identity.fields.map((f, i) => [f, rows[0]["__key_" + i]]),
+          )
+        : undefined;
+      this.db.run("RELEASE squeaklite_row_edit");
+    } catch (error) {
+      try {
+        this.db.run("ROLLBACK TO squeaklite_row_edit");
+        this.db.run("RELEASE squeaklite_row_edit");
+      } catch {
+        /* RAISE(ROLLBACK) may already have ended the transaction. */
+      }
+      throw error;
     }
     if (changed) {
       this.dirty.add(this.path);
       this.operationVersion++;
     }
-    return { changed, meta: this.meta() };
+    return { changed, key: savedKey, meta: this.meta() };
   }
   editMany({ table, keys, databasePath, confirmed = false }) {
     this.assertDatabase(databasePath);

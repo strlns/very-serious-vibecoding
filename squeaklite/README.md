@@ -2,7 +2,12 @@
 
 A local-first SQLite workspace built with React, Vite and SQLite WebAssembly.
 Explore tables, edit rows and schemas, run SQL, build queries visually, and inspect
-relationship graphs. Import databases, folders or ZIPs containing multiple
+relationship graphs. The first-open chooser offers an empty database, import,
+or the fictional commerce demo; reopen it from Guide & shortcuts. The visual
+builder supports LEFT/INNER joins (forward/reverse foreign keys or custom column
+pairs), grouping and COUNT/SUM/AVG/MIN/MAX summaries. Self joins and aliases use
+the SQL editor. One-to-many joins can multiply rows and aggregate values.
+Import databases, folders or ZIPs containing multiple
 databases and companion files. Data stays in your browser; there is no backend.
 
 ## Development

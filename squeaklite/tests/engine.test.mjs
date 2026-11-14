@@ -18,3 +18,31 @@ test('explicit write transactions reject export without losing rollback capabili
 test('bulk deletion rolls back every row if a later row is referenced',async()=>{const e=await fresh();e.db.run('CREATE TABLE parents(id INTEGER PRIMARY KEY);CREATE TABLE children(id INTEGER PRIMARY KEY,parent INTEGER REFERENCES parents(id));INSERT INTO parents VALUES(1),(2),(3);INSERT INTO children VALUES(1,2);');const keys=e.browse({table:'parents'}).keys;assert.throws(()=>e.editMany({confirmed:true,table:'parents',keys:[keys[0],keys[1]]}),/FOREIGN KEY/);assert.equal(e.browse({table:'parents'}).count,3n);assert.equal(e.dirty.size,0);assert.equal(e.editMany({confirmed:true,table:'parents',keys:[keys[0],keys[2]]}).changed,2);assert.equal(e.browse({table:'parents'}).count,1n);e.db.close();});
 test('folder imports preserve embedded ZIP companions and empty archive directories',async()=>{const source=await fresh(),bytes=(await source.export({databaseOnly:true})).bytes;const companion=zipSync({'inner.txt':strToU8('preserve this archive')});const e=new Engine(SQL);await e.importFiles([{file:file(bytes,'data.db'),path:'project/data.db'},{file:file(companion,'assets.zip'),path:'project/assets.zip'}]);let entries=unzipSync((await e.export()).bytes);assert.deepEqual(entries['project/assets.zip'],companion);await e.importFiles([file(zipSync({'data.db':bytes,'empty/':new Uint8Array()}),'workspace.zip')]);entries=unzipSync((await e.export()).bytes);assert.ok(Object.hasOwn(entries,'empty/'));source.db.close();e.db.close();});
 test('INTEGER PRIMARY KEY DESC and misleading schema text still choose a safe row identity',async()=>{const e=await fresh();e.db.run("CREATE TABLE descending(id INTEGER PRIMARY KEY DESC,value TEXT);INSERT INTO descending VALUES(NULL,'first'),(NULL,'second');CREATE TABLE literal_text(value TEXT DEFAULT 'WITHOUT ROWID');INSERT INTO literal_text DEFAULT VALUES;");let d=e.browse({table:'descending'});assert.ok(Object.hasOwn(d.keys[0],'rowid'));e.edit({table:'descending',key:d.keys[0],action:'update',values:{value:'one row'}});assert.equal(e.values("SELECT COUNT(*) AS n FROM descending WHERE value='one row'")[0].n,1n);d=e.browse({table:'literal_text'});assert.equal(d.editable,true);e.db.close();});
+
+test('row edits return exact changed identities and browse locates their sorted page',async()=>{
+ const e=await fresh();
+ e.query({confirmed:true,sql:'CREATE TABLE moving(id INTEGER PRIMARY KEY,name TEXT);INSERT INTO moving SELECT id,name FROM customers;'});
+ const d=e.browse({table:'moving',pageSize:10});
+ const result=e.edit({table:'moving',action:'update',key:d.keys[0],token:d.token,values:{id:'9223372036854775806',name:'Zzz'}});
+ assert.deepEqual(result.key,{id:9223372036854775806n});
+ const located=e.browse({table:'moving',sort:'id',pageSize:10,focusKey:result.key});
+ assert.equal(located.page,12);assert.equal(located.focusFound,true);assert.ok(located.keys.some(k=>k.id===result.key.id));
+ const hidden=e.browse({table:'moving',search:'does not exist',focusKey:result.key});assert.equal(hidden.focusFound,false);assert.equal(hidden.count,0n);
+ e.query({confirmed:true,sql:"CREATE TABLE pair(a TEXT,b INTEGER,value TEXT,PRIMARY KEY(a,b)) WITHOUT ROWID;INSERT INTO pair VALUES('a',1,'same'),('b',2,'same');CREATE TABLE plain(body TEXT);INSERT INTO plain VALUES('old');"});
+ let rows=e.browse({table:'pair'});const updated=e.edit({table:'pair',action:'update',key:rows.keys[0],values:{a:'z',b:9}});assert.deepEqual(updated.key,{a:'z',b:9n});assert.equal(e.browse({table:'pair',sort:'value',focusKey:updated.key}).focusFound,true);
+ rows=e.browse({table:'plain'});const plain=e.edit({table:'plain',action:'update',key:rows.keys[0],values:{body:'new'}});assert.deepEqual(plain.key,{rowid:1n});assert.equal(e.browse({table:'plain',focusKey:plain.key}).focusFound,true);e.db.close();
+});
+test('stale/missing rows and ignored inserts cannot report success; trigger failures roll back atomically',async()=>{
+ const e=await fresh();let d=e.browse({table:'customers'});e.edit({table:'customers',action:'update',key:d.keys[0],values:{name:'new'}});
+ assert.throws(()=>e.edit({table:'customers',action:'update',key:d.keys[0],token:d.token,values:{name:'stale'}}),/changed while this form/);
+ assert.throws(()=>e.edit({table:'customers',action:'update',key:{id:9999},values:{name:'missing'}}),/no longer exists/);
+ e.query({confirmed:true,sql:"CREATE TABLE guarded(id INTEGER PRIMARY KEY,body TEXT);INSERT INTO guarded VALUES(1,'before');CREATE TABLE audit(msg TEXT);CREATE TRIGGER guard BEFORE UPDATE ON guarded BEGIN INSERT INTO audit VALUES('partial');SELECT RAISE(FAIL,'blocked by guard');END;CREATE TRIGGER ignore_insert BEFORE INSERT ON guarded BEGIN SELECT RAISE(IGNORE);END;"});
+ const version=e.operationVersion;
+ assert.throws(()=>e.edit({table:'guarded',action:'update',key:{id:1},values:{body:'after'}}),/blocked by guard/);
+ assert.equal(e.values('SELECT body FROM guarded')[0].body,'before');assert.equal(e.values('SELECT COUNT(*) n FROM audit')[0].n,0n);assert.equal(e.operationVersion,version);
+ assert.throws(()=>e.edit({table:'guarded',action:'insert',values:{body:'ignored'}}),/No row was inserted/);assert.equal(e.values('SELECT COUNT(*) n FROM guarded')[0].n,1n);e.db.close();
+});
+test('empty workspace replaces the demo with a valid portable database',async()=>{
+ const e=await fresh();const before=e.workspaceGeneration;const w=await e.empty();assert.ok(w.workspaceId>before);assert.equal(w.active,'workspace.db');assert.equal(w.databases.length,1);assert.equal(w.meta.objects.length,0);
+ const exported=await e.export({databaseOnly:true});assert.equal(new TextDecoder().decode(exported.bytes.subarray(0,16)),'SQLite format 3\0');e.db.close();
+});

@@ -94,9 +94,10 @@ export function Modal({
       if (e.key === "Tab") {
         const elements = [
           ...ref.current.querySelectorAll(
-            'button,input,textarea,select,[tabindex="0"]',
+            'button,a[href],input,textarea,select,[tabindex="0"]',
           ),
-        ].filter((n) => !n.disabled);
+          ...document.querySelectorAll(".global-error button"),
+        ].filter((n) => !n.disabled && !n.closest("[inert]"));
         const first = elements[0],
           last = elements.at(-1);
         if (
@@ -163,6 +164,7 @@ export function DataGrid({
   schema = [],
   compact = false,
   disabled = false,
+  highlightedKey = null,
 }) {
   const [viewport, setViewport] = useState({ top: 0, height: 450 });
   const onViewport = useCallback(
@@ -252,11 +254,24 @@ export function DataGrid({
           )}
           {rows.slice(start, end).map((row, offset) => {
             const ri = start + offset;
+            const serialize = (key) =>
+              JSON.stringify(key, (_, v) =>
+                typeof v === "bigint" ? String(v) : v,
+              );
+            const rowKey =
+              keys[ri] && Object.keys(keys[ri]).length
+                ? serialize(keys[ri])
+                : undefined;
+            const highlighted =
+              !!highlightedKey && rowKey === serialize(highlightedKey);
             return (
               <tr
-                key={ri}
+                key={rowKey || ri}
+                data-row-key={rowKey}
+                data-row-highlight={highlighted ? "true" : undefined}
+                tabIndex={onRow ? -1 : undefined}
                 aria-rowindex={ri + 2}
-                className={`${onRow ? "clickable" : ""} ${selected.includes(ri) ? "selected" : ""}`}
+                className={`${onRow ? "clickable" : ""} ${selected.includes(ri) ? "selected" : ""} ${highlighted ? "row-highlight" : ""}`}
                 onClick={() => {
                   if (!disabled) onRow?.(row, keys[ri], ri);
                 }}

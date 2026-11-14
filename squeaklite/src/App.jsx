@@ -86,6 +86,7 @@ const shortcut = shortcutLabels();
 import Graph from "./Graph.jsx";
 import TableViewport from "./TableViewport.jsx";
 import DeleteDialog from "./DeleteDialog.jsx";
+import { columnPolicy } from "./row-schema.ts";
 import { tableViewKey } from "./view-state.ts";
 import { parseRoute as readRoute, routeHash } from "./routes.ts";
 const parseRoute = () => readRoute(location.hash);
@@ -130,7 +131,10 @@ export default function App() {
     [selection, setSelected] = useState([]),
     [visibleColumns, setVisibleColumns] = useState(null),
     [columnsOpen, setColumnsOpen] = useState(false);
-  const [modal, setModal] = useState(null),
+  const [welcome, setWelcome] = useState(false),
+    [highlight, setHighlight] = useState(null),
+    [deletedRows, setDeletedRows] = useState([]),
+    [modal, setModal] = useState(null),
     [rowEditor, setRowEditor] = useState(null),
     [scratchSql, setScratchSql] = useState(""),
     [viewSqlDrafts, setViewSqlDrafts] = useState({}),
@@ -155,6 +159,23 @@ export default function App() {
     [refresh, setRefresh] = useState(0),
     [viewsOpen, setViewsOpen] = useState(true),
     [tabOpen, setTabOpen] = useState(true);
+  const [alertHeight, setAlertHeight] = useState(0);
+  const alertRef = useRef();
+  useEffect(() => {
+    if (!error || !alertRef.current) {
+      setAlertHeight(0);
+      return;
+    }
+    const measure = () =>
+      setAlertHeight(alertRef.current?.getBoundingClientRect().height || 0);
+    measure();
+    const observer =
+      typeof window.ResizeObserver === "function"
+        ? new window.ResizeObserver(measure)
+        : null;
+    observer?.observe(alertRef.current);
+    return () => observer?.disconnect();
+  }, [error]);
   const tableSearchRef = useRef(),
     pendingQueryFocus = useRef(false),
     pendingSearchFocus = useRef(false),
@@ -165,7 +186,10 @@ export default function App() {
     initialized = useRef(false),
     busyRef = useRef(true),
     contextRef = useRef(),
-    pendingTableFocus = useRef(false);
+    pendingTableFocus = useRef(false),
+    pendingRowFocus = useRef(null),
+    highlightTimer = useRef(),
+    deletionTimer = useRef();
   const meta = workspace?.meta,
     objects = meta?.objects || [],
     tables = objects.filter((o) => o.type === "table"),
@@ -226,6 +250,12 @@ export default function App() {
     view: route.view,
     queryContext,
   };
+  const finishWelcome = () => {
+    setWelcome(false);
+    try {
+      localStorage.setItem("squeaklite-intro-seen", "1");
+    } catch {}
+  };
   const notify = (message) => {
     setToast(message);
     clearTimeout(toastTimer.current);
@@ -255,7 +285,14 @@ export default function App() {
     location.hash = routeHash(view, t, db, nextFilters);
     setSidebar(false);
   };
-  useEffect(() => () => clearTimeout(toastTimer.current), []);
+  useEffect(
+    () => () => {
+      clearTimeout(toastTimer.current);
+      clearTimeout(highlightTimer.current);
+      clearTimeout(deletionTimer.current);
+    },
+    [],
+  );
   useEffect(() => {
     const listener = () => setRoute(parseRoute());
     window.addEventListener("hashchange", listener);
@@ -268,6 +305,13 @@ export default function App() {
       .then((w) => {
         setWorkspace(w);
         if (w.persistence) setStorage(w.persistence);
+        if (!w.restored) {
+          let seen = false;
+          try {
+            seen = localStorage.getItem("squeaklite-intro-seen") === "1";
+          } catch {}
+          setWelcome(!seen);
+        }
         if (w.restored) {
           const first =
             w.meta.objects.find((o) => o.type === "table")?.name || "";
@@ -313,7 +357,9 @@ export default function App() {
     setData(null);
     setColumnsOpen(false);
     setRowEditor(null);
-  }, [table, workspace?.active, route.filterKey]);
+    pendingRowFocus.current = null;
+    setHighlight(null);
+  }, [table, workspace?.active, workspace?.workspaceId, route.filterKey]);
   useEffect(() => {
     setQueryResult(null);
     setQueryError("");
@@ -346,6 +392,13 @@ export default function App() {
     )
       return;
     const version = ++loadVersion.current;
+    const focus = pendingRowFocus.current;
+    const focusKey =
+      focus?.table === table &&
+      focus?.path === workspace.active &&
+      focus?.workspaceId === workspace.workspaceId
+        ? focus.key
+        : undefined;
     const timer = setTimeout(
       () => {
         rpc("browse", {
@@ -356,6 +409,7 @@ export default function App() {
           sort: sort.column,
           direction: sort.direction,
           filters,
+          focusKey,
         })
           .then((d) => {
             if (version === loadVersion.current) {
@@ -373,6 +427,20 @@ export default function App() {
               });
               setPage(d.page);
               setSelected([]);
+              if (focusKey && pendingRowFocus.current === focus) {
+                pendingRowFocus.current = null;
+                if (d.focusFound) {
+                  setHighlight(focus);
+                  clearTimeout(highlightTimer.current);
+                  highlightTimer.current = setTimeout(
+                    () => setHighlight(null),
+                    2800,
+                  );
+                } else
+                  notify(
+                    "Changes saved · the row is no longer visible with the current filters, or was changed by a trigger.",
+                  );
+              }
             }
           })
           .catch((e) => {
@@ -407,11 +475,32 @@ export default function App() {
       )?.focus({ preventScroll: true });
     }
   }, [data]);
+  useEffect(() => {
+    if (!data || !highlight) return;
+    const row = document.querySelector("main [data-row-highlight]");
+    if (!row) return;
+    row.focus({ preventScroll: true });
+    row.scrollIntoView?.({
+      block: "center",
+      inline: "nearest",
+      behavior: "instant",
+    });
+  }, [data, highlight]);
   const reload = async () => {
     setData(null);
-    const w = await rpc("workspace");
-    setWorkspace(w);
-    setRefresh((n) => n + 1);
+    try {
+      const w = await rpc("workspace");
+      setWorkspace(w);
+      setRefresh((n) => n + 1);
+      return true;
+    } catch (e) {
+      // A committed mutation must never be presented as a failed save to retry.
+      setError(
+        `The operation finished, but refreshing the workspace failed: ${e.message}`,
+      );
+      setRefresh((n) => n + 1);
+      return false;
+    }
   };
   const importFiles = (files) => {
     if (!files.length || busyRef.current) return;
@@ -425,6 +514,7 @@ export default function App() {
           })),
         );
         setWorkspace(w);
+        finishWelcome();
         setQueryResult(null);
         setRowEditor(null);
         setModal(null);
@@ -515,6 +605,7 @@ export default function App() {
       object,
       columns: data.columns,
       editable: data.editable,
+      token: data.token,
     });
   };
   const openInsert = () => {
@@ -532,15 +623,31 @@ export default function App() {
     });
   };
   const saveRow = (values) => {
-    const snapshot = rowEditor;
+    const snapshot = rowEditor,
+      expectedView = contextRef.current.viewKey;
     return perform("Saving changes…", async () => {
-      await rpc("edit", {
+      const result = await rpc("edit", {
+        token: snapshot.token,
         table: snapshot.table,
         key: snapshot.key,
         values,
         action: snapshot.action,
         databasePath: snapshot.databasePath,
       });
+      if (
+        contextRef.current.viewKey === expectedView &&
+        contextRef.current.path === snapshot.databasePath &&
+        contextRef.current.view === "data"
+      ) {
+        pendingRowFocus.current = result.key
+          ? {
+              key: result.key,
+              table: snapshot.table,
+              path: snapshot.databasePath,
+              workspaceId: workspace.workspaceId,
+            }
+          : null;
+      }
       setSelected([]);
       setRowEditor(null);
       await reload();
@@ -578,9 +685,15 @@ export default function App() {
     requestDeletion(selected.map((i) => data.keys[i]));
   };
   const reviewDeletion = () => {
-    const snapshot = modal.snapshot;
+    const snapshot = modal.snapshot,
+      expectedView = contextRef.current.viewKey;
     return perform("Checking deletion…", async () => {
       const plan = await rpc("deletionPlan", snapshot);
+      if (
+        contextRef.current.viewKey !== expectedView ||
+        contextRef.current.path !== snapshot.databasePath
+      )
+        return;
       setModal({ type: "deleteRows", snapshot, plan });
     });
   };
@@ -588,11 +701,37 @@ export default function App() {
     const snapshot = modal.snapshot,
       token = modal.plan.token;
     return perform("Deleting rows…", async () => {
+      const expectedView = contextRef.current.viewKey;
+      const keyText = (key) =>
+        JSON.stringify(key, (_, v) => (typeof v === "bigint" ? String(v) : v));
+      const selectedKeys = new Set(snapshot.keys.map(keyText));
+      const ghosts = [
+        ...document.querySelectorAll("main .data-grid tbody tr[data-row-key]"),
+      ]
+        .filter((row) => selectedKeys.has(row.dataset.rowKey))
+        .map((row) => {
+          const rect = row.getBoundingClientRect();
+          return {
+            top: rect.top,
+            left: rect.left,
+            width: rect.width,
+            height: rect.height,
+            cells: [...row.cells].map((cell) => ({
+              text: cell.textContent,
+              width: cell.getBoundingClientRect().width,
+            })),
+          };
+        });
       const result = await rpc("deleteRows", {
         ...snapshot,
         token,
         confirmed: true,
       });
+      if (contextRef.current.viewKey === expectedView && result.changed) {
+        setDeletedRows(ghosts);
+        clearTimeout(deletionTimer.current);
+        deletionTimer.current = setTimeout(() => setDeletedRows([]), 500);
+      }
       setSelected([]);
       pendingTableFocus.current = true;
       setRowEditor(null);
@@ -605,20 +744,29 @@ export default function App() {
     setError("");
     setModal({ type: "deleteSaved", item });
   };
-  const showSample = () => {
+  const startWorkspace = (kind) => {
     const start = () =>
-      perform("Loading sample…", async () => {
-        const w = await rpc("demo");
-        setWorkspace(w);
-        setQueryResult(null);
-        navigate("data", "customers", "commerce.db");
-        setModal(null);
-        notify("Sample workspace loaded");
-      });
+      perform(
+        kind === "empty" ? "Creating workspace…" : "Loading sample…",
+        async () => {
+          const w = await rpc(kind);
+          setWorkspace(w);
+          setQueryResult(null);
+          navigate("data", kind === "empty" ? "" : "customers", w.active);
+          setModal(null);
+          finishWelcome();
+          notify(
+            kind === "empty"
+              ? "Empty workspace created · add a table or run SQL to begin"
+              : "Sample workspace loaded",
+          );
+        },
+      );
     if (workspace?.dirty.length || Object.keys(fileDrafts).length)
       setModal({ type: "replace", action: start });
     else start();
   };
+  const showSample = () => startWorkspace("demo");
   const setSchemaBusy = useCallback((value) => {
     busyRef.current = value;
     setBusy(value ? "Updating workspace…" : "");
@@ -699,6 +847,7 @@ export default function App() {
   return (
     <div
       className="app"
+      style={{ "--error-height": `${alertHeight}px` }}
       onDragOver={(e) => {
         e.preventDefault();
       }}
@@ -1221,17 +1370,6 @@ export default function App() {
               <ShieldCheck size={13} /> Private by design
             </span>
           </nav>
-          {error && (
-            <div className="error-banner global-error" role="alert">
-              <AlertCircle size={17} />
-              <span>{error}</span>
-              <IconButton
-                icon={X}
-                label="Dismiss error"
-                onClick={() => setError("")}
-              />
-            </div>
-          )}
           <div className="view-content">
             {!workspace ? (
               <div className="loading-state">
@@ -1470,6 +1608,13 @@ export default function App() {
                     ) : (
                       <DataGrid
                         disabled={!!busy}
+                        highlightedKey={
+                          highlight?.table === table &&
+                          highlight?.path === workspace.active &&
+                          highlight?.workspaceId === workspace.workspaceId
+                            ? highlight.key
+                            : null
+                        }
                         columns={visible}
                         rows={data.rows.map((r) => colIndexes.map((i) => r[i]))}
                         keys={data.keys}
@@ -1640,6 +1785,17 @@ export default function App() {
           </div>
         </footer>
       </div>
+      {error && (
+        <div className="error-banner global-error" role="alert" ref={alertRef}>
+          <AlertCircle size={17} />
+          <span>{error}</span>
+          <IconButton
+            icon={X}
+            label="Dismiss error"
+            onClick={() => setError("")}
+          />
+        </div>
+      )}
       {busy && (
         <div className="busy-indicator" role="status">
           <LoaderCircle size={16} className="spin" />
@@ -1651,6 +1807,79 @@ export default function App() {
           <Check size={16} />
           {toast}
         </div>
+      )}
+      {deletedRows.map((row, i) => (
+        <div
+          key={i}
+          className="deleted-row-snapshot"
+          aria-hidden="true"
+          style={{
+            top: row.top,
+            left: row.left,
+            width: row.width,
+            height: row.height,
+          }}
+        >
+          {row.cells.map((cell, j) => (
+            <span key={j} style={{ width: cell.width }}>
+              {cell.text}
+            </span>
+          ))}
+        </div>
+      ))}
+      {welcome && workspace && (
+        <Modal
+          title="Welcome to Squeaklite"
+          subtitle="A local SQLite workspace in your browser."
+          onClose={finishWelcome}
+          dismissible={!busy}
+        >
+          <div className="welcome-content">
+            <p>
+              Browse tables, edit rows and schemas, write SQL, join tables and
+              summarize data with the visual query builder.
+            </p>
+            <p>
+              The customers and orders in the automatically loaded commerce
+              database are fictional demo data. Import your own SQLite
+              databases, ZIP workspaces or folders whenever you like.
+            </p>
+            <p>
+              Changes stay in this browser. Autosave is available where browser
+              storage permits it; import and export always remain available.
+              Export a database or workspace ZIP to keep a portable copy.
+            </p>
+            <div className="welcome-choices">
+              <Button
+                disabled={!!busy}
+                icon={Plus}
+                onClick={() => startWorkspace("empty")}
+              >
+                Start empty
+              </Button>
+              <Button
+                disabled={!!busy}
+                icon={Upload}
+                onClick={() => fileRef.current.click()}
+              >
+                Import existing data
+              </Button>
+              <Button
+                disabled={!!busy}
+                icon={Database}
+                variant="primary"
+                onClick={showSample}
+              >
+                Start with demo database
+              </Button>
+            </div>
+            <small>
+              You can switch later from Guide &amp; shortcuts → Choose a
+              workspace. Replacing a workspace asks before discarding unsaved
+              edits.
+            </small>
+          </div>
+        </Modal>
       )}
       {rowEditor && (
         <RowEditor
@@ -1664,7 +1893,7 @@ export default function App() {
           onRequestDelete={() => requestDeletion([], "row")}
           onRelated={(f) => {
             setRowEditor(null);
-            const keys = object.foreignKeys
+            const keys = rowEditor.object.foreignKeys
               .filter((k) => k.id === f.id)
               .sort((a, b) => Number(a.seq) - Number(b.seq));
             const target =
@@ -1674,7 +1903,7 @@ export default function App() {
                 .sort((a, b) => Number(a.pk) - Number(b.pk)) || [];
             const match = keys.map((k, i) => ({
               column: k.to || target[i]?.name,
-              value: rowEditor.row[data.columns.indexOf(k.from)],
+              value: rowEditor.row[rowEditor.columns.indexOf(k.from)],
             }));
             navigate("data", f.table, workspace.active, match);
           }}
@@ -2149,6 +2378,15 @@ export default function App() {
             </div>
           </div>
           <footer className="modal-footer">
+            <Button
+              onClick={() => {
+                setModal(null);
+                setWelcome(true);
+              }}
+              icon={Database}
+            >
+              Choose a workspace
+            </Button>
             <Button onClick={showSample} icon={Database}>
               Load sample workspace
             </Button>
@@ -2270,13 +2508,7 @@ function Structure({
   onIndex,
 }) {
   if (!object) return <Empty title="No table selected" />;
-  const notNull = (c) =>
-    Number(c.notnull) > 0 ||
-    (Number(c.pk) > 0 &&
-      (object.withoutRowid ||
-        (object.columns.filter((x) => Number(x.pk) > 0).length === 1 &&
-          c.type.toUpperCase() === "INTEGER" &&
-          !object.indexes.some((i) => i.origin === "pk"))));
+  const notNull = (c) => !columnPolicy(object, c).nullable;
   return (
     <div className="structure-view">
       <div className="structure-actions">
@@ -2484,12 +2716,14 @@ export function RowEditor({
   const initial = Object.fromEntries(
     cols.map((c) => {
       const v = editor.row?.[data?.columns.indexOf(c.name)];
+      const policy = columnPolicy(object, c);
       return [
         c.name,
         {
           value: v == null ? "" : display(v),
           null: v === null,
-          useDefault: insert,
+          useDefault: insert && !policy.required,
+          provided: !insert,
           original: v,
         },
       ];
@@ -2497,14 +2731,29 @@ export function RowEditor({
   );
   const [fields, setFields] = useState(initial),
     [localError, setLocalError] = useState("");
-  const update = (name, patch) =>
-    setFields((f) => ({ ...f, [name]: { ...f[name], ...patch } }));
+  const update = (name, patch) => {
+    setLocalError("");
+    setFields((f) => ({
+      ...f,
+      [name]: { ...f[name], ...patch, provided: true },
+    }));
+  };
   const submit = (e) => {
     e.preventDefault();
     setLocalError("");
-    const values = {};
+    const values = Object.create(null);
     for (const c of cols) {
-      const f = fields[c.name];
+      const f = fields[c.name],
+        policy = columnPolicy(object, c);
+      if (insert && policy.required && !f.provided) {
+        setLocalError(`${c.name} needs a value (NOT NULL, no default).`);
+        document.getElementById(`field-${c.name}`)?.focus();
+        return;
+      }
+      if (f.null && !policy.nullable) {
+        setLocalError(`${c.name} cannot be NULL.`);
+        return;
+      }
       if (
         Number(c.hidden) > 0 ||
         f.original instanceof Uint8Array ||
@@ -2553,6 +2802,7 @@ export function RowEditor({
         <div className="row-form">
           {cols.map((c) => {
             const f = fields[c.name],
+              policy = columnPolicy(object, c),
               fk = object.foreignKeys.find((k) => k.from === c.name),
               disabled =
                 busy ||
@@ -2565,7 +2815,11 @@ export function RowEditor({
                 <div className="form-field-heading">
                   <label htmlFor={`field-${c.name}`}>
                     {Number(c.pk) > 0 && <KeyRound size={12} />} {c.name}{" "}
-                    <small>{c.type.toLowerCase()}</small>
+                    <small>
+                      {c.type.toLowerCase()}
+                      {!policy.nullable ? " · NOT NULL" : ""}
+                      {policy.autoKey ? " · auto key" : ""}
+                    </small>
                   </label>
                   <div>
                     {insert && (
@@ -2573,7 +2827,12 @@ export function RowEditor({
                         <input
                           type="checkbox"
                           checked={f.useDefault}
-                          disabled={disabled}
+                          disabled={disabled || policy.required}
+                          title={
+                            policy.required
+                              ? "A value is required; this column has no default."
+                              : undefined
+                          }
                           onChange={(e) =>
                             update(c.name, { useDefault: e.target.checked })
                           }
@@ -2585,7 +2844,12 @@ export function RowEditor({
                       <input
                         type="checkbox"
                         checked={f.null}
-                        disabled={disabled}
+                        disabled={disabled || !policy.nullable}
+                        title={
+                          !policy.nullable
+                            ? "This column cannot be NULL."
+                            : undefined
+                        }
                         onChange={(e) =>
                           update(c.name, {
                             null: e.target.checked,
@@ -2604,7 +2868,11 @@ export function RowEditor({
                     insert
                       ? c.dflt_value != null
                         ? `Default: ${c.dflt_value}`
-                        : "Leave untouched for default / NULL"
+                        : policy.autoKey
+                          ? "Generated automatically"
+                          : policy.required
+                            ? "Required · enter a value"
+                            : "Leave untouched for default / NULL"
                       : f.null
                         ? "NULL"
                         : ""
@@ -2657,7 +2925,11 @@ export function RowEditor({
               {error}
             </div>
           )}
-          {localError && <p className="error-text">{localError}</p>}
+          {localError && (
+            <p className="error-text" role="alert">
+              {localError}
+            </p>
+          )}
         </div>
         <footer className="modal-footer">
           {!insert && !readOnly ? (

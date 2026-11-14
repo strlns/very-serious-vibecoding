@@ -6,6 +6,7 @@ import type { Engine } from "./engine.mjs";
 export type WorkerMethod =
   | "initialize"
   | "storageSave"
+  | "empty"
   | "demo"
   | "open"
   | "workspace"

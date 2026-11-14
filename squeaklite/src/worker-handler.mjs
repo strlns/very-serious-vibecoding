@@ -7,6 +7,7 @@ export function handle(engine) {
     return e;
   });
   const saves = new Set([
+    "empty",
     "demo",
     "importFiles",
     "open",
@@ -28,6 +29,7 @@ export function handle(engine) {
           ![
             "initialize",
             "storageSave",
+            "empty",
             "demo",
             "open",
             "workspace",

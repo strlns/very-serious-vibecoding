@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { Button, DataGrid, Empty, csvDownload } from "./ui.jsx";
 import { buildQuery, ident } from "./sql.ts";
+import JoinAssistant from "./JoinAssistant.jsx";
 import SqlEditor from "./SqlEditor.jsx";
 import useShortcuts from "./useShortcuts.js";
 import { commandEnter, shortcutLabels } from "./shortcuts.mjs";
@@ -78,16 +79,58 @@ export default function Query({
   );
   const update = (patch) => setBuilder((b) => ({ ...b, ...patch }));
   useEffect(() => {
-    if (!tables.some((t) => t.name === builder.table))
-      update({
-        table,
-        columns: [],
-        filters: [],
-        joins: [],
-        group: "",
-        order: "",
-        aggregateColumn: "",
-      });
+    setBuilder((previous) => {
+      const base =
+        tables.find((t) => t.name === previous.table)?.name ||
+        table ||
+        tables[0]?.name ||
+        "";
+      const columnsOf = (name) =>
+        tables
+          .find((t) => t.name === name)
+          ?.columns.filter((c) => Number(c.hidden) !== 1)
+          .map((c) => c.name) || [];
+      const connected = new Set([base]),
+        joins = [];
+      for (const join of previous.joins) {
+        const source = join.source || base,
+          pairs = join.pairs || [{ from: join.from, to: join.to }];
+        if (
+          !connected.has(source) ||
+          connected.has(join.table) ||
+          !pairs.length ||
+          !pairs.every(
+            (p) =>
+              columnsOf(source).includes(p.from) &&
+              columnsOf(join.table).includes(p.to),
+          )
+        )
+          continue;
+        joins.push(join);
+        connected.add(join.table);
+      }
+      const valid = new Set([
+        ...columnsOf(base),
+        ...joins.flatMap((j) =>
+          columnsOf(j.table).map((c) => j.table + "." + c),
+        ),
+      ]);
+      const next = {
+        ...previous,
+        table: base,
+        joins,
+        columns: previous.columns.filter((c) => valid.has(c)),
+        filters: previous.filters.filter((f) => valid.has(f.column)),
+        order: valid.has(previous.order) ? previous.order : "",
+        group: valid.has(previous.group) ? previous.group : "",
+        aggregateColumn: valid.has(previous.aggregateColumn)
+          ? previous.aggregateColumn
+          : "",
+      };
+      return JSON.stringify(next) === JSON.stringify(previous)
+        ? previous
+        : next;
+    });
   }, [table, objects]);
   useEffect(() => {
     setTab(0);
@@ -105,10 +148,12 @@ export default function Query({
     onDraft?.(currentSql);
   }, [currentSql, onDraft]);
   const removeJoin = (i) => {
-    const prefix = builder.joins[i].table + ".",
-      keep = (c) => !c.startsWith(prefix);
+    const removed = new Set([builder.joins[i].table]);
+    for (const join of builder.joins)
+      if (removed.has(join.source)) removed.add(join.table);
+    const keep = (c) => ![...removed].some((name) => c.startsWith(name + "."));
     update({
-      joins: builder.joins.filter((_, n) => n !== i),
+      joins: builder.joins.filter((j) => !removed.has(j.table)),
       columns: builder.columns.filter(keep),
       filters: builder.filters.filter((f) => keep(f.column)),
       order: keep(builder.order) ? builder.order : "",
@@ -133,13 +178,6 @@ export default function Query({
     return true;
   });
   const r = result?.results[Math.min(tab, result.results.length - 1)];
-  const fkOptions = (
-    tables.find((t) => t.name === builder.table)?.foreignKeys || []
-  ).filter(
-    (f) =>
-      f.table !== builder.table &&
-      !builder.joins.some((j) => j.table === f.table),
-  );
   return (
     <div className="query-workspace">
       <section className="query-panel">
@@ -291,7 +329,12 @@ export default function Query({
               </label>
             </div>
             <label className="field-label">
-              Select columns <span>All columns when none selected</span>
+              Select columns{" "}
+              <span>
+                {builder.aggregate
+                  ? "Summary uses the group column and aggregate below"
+                  : "All base-table columns when none selected"}
+              </span>
             </label>
             <div className="column-chips">
               {fields.map((c) => (
@@ -301,6 +344,7 @@ export default function Query({
                 >
                   <input
                     type="checkbox"
+                    disabled={!!builder.aggregate}
                     checked={builder.columns.includes(c.name)}
                     onChange={(e) =>
                       update({
@@ -413,61 +457,25 @@ export default function Query({
               ))}
             </div>
             <div className="builder-section">
-              <div className="section-label">
-                Join related tables{" "}
-                {fkOptions.length > 0 && (
-                  <Button
-                    icon={Plus}
-                    variant="quiet small"
-                    onClick={() => {
-                      const f = fkOptions[0];
-                      const keys = (
-                        tables.find((t) => t.name === builder.table)
-                          ?.foreignKeys || []
-                      )
-                        .filter((k) => k.id === f.id)
-                        .sort((a, b) => Number(a.seq) - Number(b.seq));
-                      const target =
-                        tables
-                          .find((t) => t.name === f.table)
-                          ?.columns.filter((c) => Number(c.pk) > 0)
-                          .sort((a, b) => Number(a.pk) - Number(b.pk)) || [];
-                      const pairs = keys.map((k, i) => ({
-                        from: k.from,
-                        to: k.to || target[i]?.name,
-                      }));
-                      update({
-                        joins: [
-                          ...builder.joins,
-                          {
-                            table: f.table,
-                            from: pairs[0].from,
-                            to: pairs[0].to,
-                            pairs,
-                          },
-                        ],
-                      });
-                    }}
-                  >
-                    Add join
-                  </Button>
+              <JoinAssistant
+                key={JSON.stringify(
+                  [builder.table, builder.joins.map((j) => j.table), objects],
+                  (_, v) => (typeof v === "bigint" ? String(v) : v),
                 )}
-              </div>
-              {!builder.joins.length && (
-                <p className="muted small-text">
-                  {fkOptions.length
-                    ? "Add a left join using a foreign key."
-                    : "No foreign keys available from this table."}
-                </p>
-              )}
+                tables={tables}
+                base={builder.table}
+                joins={builder.joins}
+                disabled={busy}
+                onAdd={(join) => update({ joins: [...builder.joins, join] })}
+              />
               {builder.joins.map((j, i) => (
                 <div className="join-row" key={i}>
                   <code>
-                    LEFT JOIN {j.table} ON{" "}
+                    {j.type || "LEFT"} JOIN {j.table} ON{" "}
                     {(j.pairs || [{ from: j.from, to: j.to }])
                       .map(
                         (p) =>
-                          `${builder.table}.${p.from} = ${j.table}.${p.to}`,
+                          `${j.source || builder.table}.${p.from} = ${j.table}.${p.to}`,
                       )
                       .join(" AND ")}
                   </code>

@@ -7,6 +7,8 @@ export interface Join {
   table: string;
   from: string;
   to: string;
+  source?: string;
+  type?: string;
   pairs?: { from: string; to: string }[];
 }
 export interface QueryOptions {
@@ -58,12 +60,13 @@ export function buildQuery({
       ? `${ident(prefix)}.${ident(c.slice(prefix.length + 1))}`
       : `${ident(table)}.${ident(c)}`;
   };
-  const fields = columns.length
-    ? columns.map(ref)
-    : aggregate
-      ? group
-        ? [ref(group)]
-        : []
+  // In summary mode only grouped dimensions belong beside an aggregate.
+  const fields = aggregate
+    ? group
+      ? [ref(group)]
+      : []
+    : columns.length
+      ? columns.map(ref)
       : [`${ident(table)}.*`];
   if (aggregate)
     fields.push(
@@ -73,11 +76,11 @@ export function buildQuery({
   for (const j of joins)
     if (j.table && j.from && j.to)
       sql +=
-        `\nLEFT JOIN ${ident(j.table)} ON ` +
+        `\n${j.type === "INNER" ? "INNER" : "LEFT"} JOIN ${ident(j.table)} ON ` +
         (j.pairs || [{ from: j.from, to: j.to }])
           .map(
             (p) =>
-              `${ident(table)}.${ident(p.from)} = ${ident(j.table)}.${ident(p.to)}`,
+              `${ident(j.source || table)}.${ident(p.from)} = ${ident(j.table)}.${ident(p.to)}`,
           )
           .join(" AND ");
   const valid = filters.filter((f) => f.column);
