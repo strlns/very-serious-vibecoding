@@ -35,7 +35,9 @@ export class WorkspaceStorage {
   private waitingForLock = false;
 
   private onStatus?: (status: StorageStatus) => void;
-  constructor(onStatus?: (status: StorageStatus) => void) { this.onStatus = onStatus; }
+  constructor(onStatus?: (status: StorageStatus) => void) {
+    this.onStatus = onStatus;
+  }
 
   private waitForAccess(locks: LockManager) {
     if (this.waitingForLock || this.ownsLock) return;
@@ -170,7 +172,10 @@ export class WorkspaceStorage {
       message: `${prefix}: ${error instanceof Error ? error.message : String(error)}`,
     };
   }
-  async save(snapshot: () => Snapshot) {
+  async save(
+    snapshot: () => Snapshot,
+    onCommitted?: (entries: Snapshot["entries"]) => void,
+  ) {
     if (!this.root || !this.writable) return;
     let directoryName: string | undefined;
     try {
@@ -207,6 +212,16 @@ export class WorkspaceStorage {
         files,
         savedAt: new Date().toISOString(),
       };
+      // File/Blob objects returned by OPFS depend on their backing entries.
+      // Resolve new references before publication, then rebind the engine before
+      // deleting the previous directory. No full-workspace RAM copy is needed.
+      const committedEntries: Snapshot["entries"] = [];
+      for (const file of files) {
+        committedEntries.push({
+          path: file.path,
+          data: await (await directory.getFileHandle(file.key)).getFile(),
+        });
+      }
       const writer = await (
         await this.root.getFileHandle("HEAD.json", { create: true })
       ).createWritable();
@@ -219,6 +234,7 @@ export class WorkspaceStorage {
       }
       const previous = this.head;
       this.head = head;
+      onCommitted?.(committedEntries);
       this.status = {
         mode: "opfs",
         state: "saved",

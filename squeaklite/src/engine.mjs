@@ -60,7 +60,12 @@ export class Engine {
     };
   }
   async storageSave() {
-    await this.persistence?.save(() => this.snapshot());
+    await this.persistence?.save(
+      () => this.snapshot(),
+      (entries) => {
+        this.files = new Map(entries.map((entry) => [entry.path, entry.data]));
+      },
+    );
     return this.persistence?.status;
   }
   values(sql, params = []) {

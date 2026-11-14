@@ -4,13 +4,23 @@ import init from 'sql.js';
 import {Engine} from '../src/engine.mjs';
 import {WorkspaceStorage} from '../src/persistence.ts';
 
-// OPFS double models commit-on-close and failures before commit, not SQLite.
+// OPFS File objects become unreadable when their backing entry is removed.
+// Plain in-memory Blobs would hide snapshot-retirement bugs.
 function environment() {
   let failWrites=false,locked=false;
   const waiters=[];
   const release=()=>{locked=false;waiters.shift()?.();};
+  class FileView extends Blob {
+    constructor(data, valid) { super([data]); this.valid=valid; }
+    assertReadable() { if (!this.valid()) throw new DOMException('Backing entry was removed','NotFoundError'); }
+    async arrayBuffer() { this.assertReadable(); return super.arrayBuffer(); }
+    async text() { this.assertReadable(); return super.text(); }
+    slice(...args) { this.assertReadable(); return new FileView(super.slice(...args),this.valid); }
+  }
   class Directory {
     nodes=new Map();
+    alive=true;
+    retire() { this.alive=false; for(const node of this.nodes.values()) if(node instanceof Directory) node.retire(); }
     async getDirectoryHandle(name,{create=false}={}) {
       if (!this.nodes.has(name) && create) this.nodes.set(name,new Directory());
       if (!this.nodes.has(name)) throw new DOMException('Missing','NotFoundError');
@@ -20,18 +30,22 @@ function environment() {
       if (!this.nodes.has(name) && create) this.nodes.set(name,new Blob());
       if (!this.nodes.has(name)) throw new DOMException('Missing','NotFoundError');
       return {
-        getFile:async()=>this.nodes.get(name),
+        getFile:async()=>{
+          const data=this.nodes.get(name);
+          if(!data || !this.alive) throw new DOMException('Missing','NotFoundError');
+          return new FileView(data,()=>this.alive && this.nodes.get(name)===data);
+        },
         createWritable:async()=>{
           let value;
           return {
-            write:async data=>{if(failWrites) throw new DOMException('Full','QuotaExceededError');value=new Blob([data]);},
+            write:async data=>{if(failWrites) throw new DOMException('Full','QuotaExceededError');value=new Blob([data instanceof Blob ? await data.arrayBuffer() : data]);},
             close:async()=>this.nodes.set(name,value),
             abort:async()=>{},
           };
         },
       };
     }
-    async removeEntry(name) { this.nodes.delete(name); }
+    async removeEntry(name) { const node=this.nodes.get(name); if(node instanceof Directory) node.retire(); this.nodes.delete(name); }
   }
   const root=new Directory();
   Object.defineProperty(globalThis,'navigator',{configurable:true,value:{
@@ -156,4 +170,28 @@ test('lock API errors are not reported as contention with another tab',async()=>
   assert.equal(await storage.initialize(),null);
   assert.equal(storage.status.state,'error');
   assert.doesNotMatch(storage.status.message,/another tab|waiting for workspace/);
+});
+
+
+test('restored file handles are rebound before retiring snapshots, across repeated edits, switches and exports',async()=>{
+  const env=environment(),SQL=await init(),engine=new Engine(SQL);
+  engine.persistence=new WorkspaceStorage();await engine.initialize();
+  const other=new SQL.Database();other.run("CREATE TABLE notes(id INTEGER PRIMARY KEY,body TEXT);INSERT INTO notes VALUES(1,'second db');");
+  engine.files.set('nested/other.db',other.export());other.close();
+  engine.files.set('binary.dat',new Uint8Array([0,255,2]));await engine.storageSave();env.release();
+  const restored=new Engine(SQL);restored.persistence=new WorkspaceStorage();assert.equal((await restored.initialize()).restored,true);
+  const oldCompanion=restored.files.get('README.txt');
+  for(let i=0;i<3;i++) {
+    restored.edit({table:'customers',action:'update',key:{id:1},values:{name:'Edited '+i}});await restored.storageSave();
+    assert.equal(restored.persistence.status.state,'saved');
+    assert.equal((await restored.workspace()).databases.length,2);
+    assert.match((await restored.readFile({path:'README.txt'})).text,/sample workspace/);
+    const archive=await restored.export();assert.ok(archive.bytes.length>0);
+  }
+  await assert.rejects(()=>oldCompanion.arrayBuffer(),{name:'NotFoundError'});
+  assert.deepEqual(new Uint8Array(await restored.files.get('binary.dat').arrayBuffer()),new Uint8Array([0,255,2]));
+  await restored.open('nested/other.db');assert.equal(restored.browse({table:'notes'}).rows[0][1],'second db');await restored.storageSave();
+  await restored.open('commerce.db');assert.equal(restored.values('SELECT name FROM customers WHERE id=1')[0].name,'Edited 2');
+  const root=await env.root.getDirectoryHandle('squeaklite-v1');assert.equal([...root.nodes.keys()].filter(k=>k.startsWith('snapshot-')).length,1);
+  engine.db.close();restored.db.close();
 });

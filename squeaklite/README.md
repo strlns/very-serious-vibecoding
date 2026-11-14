@@ -68,8 +68,9 @@ by browser module-loading rules. Building locally does not deploy anything.
 - Unsaved text drafts, editor SQL and history are not autosaved. Save companion
   text changes explicitly. Saved queries and UI preferences use localStorage.
 - Autosave publishes complete snapshots and retains the last good snapshot on
-  failure. Open write transactions must finish before saving. Browser data can be
-  cleared or evicted; “Keep browser storage” requests persistent storage.
+  failure. Restored file references move to the new snapshot before old snapshot
+  files are removed. Open write transactions must finish before saving. Browser
+  data can be cleared or evicted; “Keep browser storage” requests persistent storage.
 
 ## Limits
 
