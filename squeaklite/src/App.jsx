@@ -1131,6 +1131,7 @@ export default function App() {
                 href={appDownloadHref(
                   location.href,
                   import.meta.env?.MODE === "singlefile",
+                  import.meta.env?.VITE_APP_BUILD || "",
                 )}
                 download="squeaklite.html"
                 title="Download the app for offline use. Export workspace data separately."

@@ -1,9 +1,20 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import {appDownloadPlugin} from "./scripts/app-download.mjs";
+import { appDownloadPlugin } from "./scripts/app-download.mjs";
+import { apacheCachePlugin } from "./scripts/apache-cache.mjs";
+import { buildVersion } from "./scripts/build-version.mjs";
 import { fileURLToPath } from "node:url";
-export default defineConfig(({ mode }) => ({
-  plugins: [react(), appDownloadPlugin()],
+export default defineConfig(async ({ mode }) => ({
+  define: {
+    "import.meta.env.VITE_APP_BUILD": JSON.stringify(
+      await buildVersion(fileURLToPath(new URL(".", import.meta.url))),
+    ),
+  },
+  plugins: [
+    react(),
+    appDownloadPlugin(),
+    ...(mode === "singlefile" ? [] : [apacheCachePlugin()]),
+  ],
   base: "./",
   resolve: {
     alias: {

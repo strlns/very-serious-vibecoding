@@ -30,7 +30,7 @@ This produces **both** static build targets:
 
 | Output | Contents | Usage |
 | --- | --- | --- |
-| `dist/` | HTML and separate JS, CSS, fonts and WASM assets | Serve the whole directory over HTTP(S); `npm run preview` previews it locally. |
+| `dist/` | Thin HTML shell, hashed JS/CSS/fonts/WASM and Apache cache policy | Serve the whole directory over HTTP(S); `npm run preview` previews it locally. |
 | `dist-singlefile/index.html` | One HTML file with all code, fonts, WASM and worker embedded | Open directly in a compatible browser or serve over HTTP(S). |
 
 `dist-singlefile/` contains only `index.html`, which is committed to Git so the
@@ -61,6 +61,25 @@ already trusted in `known_hosts`). It uploads both builds to `_squeaklite` and
 `_dist-singlefile` under `/paperclip-factory.de/httpdocs`, then replaces their
 live counterparts. A relative symlink inside `squeaklite/` keeps Download HTML
 working with the sibling `dist-singlefile/` directory.
+
+## HTTP caching
+
+The split build's `index.html` is already a thin shell. Vite gives its JS, CSS,
+worker, fonts and WASM content-hashed filenames. `dist/.htaccess` adds **HTTP
+response headers** for Apache-based deployments: HTML and other unversioned
+files use `Cache-Control: no-cache` (revalidate, permitting 304 responses), while
+successful hashed asset responses use `public, max-age=31536000, immutable`.
+This requires Apache `mod_headers` and `AllowOverride FileInfo`. Other servers,
+or an nginx layer serving static files directly, need equivalent header rules.
+HTML meta tags do not substitute for these server settings.
+
+Both builds add `?v=<build fingerprint>` to HTTP download links. The fingerprint
+comes from source, build configuration and dependency inputs; it is stable for
+identical inputs and changes with a new build's code. The artifact stays named
+`dist-singlefile/index.html`, and `download="squeaklite.html"` still chooses the
+saved filename. Local `file://` self-downloads keep their existing URL.
+The deployment script copies the Apache policy beside the portable HTML on the
+server; locally `dist-singlefile/` continues to contain only `index.html`.
 
 ## Storage and portability
 

@@ -23,3 +23,10 @@ test('split build uses relative download paths for hosted roots and sibling buil
     assert.equal(new URL(relative,page).href,expected);
   }
 });
+
+test('HTTP downloads use a build version while portable file URLs remain self links',()=>{
+  assert.equal(appDownloadHref('https://example.test/squeaklite/#/data',false,'abc123'),'./dist-singlefile/index.html?v=abc123');
+  assert.equal(appDownloadHref('http://localhost/dist/index.html#/query',false,'build with spaces'),'../dist-singlefile/index.html?v=build%20with%20spaces');
+  assert.equal(appDownloadHref('https://example.test/renamed.html?lang=en&v=old#/data',true,'new'),'https://example.test/renamed.html?lang=en&v=new');
+  assert.equal(appDownloadHref('file:///tmp/My%20App.html#/query',true,'new'),'file:///tmp/My%20App.html');
+});

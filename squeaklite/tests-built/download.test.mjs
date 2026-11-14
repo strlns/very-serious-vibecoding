@@ -13,9 +13,10 @@ test('dev and preview deliver the exact portable HTML under nested URLs without 
     try {
       if(kind==='dev')await server.listen();
       const address=server.httpServer.address();
-      const url=`http://127.0.0.1:${address.port}/nested/app/dist-singlefile/index.html`;
+      const url=`http://127.0.0.1:${address.port}/nested/app/dist-singlefile/index.html?v=cache-test`;
       const response=await fetch(url);
       assert.equal(response.status,200);
+      assert.equal(response.headers.get('cache-control'),'no-cache');
       assert.match(response.headers.get('content-type'),/text\/html/);
       assert.equal(await response.text(),expected);
       const head=await fetch(url,{method:'HEAD'});

@@ -24,6 +24,7 @@ done
 
 [[ -s "$script_dir/dist/index.html" && -d "$script_dir/dist/assets" ]] ||
   fail "Build did not produce dist/index.html and dist/assets."
+[[ -s "$script_dir/dist/.htaccess" ]] || fail "Build did not produce the Apache cache policy."
 [[ -s "$script_dir/dist-singlefile/index.html" ]] ||
   fail "Build did not produce dist-singlefile/index.html."
 
@@ -43,13 +44,18 @@ REMOTE
 scp "${ssh_options[@]}" -r "$script_dir/dist" "$remote:$remote_root/_squeaklite"
 scp "${ssh_options[@]}" -r "$script_dir/dist-singlefile" "$remote:$remote_root/_dist-singlefile"
 
+# Keep the portable build itself as one file; install its Apache policy only on deployment.
+scp "${ssh_options[@]}" "$script_dir/dist/.htaccess" "$remote:$remote_root/_dist-singlefile/.htaccess"
+
 # Replace live directories only once both uploads have completed successfully.
 ssh "${ssh_options[@]}" "$remote" sh -s -- "$remote_root" <<'REMOTE'
 set -eu
 cd "$1"
 test -s _squeaklite/index.html
 test -d _squeaklite/assets
+test -s _squeaklite/.htaccess
 test -s _dist-singlefile/index.html
+test -s _dist-singlefile/.htaccess
 
 # The app's Download HTML link expects a nested path; the file lives next door.
 ln -s ../dist-singlefile _squeaklite/dist-singlefile
